@@ -42,7 +42,7 @@ class Programma implements JsonSerializable {
 	;
 
 	public function __construct($data, $details) {
-
+d($data); d($details);
 		$this->id = isset($data['id_programma']) ? $data['id_programma'] : null;
 		$this->nome = isset($data['nome_programma']) ? $data['nome_programma'] : null;
 		$this->descrizione = isset($data['descrizione_programma']) ? $data['descrizione_programma'] : null;

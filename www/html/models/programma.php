@@ -48,30 +48,9 @@ class ProgrammaModel {
 		);
 	}
 
-	public function programList($active = null) {
+	public function programList() {
 
 		$this->plist = $this->dbh->getResultSet("SELECT * FROM programmi");
-
-		$active = $active ?: $this->dbh->readSetting(Db::CURR_PROGRAM, null);
-
-		$found = false;
-
-		foreach ($this->plist as &$v) {
-
-			if ($active == $v['id_programma'] || is_null($active)) {
-
-				$found = true;
-				$v['attivo'] = 'active';
-				break;
-			}
-		}
-
-		if ($found === false && count($this->plist)) {
-			$this->plist[0]['attivo'] = 'list-group-item-info';
-			$found = $this->plist[0]['id_programma'];
-		}
-
-		return $found;
 	}
 
 	private function getProgramData($pid) {

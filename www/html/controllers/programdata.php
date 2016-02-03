@@ -21,8 +21,8 @@ class ProgramDataController extends GenericController {
 	}
 
 	public function setProgramId($programId, $day = null) {
+
 		$this->model->setProgramId($programId, $day);
-		//$this->model->setProgramId(1, $day);
 	}
 
 }

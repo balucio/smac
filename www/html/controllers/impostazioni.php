@@ -2,24 +2,25 @@
 
 class ImpostazioniController extends GenericController {
 
-    private
-        $models
-    ;
+	public function __construct($model) {
 
-    public
-        $programma,
-        $dettaglio
-    ;
+		$this->model = $model;
 
-    public function __construct($model) {
+		$this->dettaglioCompleto();
+	}
 
-        $this->model = $model;
 
-        $this->programma = new ProgrammaController($this->model->programma);
-        $this->dettaglio = new ProgrammaController($this->model->programma);
+	function dettaglioCompleto() {
 
-        $this->programma->elenco();
-        $this->dettaglio->dati();
+		$this->action = __FUNCTION__;
 
-    }
+		// get program id default current program
+		$pid = Request::Attr('program', null);
+
+		($pid === '' ||  !Validate::IsProgramId($pid))
+			&& $pid = null;
+
+		$this->model->dettaglioCompleto->setDay($day)->dati();
+	}
+
 }

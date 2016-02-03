@@ -15,7 +15,8 @@ class Validate {
         if (false === $var = filter_var($number, FILTER_VALIDATE_INT))
             return false;
 
-        return $var >= 1 && $var <= 7;
+            // 0 means all days
+        return $var >= 0 && $var <= 7;
     }
 
 }

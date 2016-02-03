@@ -1,16 +1,16 @@
 <ul id="programmazione-settimanale" class="nav nav-tabs" style="margin-bottom: 15px;">
 	{{#giorni}}
 	<li class="">
-		<a href="{{#decorateShordDay}}#{{key}}{{/decorateShordDay}}" data-toggle="tab">{{#decorateDay}}{{key}}{{/decorateDay}}</a>
+		<a href="{{#decorateShortDay}}{{day}}{{/decorateShortDay}}" data-toggle="tab">{{.day}} --</a>
 	</li>
 	{{/giorni}}
 </ul>
 <div id="programma-giornaliero" class="tab-content" >
-	{{#giorni}}
-	<div class="tab-pane fade {{activeday}}" id="{{#decorateDay}}{{key}}{{/decorateDay}}">
-		<p>{{#decorateDay}}{{key}}{{/decorateDay}}</p>
+	{{#dettaglio}}
+	<div class="tab-pane fade {{activeday}}" id="{{#decorateDay}}{{day}}{{/decorateDay}}">
+		<p>{{#decorateDay}}{{day}}{{/decorateDay}}</p>
 	</div>
-	{{/giorni}}
+	{{/dettaglio}}
 </div>
 <script>
 	{{tabcollapse}}

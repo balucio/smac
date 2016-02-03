@@ -29,7 +29,7 @@ class Decorator {
 
 		$n = isset($helper) ? $helper->render($day) : $day;
 
-		return strftime('%a', strtotime("Sunday + 1 days"));
+		return strftime('%a', strtotime("Sunday + $n days"));
 
 	}
 
@@ -37,7 +37,7 @@ class Decorator {
 
 		$n = isset($helper) ? $helper->render($day) : $day;
 
-		return strftime('%A', strtotime("Sunday + 1 days"));
+		return strftime('%A', strtotime("Sunday + $n days"));
 
 	}
 

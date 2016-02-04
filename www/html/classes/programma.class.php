@@ -1,12 +1,15 @@
 <?php
 
 class DettaglioProgramma implements JsonSerializable {
+
 	private
+
 		$giorno,
 		$ora,
 		$intervallo,
 		$t_rif_codice,
-		$t_rif_valore;
+		$t_rif_valore
+	;
 
 	public function __construct($data) {
 
@@ -17,7 +20,7 @@ class DettaglioProgramma implements JsonSerializable {
 		$this->t_rif_valore = isset($data['t_rif_val']) ? $data['t_rif_val'] : null;
 	}
 
-	public function jsonSerialize() {
+	public function jsonSerialize(){
 		return [
 			'giorno' => $this->giorno,
 			'ora' => $this->ora,
@@ -64,6 +67,7 @@ class Programma implements JsonSerializable {
 
 				$giorno = new stdClass();
 				$giorno->num = $dp->giorno;
+				$giorno->schedule =& $this->dettaglio[$dayDay];
 
 				$giorno->active = ($cDay == $dp->giorno) ? 'active' : '';
 

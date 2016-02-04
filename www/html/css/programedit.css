@@ -1,22 +1,8 @@
-.nav-tabs{
-  background-color:#161616;
-}
-.tab-content{
-    background-color:#303136;
-    color:#fff;
-    padding:5px
-}
-.nav-tabs > li > a{
-  border: medium none;
-}
-.nav-tabs > li > a:hover{
-  background-color: #303136 !important;
-    border: medium none;
-    border-radius: 0;
-    color:#fff;
-}
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:focus,
-.nav-tabs > li.active > a:hover{
-    background-color: #303136 !important;
+#programmazione-settimanale.nav-pills > li.active > a,
+#programmazione-settimanale.nav-pills > li.active > a:hover,
+#programmazione-settimanale.nav-pills > li.active > a:focus {
+	color: 	white;
+	cursor: default;
+	background-color: #e38d13;
+	border: 1px solid #e38d13;
 }

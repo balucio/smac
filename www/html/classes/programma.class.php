@@ -39,7 +39,8 @@ class Programma implements JsonSerializable {
 		$rif_temp_attuale = null,
 		$antigelo = null,
 		$temperature = [],
-		$dettaglio = []
+		$dettaglio = [],
+		$giorni = []
 	;
 
 	public function __construct($data, $details) {
@@ -53,10 +54,23 @@ class Programma implements JsonSerializable {
 		$cDay = date('N');
 		$dTime = time() - strtotime("today");
 
+		$dayDay = 0;
+
 		foreach ($details as $row) {
 
 			$dp = new DettaglioProgramma($row);
-			$this->dettaglio[$dp->giorno][] = $dp;
+
+			if ( $dp->giorno == ( $dayDay + 1 ) ) {
+
+				$giorno = new stdClass();
+				$giorno->num = $dp->giorno;
+
+				$giorno->active = ($cDay == $dp->giorno) ? 'active' : '';
+
+				$this->giorni[$dayDay++] = $giorno;
+			}
+
+			$this->dettaglio[$dayDay - 1][] = $dp;
 
 			if ($cDay == $dp->giorno && $dTime <= $dp->intervallo)
 				$this->rif_temp_attuale = $dp->t_rif_valore;
@@ -74,6 +88,8 @@ class Programma implements JsonSerializable {
 			'dettaglio' => $this->dettaglio
 		];
 	}
+
+	public function __isset($key) { return property_exists($this, $key); }
 
 	public function __get($data) { return $this->$data; }
 

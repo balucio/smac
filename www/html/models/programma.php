@@ -13,11 +13,6 @@ class ProgrammaModel {
 		$this->dbh = Db::get();
  	}
 
-	public function __isset($key) {
-
-		return array_key_exists($key, $this->sData);
-	}
-
 	public function __get($data) { return $this->$data; }
 
 	public function saveDefault($pid) {
@@ -42,15 +37,34 @@ class ProgrammaModel {
 
 	public function programData($pid, $day) {
 
-		$this->programma = new Programma(
+		$this->pdata = new Programma(
 			$this->getProgramData($pid),
 			$this->getProgramDetails($pid, $day)
 		);
 	}
 
-	public function programList() {
+	public function programList($pid) {
 
 		$this->plist = $this->dbh->getResultSet("SELECT * FROM programmi");
+
+		$found = false;
+
+		foreach ($this->plist as &$v) {
+
+			if ($pid == $v['id_programma']) {
+				$v['active'] = 'active';
+				$found = true;
+			} else {
+				$v['active'] = '';
+			}
+		}
+
+		if (!$found && count($this->plist)) {
+			$found = $this->plist[0]['id_programma'];
+			$this->plist[0]['active'] = 'active';
+		}
+
+		return $found;
 	}
 
 	private function getProgramData($pid) {

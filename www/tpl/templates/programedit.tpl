@@ -1,17 +1,21 @@
-<ul id="programmazione-settimanale" class="nav nav-tabs" style="margin-bottom: 15px;">
-	{{#giorni}}
-	<li class="">
-		<a href="{{#decorateShortDay}}{{day}}{{/decorateShortDay}}" data-toggle="tab">{{.day}} --</a>
+<ul id="programmazione-settimanale" class="nav nav-pills nav-stacked col-xs-3 col-sm-3 col-md-3" role="tablist">
+	{{#programedit.giorni}}
+	<li role="presentation" class="{{active}}">
+		<a aria-controls="{{#decorateShortDay}}{{num}}{{/decorateShortDay}}"
+			role="tab" data-toggle="tab"
+			href="#{{#decorateShortDay}}{{num}}{{/decorateShortDay}}">
+			{{#decorateDay}}{{num}}{{/decorateDay}}
+		</a>
 	</li>
-	{{/giorni}}
+	{{/programedit.giorni}}
 </ul>
-<div id="programma-giornaliero" class="tab-content" >
-	{{#dettaglio}}
-	<div class="tab-pane fade {{activeday}}" id="{{#decorateDay}}{{day}}{{/decorateDay}}">
-		<p>{{#decorateDay}}{{day}}{{/decorateDay}}</p>
+<div id="programma-giornaliero" class="tab-content col-xs-9 col-sm-9 col-md-9">
+	{{#programedit.giorni}}
+	<div role="tabpanel" class="tab-pane fade {{#active}}in {{active}}{{/active}}" id="{{#decorateShortDay}}{{num}}{{/decorateShortDay}}">
+		<p>{{#decorateDay}}{{num}}{{/decorateDay}}</p>
 	</div>
-	{{/dettaglio}}
+	{{/programedit.giorni}}
 </div>
 <script>
-	{{tabcollapse}}
+	{{tabactivate}}
 </script>

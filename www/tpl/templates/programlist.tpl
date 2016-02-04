@@ -6,17 +6,17 @@
 </a>
 <div class="collapse visible-md visible-lg visible-sm" id="elenco-programmi">
 	<div class="list-group">
-		{{#programmi}}
-			<a href="programma/visualizza?program={{id_programma}}" class="list-group-item {{attivo}}">
+		{{#programlist}}
+			<a href="programma/visualizza?program={{id_programma}}" class="list-group-item {{active}}">
 				<h6 class="list-group-item-heading">{{nome_programma}}</h6>
 				<small class="list-group-item-text">{{descrizione_programma}}</small>
 			</a>
-		{{/programmi}}
-		{{^programmi}}
+		{{/programlist}}
+		{{^programlist}}
 			<a href="#" class="list-group-item">
 				<h4 class="list-group-item-heading">Nessun programma</h4>
 				<p class="list-group-item-text">Non è stato definito alcun programa</p>
 			</a>
-		{{/programmi}}
+		{{/programlist}}
 	</div>
 </div>

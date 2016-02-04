@@ -10,9 +10,7 @@ class ProgrammaController extends GenericController {
 	public function __construct($model, $init = true) {
 
 		$this->model = $model;
-
-		if ($init)
-			$this->initFromRequest();
+		$this->initFromRequest();
 
 	}
 
@@ -41,10 +39,11 @@ class ProgrammaController extends GenericController {
 		$this->action = __FUNCTION__;
 
 		try {
-			if (!Validate::IsProgramId($this->programId))
+
+			if (!Validate::IsProgramId($this->pid))
 				throw new Exception('Id programma non valido');
 
-			$this->model->saveDefault($this->programId);
+			$this->model->saveDefault($this->pid);
 
 		} catch (Exception $e) {
 
@@ -60,9 +59,9 @@ class ProgrammaController extends GenericController {
 	}
 
 	public function dati() {
+
 		$this->action = __FUNCTION__;
 		$this->model->programData($this->pid, $this->day);
-
 	}
 
 	private function initFromRequest() {

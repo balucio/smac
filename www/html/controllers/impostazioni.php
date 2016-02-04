@@ -1,4 +1,4 @@
-   <?php
+<?php
 
 class ImpostazioniController extends GenericController {
 
@@ -10,7 +10,7 @@ class ImpostazioniController extends GenericController {
 	}
 
 
-	function dettaglioCompleto() {
+	protected function dettaglioCompleto() {
 
 		$this->action = __FUNCTION__;
 
@@ -20,7 +20,8 @@ class ImpostazioniController extends GenericController {
 		($pid === '' ||  !Validate::IsProgramId($pid))
 			&& $pid = null;
 
-		$this->model->dettaglioCompleto->setDay($day)->dati();
+		$this->model->dettaglioCompleto($pid);
+
 	}
 
 }

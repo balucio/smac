@@ -16,11 +16,17 @@ class Template
 		if( !isset( $tplh ) ) {
 
 			LoadConfig('TplConfig');
-			LoadLib('mustache');
+			LoadLib('Twig');
+
+			Twig_Autoloader::register();
+
+			$loader = new Twig_Loader_Filesystem( ROOT_DIR . TplConfig::templates );
+			self::$tplh = new Twig_Environment($loader, array(
+    			'cache' => '',
+			));
 
 			$tplh = new Mustache_Engine(array(
 
-				'template_class_prefix' => TplConfig::prefix,
 				'cache' => ROOT_DIR . TplConfig::cache,
 				'loader' => new Mustache_Loader_FilesystemLoader(
 					ROOT_DIR . TplConfig::templates,

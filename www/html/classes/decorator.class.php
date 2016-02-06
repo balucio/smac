@@ -25,6 +25,21 @@ class Decorator {
 		return '<span class="'. $class . '">' . $n . '</span>';
 	}
 
+	public function decorateShedule($row, Mustache_LambdaHelper $helper) {
+
+		list($t, $v) = explode('|', $helper->render($row));
+
+		$t = substr($t, 0, 5);
+		$v = $this->decorateTemperature($v);
+
+		return "<tr>"
+			. "<td>$t</td>"
+			. "<td>"
+				. "<span class=\"wi wi-thermometer\" aria-hidden=\"true\">"
+				. "</span> $v <span class=\"wi wi-celsius fa-1x\" aria-hidden=\"true\"></span>"
+			. "</td></tr>";
+	}
+
 	public function decorateShortDay($day, Mustache_LambdaHelper $helper = null) {
 
 		$n = isset($helper) ? $helper->render($day) : $day;
@@ -55,6 +70,16 @@ class Decorator {
 		return isset($datetime)
 			? strtolower( strftime( '%c', strtotime($dt)))
 			: 'ND';
+	}
+
+	public function decorateTime($time, Mustache_LambdaHelper $helper = null) {
+
+		$t = isset($helper) ? $helper->render($time) : $time;
+
+		return isset($time)
+			? substr($t, 0, 5)
+			: 'ND';
+
 	}
 
 	private function formatDecimal($number) {

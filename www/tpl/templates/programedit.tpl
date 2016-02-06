@@ -9,18 +9,16 @@
 	</li>
 	{{/programedit.giorni}}
 </ul>
-<div id="programma-giornaliero" class="tab-content col-xs-9 col-sm-9 col-md-9">
+<div id="programma-giornaliero" class="tab-content col-xs-5 col-sm-5 col-md-7">
 	{{#programedit.giorni}}
 	<div role="tabpanel" class="tab-pane fade {{#active}}in {{active}}{{/active}}" id="{{#decorateShortDay}}{{num}}{{/decorateShortDay}}">
 		<div id="#dettaglio-programma" class="table-responsive">
-			<table class="table table-bordered">
-				<caption>Programma giornaliero</caption>
-				<thead><tr><th>Ora</th><th>Temperatura</th></tr></thead>
+			<table class="table">
+				<caption>Programmazione giornaliera</caption>
+				<thead><tr><th class="col-md-6">Ora</th><th class="col-md-6">Temperatura</th></tr></thead>
 				<tbody>
 				{{#schedule}}
-				{{#schedule}}
-					<tr><td>{{ora}}</td><td>{{t_rif_valore}}</td></tr>
-				{{/schedule}}
+					{{#decorateShedule}}{{.}}{{/decorateShedule}}
 				{{/schedule}}
 				</tbody>
 			</table>

@@ -20,7 +20,6 @@ class ImpostazioniView {
 
 		Assets::get()->addCss('/css/programedit.css');
 
-d($this->model->pdata);
 		return $tpl->render([
 			'css' => Assets::get()->Css(),
 			'js' => Assets::get()->Js(),
@@ -28,7 +27,8 @@ d($this->model->pdata);
 			'programedit' => $this->model->pdata,
 			'programlist' => $this->model->plist,
 			'decorateShortDay' => [ $dcr, 'decorateShortDay' ],
-			'decorateDay' => [ $dcr, 'decorateDay' ]
+			'decorateDay' => [ $dcr, 'decorateDay' ],
+			'decorateShedule' => [ $dcr, 'decorateShedule' ]
 		]);
 	}
 

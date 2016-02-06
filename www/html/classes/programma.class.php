@@ -20,6 +20,11 @@ class DettaglioProgramma implements JsonSerializable {
 		$this->t_rif_valore = isset($data['t_rif_val']) ? $data['t_rif_val'] : null;
 	}
 
+	public function __toString() {
+
+		return $this->ora . '|' . $this->t_rif_valore;
+	}
+
 	public function jsonSerialize(){
 		return [
 			'giorno' => $this->giorno,

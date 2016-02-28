@@ -46,10 +46,17 @@ class Db {
 	  return self::$instance;
 	}
 
-	static function TimestampWt( $epoch = null ) {  return gmdate('Y-m-d H:i:s', ( $epoch ?: time() )); }
-	static function Timestamp( $epoch = null ) {  return date('Y-m-d H:i:s', ( $epoch ?: time() )); }
-	static function UTC( $timestamp = null ) {  return (int)( ( $timestamp ?: time() ) - date('Z') ); }
+	static function TimestampWt( $epoch = null ) {
+		return gmdate('Y-m-d H:i:s', ( $epoch ?: time() ));
+	}
 
+	static function Timestamp( $epoch = null ) {
+		return date('Y-m-d H:i:s', ( $epoch ?: time() ));
+	}
+
+	static function UTC( $timestamp = null ) { 
+		return (int)( ( $timestamp ?: time() ) - date('Z') );
+	}
 }
 
 
@@ -68,7 +75,7 @@ class DataBase extends PDO {
 		}
 	}
 
-	public function readSetting($name, $default) {
+	public function readSetting($name, $default = null) {
 
 		$set = $this->getFirstRow(
 			"SELECT get_setting(:name::varchar, :default::text)",
@@ -105,6 +112,13 @@ class DataBase extends PDO {
 
 		return $data;
 
+	}
+
+	public function getNthColumnOfRow($query, $bind = null, $col = 0) {
+
+		$data = $this->getFirstRow($query, $bind, PDO::FETCH_NUM);
+
+		return isset($data[$col]) ? $data[$col] : null;
 	}
 
 	private function getStmt($query, $bind = null) {

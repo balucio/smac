@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.0
--- Dumped by pg_dump version 9.5.0
+-- Dumped from database version 9.5.1
+-- Dumped by pg_dump version 9.5.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -13,13 +13,14 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP DATABASE smac;
 --
--- Name: smac; Type: DATABASE; Schema: -; Owner: -
+-- Name: smac; Type: DATABASE; Schema: -; Owner: postgres
 --
 
-CREATE DATABASE smac WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+CREATE DATABASE smac WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'it_IT.UTF-8' LC_CTYPE = 'it_IT.UTF-8';
 
+
+ALTER DATABASE smac OWNER TO postgres;
 
 \connect smac
 
@@ -32,28 +33,14 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA public;
-
-
---
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON SCHEMA public IS 'standard public schema';
-
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -62,7 +49,7 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
--- Name: report_sensore; Type: TYPE; Schema: public; Owner: -
+-- Name: report_sensore; Type: TYPE; Schema: public; Owner: smac
 --
 
 CREATE TYPE report_sensore AS (
@@ -74,8 +61,10 @@ CREATE TYPE report_sensore AS (
 );
 
 
+ALTER TYPE report_sensore OWNER TO smac;
+
 --
--- Name: situazione_sensore; Type: TYPE; Schema: public; Owner: -
+-- Name: situazione_sensore; Type: TYPE; Schema: public; Owner: smac
 --
 
 CREATE TYPE situazione_sensore AS (
@@ -97,8 +86,10 @@ CREATE TYPE situazione_sensore AS (
 );
 
 
+ALTER TYPE situazione_sensore OWNER TO smac;
+
 --
--- Name: aggiorna_dati_giornalieri(smallint, date); Type: FUNCTION; Schema: public; Owner: -
+-- Name: aggiorna_dati_giornalieri(smallint, date); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION aggiorna_dati_giornalieri(sensore smallint, giorno date DEFAULT now()) RETURNS void
@@ -226,8 +217,10 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.aggiorna_dati_giornalieri(sensore smallint, giorno date) OWNER TO smac;
+
 --
--- Name: aggiorna_situazione(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: aggiorna_situazione(); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION aggiorna_situazione() RETURNS trigger
@@ -257,8 +250,10 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.aggiorna_situazione() OWNER TO smac;
+
 --
--- Name: aggiorna_tendenza(interval, interval); Type: FUNCTION; Schema: public; Owner: -
+-- Name: aggiorna_tendenza(interval, interval); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION aggiorna_tendenza(campione interval DEFAULT '01:00:00'::interval, previsione interval DEFAULT '00:10:00'::interval) RETURNS void
@@ -290,39 +285,60 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.aggiorna_tendenza(campione interval, previsione interval) OWNER TO smac;
+
 --
--- Name: dati_programma(integer); Type: FUNCTION; Schema: public; Owner: -
+-- Name: dati_programma(integer); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION dati_programma(progr_id integer DEFAULT NULL::integer) RETURNS TABLE(id_programma integer, nome_programma character varying, descrizione_programma text, temperature_rif numeric[], t_anticongelamento numeric)
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql ROWS 10
     AS $$
 DECLARE
     progdata RECORD;
     curr_progr text;
     t_anticongelamento numeric(9,4);
+    t_manuale numeric(9,4);
 BEGIN
 
     IF progr_id IS NULL THEN
         SELECT get_setting('programma_attuale','-1'::text) INTO progr_id;
     END IF;
 
-    t_anticongelamento =  get_setting('temperatura_anticongelamento'::varchar(64),'5'::text);    
+    t_anticongelamento = get_setting('temperatura_anticongelamento'::varchar(64),'5'::text);
 
     CASE progr_id::smallint
 
         -- sistema spento
         WHEN -1 THEN
 
-            RETURN QUERY SELECT -1, 'Spento'::varchar(64), 'Sistema Spento'::text, ARRAY[]::numeric(9,4)[], t_anticongelamento;
+            RETURN QUERY SELECT
+               -1,
+               get_setting('programma_spento_nome'::varchar(64),'Spento'::text)::varchar(64),
+               get_setting('programma_spento_descrizione'::varchar(64),'Sistema Spento'::text),
+               ARRAY[]::numeric(9,4)[],
+               t_anticongelamento;
 
         -- sistema in risparmio energia (anticongelamento)
         WHEN 0 THEN
 
-            RETURN QUERY SELECT 0, 'Anticongelamento'::varchar(64),
-		       'Sistema in modalità anticongelamento'::text,
-		       ARRAY[ t_anticongelamento, null,null, null, null],
-		       t_anticongelamento;
+            RETURN QUERY
+               SELECT
+                  0,
+                  get_setting('programma_anticongelamento_nome'::varchar(64),'Anticongelamento'::text)::varchar(64),
+                  get_setting('programma_anticongelamento_descrizione'::varchar(64),'Sitema in Anticongelamento'::text),
+		  ARRAY[ t_anticongelamento, null,null, null, null],
+		  t_anticongelamento;
+        WHEN 32767 THEN
+
+            t_manuale = get_setting('temperatura_manuale'::varchar(64),'20'::text)::numeric(9,4);
+
+            RETURN QUERY SELECT
+               32767,
+               get_setting('programma_manuale_nome'::varchar(64),'Manuale'::text)::varchar(64),
+               get_setting('programma_manuale_descrizione'::varchar(64),'Sistema in Manuale'::text),
+               ARRAY[ t_manuale, null,null, null, null],
+               t_anticongelamento;
 
 	-- richiesta specifico id programma
         ELSE 
@@ -342,12 +358,14 @@ BEGIN
 END$$;
 
 
+ALTER FUNCTION public.dati_programma(progr_id integer) OWNER TO smac;
+
 --
--- Name: dati_sensore(smallint, interval, interval); Type: FUNCTION; Schema: public; Owner: -
+-- Name: dati_sensore(smallint, interval, interval); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION dati_sensore(l_id_sensore smallint DEFAULT NULL::smallint, campione interval DEFAULT '01:00:00'::interval, target interval DEFAULT '00:10:00'::interval) RETURNS SETOF situazione_sensore
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql ROWS 10
     AS $_$
 DECLARE
     dati_sensore situazione_sensore;
@@ -356,19 +374,22 @@ DECLARE
 
 BEGIN
 
-    dati_sensore.id_sensore = null;
+    dati_sensore.id_sensore = 0;
     dati_sensore.nome_sensore = null;
     dati_sensore.num_sensori = 0;
 
+
     -- verifico che non sia la media dei sensori
-    IF(l_id_sensore IS NULL) THEN
+    l_id_sensore = @ COALESCE(l_id_sensore, 0);
+
+    IF l_id_sensore = 0 THEN
 
         -- ricalcolo se necessario tutte le tendenze
         PERFORM aggiorna_tendenza(campione, target);
 
         -- ottengo i valori medi attuali
         SELECT 0::smallint,
-               'Media',              
+               get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(64),
                COUNT(sns.id_sensore)::smallint,
                AVG(stz.temperatura),
                AVG(stz.tendenza_temperatura),
@@ -422,7 +443,7 @@ BEGIN
 
         -- aggiorno se necessario e solo se non è stata richiesta la media
         IF dati_sensore.id_sensore <> 0::smallint 
-           AND (dati_sensore.ultima_previsione IS NULL 
+           AND (dati_sensore.ultima_previsione IS NULL
             OR dati_sensore.ultima_previsione <= (NOW() - target)) THEN
 
             SELECT previsione_mq(dati_sensore.id_sensore, 'temperatura', campione, target) 
@@ -488,8 +509,10 @@ END;
 $_$;
 
 
+ALTER FUNCTION public.dati_sensore(l_id_sensore smallint, campione interval, target interval) OWNER TO smac;
+
 --
--- Name: dbg_genera_misurazioni(date, date); Type: FUNCTION; Schema: public; Owner: -
+-- Name: dbg_genera_misurazioni(date, date); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION dbg_genera_misurazioni(data_iniziale date DEFAULT now(), data_finale date DEFAULT now()) RETURNS void
@@ -526,12 +549,14 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.dbg_genera_misurazioni(data_iniziale date, data_finale date) OWNER TO smac;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: programmi; Type: TABLE; Schema: public; Owner: -
+-- Name: programmi; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE programmi (
@@ -542,8 +567,10 @@ CREATE TABLE programmi (
 );
 
 
+ALTER TABLE programmi OWNER TO smac;
+
 --
--- Name: elenco_programmi(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: elenco_programmi(); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION elenco_programmi() RETURNS SETOF programmi
@@ -555,13 +582,110 @@ BEGIN
     RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(-1::smallint);
     RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(0::smallint);
     RETURN QUERY SELECT * FROM programmi ORDER BY nome_programma;
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(32767::smallint);
     RETURN;
        
 END$$;
 
 
+ALTER FUNCTION public.elenco_programmi() OWNER TO smac;
+
 --
--- Name: get_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: sensori; Type: TABLE; Schema: public; Owner: smac
+--
+
+CREATE TABLE sensori (
+    id_sensore smallint NOT NULL,
+    nome_sensore character varying(64),
+    descrizione character varying(256),
+    posizione point,
+    abilitato boolean DEFAULT true NOT NULL,
+    incluso_in_media boolean DEFAULT false,
+    id_driver smallint,
+    ultimo_aggiornamento timestamp without time zone
+);
+
+
+ALTER TABLE sensori OWNER TO smac;
+
+--
+-- Name: TABLE sensori; Type: COMMENT; Schema: public; Owner: smac
+--
+
+COMMENT ON TABLE sensori IS 'elenco dei sensori usati';
+
+
+--
+-- Name: COLUMN sensori.ultimo_aggiornamento; Type: COMMENT; Schema: public; Owner: smac
+--
+
+COMMENT ON COLUMN sensori.ultimo_aggiornamento IS 'Data e ora dell''ultimo aggiornamento delle previsioni delle misurazioni';
+
+
+--
+-- Name: elenco_sensori(boolean); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION elenco_sensori(stato boolean DEFAULT NULL::boolean) RETURNS SETOF sensori
+    LANGUAGE plpgsql ROWS 100
+    AS $$
+
+DECLARE
+   queryAll BOOLEAN;
+   statoMedia BOOLEAN;
+BEGIN
+    -- stato = t solo abilitati, stato = f solo disattivi, stato = null, tutti i sensori
+    queryAll = stato IS UNKNOWN;
+
+    -- Determino se la media è un sensore attivo o meno - cioè se ci sono sensori inclusi o meno
+
+    SELECT COUNT(id_sensore) > 0 FROM public.sensori INTO statoMedia WHERE incluso_in_media = true;
+
+    IF queryAll OR ( stato = statoMedia ) THEN
+
+        RETURN QUERY
+            SELECT 0::smallint,
+                   get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(64),
+                   get_setting('sensore_media_descrizione'::varchar(64),'Media'::text)::Varchar(256),
+                   NULL::Point,
+                   statoMedia,
+                   NULL::boolean,
+                   NULL::smallint,
+                   NOW()::Timestamp Without Time Zone;
+     END IF;
+
+     RETURN QUERY
+           SELECT *
+             FROM sensori
+            WHERE queryAll
+               OR abilitato = stato
+         ORDER BY incluso_in_media DESC, nome_sensore ASC;
+    RETURN;
+
+END$$;
+
+
+ALTER FUNCTION public.elenco_sensori(stato boolean) OWNER TO smac;
+
+--
+-- Name: esiste_programma(smallint); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION esiste_programma(progr_id smallint DEFAULT '-1'::integer) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+ RETURN EXISTS(
+    SELECT id_programma FROM elenco_programmi() WHERE id_programma = progr_id
+ );
+END$$;
+
+
+ALTER FUNCTION public.esiste_programma(progr_id smallint) OWNER TO smac;
+
+--
+-- Name: get_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION get_setting(in_nome character varying, predef text DEFAULT NULL::text) RETURNS text
@@ -575,8 +699,10 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.get_setting(in_nome character varying, predef text) OWNER TO smac;
+
 --
--- Name: previsione_mq(smallint, character varying, interval, interval); Type: FUNCTION; Schema: public; Owner: -
+-- Name: previsione_mq(smallint, character varying, interval, interval); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION previsione_mq(sensore smallint, grandezza character varying, campione interval DEFAULT '01:00:00'::interval, target interval DEFAULT '00:10:00'::interval) RETURNS numeric
@@ -631,8 +757,10 @@ BEGIN
 END$_$;
 
 
+ALTER FUNCTION public.previsione_mq(sensore smallint, grandezza character varying, campione interval, target interval) OWNER TO smac;
+
 --
--- Name: programmazioni(integer, smallint); Type: FUNCTION; Schema: public; Owner: -
+-- Name: programmazioni(integer, smallint); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION programmazioni(progr_id integer DEFAULT NULL::integer, prog_giorno smallint DEFAULT NULL::smallint) RETURNS TABLE(id_programma integer, giorno smallint, ora time without time zone, intervallo integer, t_rif_indice smallint, t_rif_val numeric)
@@ -706,8 +834,10 @@ BEGIN
 END$$;
 
 
+ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWNER TO smac;
+
 --
--- Name: report_misurazioni(smallint, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: -
+-- Name: report_misurazioni(smallint, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION report_misurazioni(pid_sensore smallint DEFAULT NULL::smallint, data_ora_inizio timestamp without time zone DEFAULT (now() - '01:00:00'::interval), data_ora_fine timestamp without time zone DEFAULT now()) RETURNS SETOF report_sensore
@@ -747,8 +877,10 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.report_misurazioni(pid_sensore smallint, data_ora_inizio timestamp without time zone, data_ora_fine timestamp without time zone) OWNER TO smac;
+
 --
--- Name: set_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: set_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION set_setting(in_nome character varying, in_val text DEFAULT NULL::text) RETURNS void
@@ -767,8 +899,10 @@ BEGIN
 END;$$;
 
 
+ALTER FUNCTION public.set_setting(in_nome character varying, in_val text) OWNER TO smac;
+
 --
--- Name: dati_giornalieri; Type: TABLE; Schema: public; Owner: -
+-- Name: dati_giornalieri; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE dati_giornalieri (
@@ -783,8 +917,10 @@ CREATE TABLE dati_giornalieri (
 );
 
 
+ALTER TABLE dati_giornalieri OWNER TO smac;
+
 --
--- Name: dettaglio_programma; Type: TABLE; Schema: public; Owner: -
+-- Name: dettaglio_programma; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE dettaglio_programma (
@@ -795,8 +931,10 @@ CREATE TABLE dettaglio_programma (
 );
 
 
+ALTER TABLE dettaglio_programma OWNER TO smac;
+
 --
--- Name: driver_sensori; Type: TABLE; Schema: public; Owner: -
+-- Name: driver_sensori; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE driver_sensori (
@@ -806,8 +944,10 @@ CREATE TABLE driver_sensori (
 );
 
 
+ALTER TABLE driver_sensori OWNER TO smac;
+
 --
--- Name: driver_sensori_id_driver_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: driver_sensori_id_driver_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
 CREATE SEQUENCE driver_sensori_id_driver_seq
@@ -818,39 +958,43 @@ CREATE SEQUENCE driver_sensori_id_driver_seq
     CACHE 1;
 
 
+ALTER TABLE driver_sensori_id_driver_seq OWNER TO smac;
+
 --
--- Name: driver_sensori_id_driver_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: driver_sensori_id_driver_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
 --
 
 ALTER SEQUENCE driver_sensori_id_driver_seq OWNED BY driver_sensori.id_driver;
 
 
 --
--- Name: impostazioni; Type: TABLE; Schema: public; Owner: -
+-- Name: impostazioni; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE impostazioni (
     nome character varying(128) NOT NULL,
-    valore text NOT NULL
+    valore text
 );
 
 
+ALTER TABLE impostazioni OWNER TO smac;
+
 --
--- Name: COLUMN impostazioni.nome; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN impostazioni.nome; Type: COMMENT; Schema: public; Owner: smac
 --
 
 COMMENT ON COLUMN impostazioni.nome IS 'Nome della voce di impostazione';
 
 
 --
--- Name: COLUMN impostazioni.valore; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN impostazioni.valore; Type: COMMENT; Schema: public; Owner: smac
 --
 
 COMMENT ON COLUMN impostazioni.valore IS 'Valore della voce di impostazione';
 
 
 --
--- Name: misurazioni; Type: TABLE; Schema: public; Owner: -
+-- Name: misurazioni; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE misurazioni (
@@ -862,8 +1006,10 @@ CREATE TABLE misurazioni (
 );
 
 
+ALTER TABLE misurazioni OWNER TO smac;
+
 --
--- Name: misurazioni_id_misurazione_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: misurazioni_id_misurazione_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
 CREATE SEQUENCE misurazioni_id_misurazione_seq
@@ -874,15 +1020,17 @@ CREATE SEQUENCE misurazioni_id_misurazione_seq
     CACHE 1;
 
 
+ALTER TABLE misurazioni_id_misurazione_seq OWNER TO smac;
+
 --
--- Name: misurazioni_id_misurazione_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: misurazioni_id_misurazione_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
 --
 
 ALTER SEQUENCE misurazioni_id_misurazione_seq OWNED BY misurazioni.id_misurazione;
 
 
 --
--- Name: programma_id_programma_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: programma_id_programma_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
 CREATE SEQUENCE programma_id_programma_seq
@@ -893,45 +1041,17 @@ CREATE SEQUENCE programma_id_programma_seq
     CACHE 1;
 
 
+ALTER TABLE programma_id_programma_seq OWNER TO smac;
+
 --
--- Name: programma_id_programma_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: programma_id_programma_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
 --
 
 ALTER SEQUENCE programma_id_programma_seq OWNED BY programmi.id_programma;
 
 
 --
--- Name: sensori; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE sensori (
-    id_sensore smallint NOT NULL,
-    nome_sensore character varying(64),
-    descrizione character varying(256),
-    posizione point,
-    abilitato boolean DEFAULT true NOT NULL,
-    incluso_in_media boolean DEFAULT false,
-    id_driver smallint,
-    ultimo_aggiornamento timestamp without time zone
-);
-
-
---
--- Name: TABLE sensori; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON TABLE sensori IS 'elenco dei sensori usati';
-
-
---
--- Name: COLUMN sensori.ultimo_aggiornamento; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN sensori.ultimo_aggiornamento IS 'Data e ora dell''ultimo aggiornamento delle previsioni delle misurazioni';
-
-
---
--- Name: sensori_id_sensore_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: sensori_id_sensore_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
 CREATE SEQUENCE sensori_id_sensore_seq
@@ -942,15 +1062,17 @@ CREATE SEQUENCE sensori_id_sensore_seq
     CACHE 1;
 
 
+ALTER TABLE sensori_id_sensore_seq OWNER TO smac;
+
 --
--- Name: sensori_id_sensore_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: sensori_id_sensore_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
 --
 
 ALTER SEQUENCE sensori_id_sensore_seq OWNED BY sensori.id_sensore;
 
 
 --
--- Name: situazione; Type: TABLE; Schema: public; Owner: -
+-- Name: situazione; Type: TABLE; Schema: public; Owner: smac
 --
 
 CREATE TABLE situazione (
@@ -963,36 +1085,38 @@ CREATE TABLE situazione (
 );
 
 
+ALTER TABLE situazione OWNER TO smac;
+
 --
--- Name: id_driver; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id_driver; Type: DEFAULT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY driver_sensori ALTER COLUMN id_driver SET DEFAULT nextval('driver_sensori_id_driver_seq'::regclass);
 
 
 --
--- Name: id_misurazione; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id_misurazione; Type: DEFAULT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY misurazioni ALTER COLUMN id_misurazione SET DEFAULT nextval('misurazioni_id_misurazione_seq'::regclass);
 
 
 --
--- Name: id_programma; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id_programma; Type: DEFAULT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY programmi ALTER COLUMN id_programma SET DEFAULT nextval('programma_id_programma_seq'::regclass);
 
 
 --
--- Name: id_sensore; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id_sensore; Type: DEFAULT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY sensori ALTER COLUMN id_sensore SET DEFAULT nextval('sensori_id_sensore_seq'::regclass);
 
 
 --
--- Name: dati_giornalieri_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: dati_giornalieri_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1000,7 +1124,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: dettaglio_programma_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: dettaglio_programma_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dettaglio_programma
@@ -1008,7 +1132,7 @@ ALTER TABLE ONLY dettaglio_programma
 
 
 --
--- Name: driver_sensori_nome_driver_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: driver_sensori_nome_driver_key; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY driver_sensori
@@ -1016,7 +1140,7 @@ ALTER TABLE ONLY driver_sensori
 
 
 --
--- Name: driver_sensori_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: driver_sensori_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY driver_sensori
@@ -1024,15 +1148,15 @@ ALTER TABLE ONLY driver_sensori
 
 
 --
--- Name: impostazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: impostazioni_pk; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY impostazioni
-    ADD CONSTRAINT impostazioni_pkey PRIMARY KEY (valore);
+    ADD CONSTRAINT impostazioni_pk PRIMARY KEY (nome);
 
 
 --
--- Name: misurazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: misurazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY misurazioni
@@ -1040,7 +1164,7 @@ ALTER TABLE ONLY misurazioni
 
 
 --
--- Name: programma_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: programma_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY programmi
@@ -1048,7 +1172,7 @@ ALTER TABLE ONLY programmi
 
 
 --
--- Name: sensori_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: sensori_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY sensori
@@ -1056,7 +1180,7 @@ ALTER TABLE ONLY sensori
 
 
 --
--- Name: situazione_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: situazione_pkey; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY situazione
@@ -1064,7 +1188,7 @@ ALTER TABLE ONLY situazione
 
 
 --
--- Name: un_data_sensore; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: un_data_sensore; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY misurazioni
@@ -1072,7 +1196,7 @@ ALTER TABLE ONLY misurazioni
 
 
 --
--- Name: un_nome_programma; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: un_nome_programma; Type: CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY programmi
@@ -1080,21 +1204,21 @@ ALTER TABLE ONLY programmi
 
 
 --
--- Name: un_nome_sensore; Type: INDEX; Schema: public; Owner: -
+-- Name: un_nome_sensore; Type: INDEX; Schema: public; Owner: smac
 --
 
 CREATE UNIQUE INDEX un_nome_sensore ON sensori USING btree (nome_sensore);
 
 
 --
--- Name: aggiornamento_situazione; Type: TRIGGER; Schema: public; Owner: -
+-- Name: aggiornamento_situazione; Type: TRIGGER; Schema: public; Owner: smac
 --
 
 CREATE TRIGGER aggiornamento_situazione AFTER INSERT ON misurazioni FOR EACH ROW WHEN (((new.temperatura IS NOT NULL) OR (new.umidita IS NOT NULL))) EXECUTE PROCEDURE aggiorna_situazione();
 
 
 --
--- Name: dettaglio_programma_id_programma_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: dettaglio_programma_id_programma_fkey; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dettaglio_programma
@@ -1102,7 +1226,7 @@ ALTER TABLE ONLY dettaglio_programma
 
 
 --
--- Name: fk_driver_sensore; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_driver_sensore; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY sensori
@@ -1110,7 +1234,7 @@ ALTER TABLE ONLY sensori
 
 
 --
--- Name: fk_situazione_sensore; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_situazione_sensore; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY situazione
@@ -1118,7 +1242,7 @@ ALTER TABLE ONLY situazione
 
 
 --
--- Name: fk_synop_temp_max; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_synop_temp_max; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1126,7 +1250,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: fk_synop_temp_min; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_synop_temp_min; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1134,7 +1258,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: fk_syrep_temp_max; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_syrep_temp_max; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1142,7 +1266,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: fk_syrep_temp_min; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_syrep_temp_min; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1150,7 +1274,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: fk_umidita_min; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fk_umidita_min; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1158,7 +1282,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: id_umidita_max; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: id_umidita_max; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY dati_giornalieri
@@ -1166,7 +1290,7 @@ ALTER TABLE ONLY dati_giornalieri
 
 
 --
--- Name: pk_misurazione_sensore; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: pk_misurazione_sensore; Type: FK CONSTRAINT; Schema: public; Owner: smac
 --
 
 ALTER TABLE ONLY misurazioni
@@ -1174,7 +1298,7 @@ ALTER TABLE ONLY misurazioni
 
 
 --
--- Name: public; Type: ACL; Schema: -; Owner: -
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;

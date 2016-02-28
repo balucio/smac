@@ -2,25 +2,29 @@
 
 class SituazioneModel {
 
-    private
-        $sensorStatus = null,
-        $programStatus = null
-    ;
+	private
+		$sensor,
+		$program
+	;
 
-    public function __construct() {
+	public function __construct() {
+		$this->sensor = new SensorModel();
+		$this->program = new ProgramModel();
+	}
 
-        $this->sensorStatus = new SensorStatusModel();
-        $this->programStatus = new ProgramStatusModel();
-    }
+	public function initData() {
 
-    public function initData() {
+		$this->sensor->initData();
+		$this->program->initData();
 
-        // Imposto di default il sensore "Media" ed elenco i sensori
-        $this->sensorStatus->initData();
-        $this->programStatus->initData();
-    }
+	}
 
-    public function situazione() { return $this->sensorStatus; }
+	public function getSensor() {
+		return $this->sensor;
+	}
 
-    public function programmazione() { return $this->programStatus; }
+	public function getProgram() {
+		return $this->program;
+	}
+
 }

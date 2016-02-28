@@ -1,7 +1,6 @@
 <?php
 
-class Template
-{
+class Template {
 
 	private function __construct() {}
 
@@ -21,23 +20,14 @@ class Template
 			Twig_Autoloader::register();
 
 			$loader = new Twig_Loader_Filesystem( ROOT_DIR . TplConfig::templates );
-			self::$tplh = new Twig_Environment($loader, array(
-    			'cache' => '',
-			));
 
-			$tplh = new Mustache_Engine(array(
-
+			$tplh = new Twig_Environment($loader, array(
 				'cache' => ROOT_DIR . TplConfig::cache,
-				'loader' => new Mustache_Loader_FilesystemLoader(
-					ROOT_DIR . TplConfig::templates,
-					[ 'extension' => TplConfig::extension]
-				),
-				'partials_loader' => new Mustache_Loader_FilesystemLoader(
-					ROOT_DIR . TplConfig::partials,
-					[ 'extension' => TplConfig::extension]
-				),
-				'logger' => new Mustache_Logger_StreamLogger('php://stderr'),
+				'debug' => DEBUG,
+				'strict_variables' => true
 			));
+
+			$tplh->addExtension(new TemplateExtension());
 		}
 
 		return $tplh;
@@ -50,11 +40,10 @@ class Template
 		header('Status: 503 Service Temporarily Unavailable');
 		header('Retry-After: 3600');
 
-		$tpl = Template::get()->loadTemplate('error_page');
+		$tpl = Template::get()->loadTemplate('error_page.tpl');
 		echo $tpl->render([ 'message' => $msg ]);
 		exit();
 	}
-
 }
 
 ?>

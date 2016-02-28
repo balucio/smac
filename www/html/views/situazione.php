@@ -15,16 +15,16 @@ class SituazioneView {
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('situazione');
+		$tpl = Template::get()->loadTemplate('situazione.tpl');
 
-		$situazione = new SensorStatusView(
+		$situazione = new StatoSensoriView(
 			$this->controller,
-			$this->model->situazione()
+			$this->model->getSensor()
 		);
 
-		$programmi = new ProgramStatusView(
+		$programmi = new StatoSistemaView(
 			$this->controller,
-			$this->model->programmazione()
+			$this->model->getProgram()
 		);
 
 		return $tpl->render([

@@ -1,85 +1,64 @@
 <?php
 
-class ProgrammaModel {
+class ProgramModel {
 
 	private
-		$dbh = null,
-		$plist = null,
-		$pdata = null
+		$list = null,
+		$data = null
 	;
 
 	public function __construct() {
 
-		$this->dbh = Db::get();
+		$this->list = new ProgramListModel();
+		$this->data = new ProgramDataModel();
+
  	}
 
-	public function __get($data) { return $this->$data; }
+ 	public function __get($name) {
+ 		return $name == 'list'
+ 			? $this->list->getList()
+ 			: $this->data->$name;
+ 	}
 
-	public function saveDefault($pid) {
+	public function initData() {
 
-		$dBpid = $pid;
+		$dpid = $this->getDefault();
 
-		if ($pid > 0) {
+		$this->programList($dpid);
+		$this->programData($dpid);
+	}
 
-			$dbr = $this->dbh->getFirstRow(
-				"SELECT id_programma FROM programmi WHERE id_programma=:id",
-				[':id' => $pid ]
-			);
+	public function setDefault($pid) {
 
-			$dBpid = isset($dbr['id_programma']) ? $dbr['id_programma'] : null;
+		$staus = true;
+
+		if ($pid == Db::get()->getNthColumnOfRow(
+			"SELECT esiste_programma(:pid::smallint)",
+			[':pid' => $pid ]
+		))
+			Db::get()->saveSetting(Db::CURR_PROGRAM, $pid);
+		else {
+			error_log("Id programma $pid non esistente");
+			$staus = false;
 		}
 
-		if ($dBpid == $pid)
-			$this->dbh->saveSetting(Db::CURR_PROGRAM, $pid);
-		else
-			throw new Exception("Id programma non esistente", 1);
+		return $false;
 	}
 
-	public function programData($pid, $day) {
+	public function getDefault() {
 
-		$this->pdata = new Programma(
-			$this->getProgramData($pid),
-			$this->getProgramDetails($pid, $day)
-		);
+		return Db::get()->readSetting(Db::CURR_PROGRAM, '-1');
 	}
 
-	public function programList($pid) {
+	private function programData($pid) {
 
-		$this->plist = $this->dbh->getResultSet("SELECT * FROM programmi");
-
-		$found = false;
-
-		foreach ($this->plist as &$v) {
-
-			if ($pid == $v['id_programma']) {
-				$v['active'] = 'active';
-				$found = true;
-			} else {
-				$v['active'] = '';
-			}
-		}
-
-		if (!$found && count($this->plist)) {
-			$found = $this->plist[0]['id_programma'];
-			$this->plist[0]['active'] = 'active';
-		}
-
-		return $found;
-	}
-
-	private function getProgramData($pid) {
-
-		$query = "SELECT *, array_to_json(temperature_rif) as json_t_rif FROM dati_programma(:id)";
-
-		return $this->dbh->getFirstRow($query, [':id' => $pid]);
+		$this->data->initData($pid, date('N'));
 
 	}
 
-	private function getProgramDetails($pid, $day = null) {
+	private function programList($pid) {
 
-		return $this->dbh->getResultSet(
-			"SELECT * FROM programmazioni(:id, :day)",
-			[':id' => $pid, ':day' => $day ]
-		);
+		$this->list->initData($pid, ProgramListModel::ALL);
+
 	}
 }

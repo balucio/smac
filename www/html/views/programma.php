@@ -41,7 +41,7 @@ class ProgrammaView {
 		Assets::get()->addJs('/js/boostrap-tabcollapse.js');
 
 		$dcr = new Decorator();
-		$tpl = $this->tplh->loadTemplate('programedit');
+		$tpl = $this->tplh->loadTemplate('programedit.tpl');
 
 		return $tpl->render([
 			'tabcollapse' => '$("#programmazione-settimanale").tabCollapse();',

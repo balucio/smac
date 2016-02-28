@@ -108,7 +108,7 @@ class Programma implements JsonSerializable {
 		$ot = [];
 
 		foreach (json_decode($t) as $k => $v)
-			$v && $ot[] = (object)['t_id' => $k, 't_val' => $v];
+			$v && $ot[] = (object)['id' => $k, 'val' => $v];
 
 		return $ot;
 	}

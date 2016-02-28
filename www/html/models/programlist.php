@@ -1,52 +1,52 @@
 <?php
 
-class ProgramStatusModel {
+class ProgramListModel {
 
-	const SPECIAL_PROGRAM = 'special';
-	const OTHER_PROGRAM = 'other';
+	const POWEROFF = 0b0001;
+	const ANTIFREEZE = 0b0010;
+	const MANUAL = 0b0100;
+	const ALL = 0b1000;
+
+	const ID_POWEROFF = -1;
+	const ID_ANTIFREEZE = 0;
+	const ID_MANUAL = 32767;
 
 	private
-		$programStatus = null,
-		$pList = null,
-		$dbh = null
+
+		$list = null
 	;
 
-	public function __construct() {
+	public function __construct() { }
 
-		$this->programStatus = new ProgramDataModel();
-		$this->dbh = Db::get();
+	public function getList() {
+
+		return $this->list;
 	}
 
-	public function initData() {
+	public function initData($spid = null, $include_special = self::ALL) {
 
-		// Il programma predefinito è quello attivo al giorno attual
-		$this->programStatus->setProgramId(null, null);
-		$this->enumerate();
+		$rawList = $this->enumerate();
 
+		if ($include_special & self::POWEROFF)
+			unset($rawList[self::ID_POWEROFF]);
+
+		if ($include_special & self::ANTIFREEZE)
+			unset($rawList[self::ID_ANTIFREEZE]);
+
+		if ($include_special & self::MANUAL)
+			unset($rawList[self::ID_MANUAL]);
+
+		$this->list = [];
+
+		foreach ($rawList as $v) {
+			$k = $v['id_programma'];
+			$this->list[$k] = $v;
+			$this->list[$k]['selected'] = $spid == $k ? 'selected' : '';
+		}
 	}
 
-	public function programdata() { return $this->programStatus->programdata(); }
+	private function enumerate() {
 
-	public function programlist($type) {
-
-		return ($type == 'special')
-			? array_slice($this->pList, 0, 2)
-			: array_slice($this->pList, 2)
-		;
+		return Db::get()->getResultSet("SELECT * FROM elenco_programmi()");
 	}
-
-	public function enumerate() {
-
-		// Current program
-		$cp = $this->dbh->readSetting(Db::CURR_PROGRAM, '-1');
-
-		$this->pList = Db::get()->getResultSet("SELECT * FROM elenco_programmi()");
-
-		foreach ($this->pList as &$p)
-			$p['selected'] = $cp == $p['id_programma'] ? 'selected' :'';
-
-		return $this;
-
-	}
-
 }

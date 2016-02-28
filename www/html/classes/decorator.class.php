@@ -9,9 +9,7 @@ class Decorator {
 		$this->locale = localeconv();
 	}
 
-	public function decorateTemperature($number, Mustache_LambdaHelper $helper = null) {
-
-		$number = isset($helper) ? $helper->render($number) : $number;
+	public function decorateTemperature($number) {
 
 		$n = $this->formatDecimal((double)($number));
 
@@ -25,75 +23,48 @@ class Decorator {
 		return '<span class="'. $class . '">' . $n . '</span>';
 	}
 
-	public function decorateShedule($row, Mustache_LambdaHelper $helper) {
 
-		list($t, $v) = explode('|', $helper->render($row));
+	public function decorateShortDay($d) {
 
-		$t = substr($t, 0, 5);
-		$v = $this->decorateTemperature($v);
-
-		return "<tr>"
-			. "<td>$t</td>"
-			. "<td>"
-				. "<span class=\"wi wi-thermometer\" aria-hidden=\"true\">"
-				. "</span> $v <span class=\"wi wi-celsius fa-1x\" aria-hidden=\"true\"></span>"
-			. "</td></tr>";
-	}
-
-	public function decorateShortDay($day, Mustache_LambdaHelper $helper = null) {
-
-		$n = isset($helper) ? $helper->render($day) : $day;
-
-		return strftime('%a', strtotime("Sunday + $n days"));
+		return strftime('%a', strtotime("Sunday + $d days"));
 
 	}
 
-	public function decorateDay($day, Mustache_LambdaHelper $helper = null) {
+	public function decorateDay($d) {
 
-		$n = isset($helper) ? $helper->render($day) : $day;
-
-		return strftime('%A', strtotime("Sunday + $n days"));
+		return strftime('%A', strtotime("Sunday + $d days"));
 
 	}
 
-	public function decorateUmidity($number, Mustache_LambdaHelper $helper = null) {
+	public function decorateUmidity($h) {
 
-		$n = isset($helper) ? $helper->render($number) : $number;
-
-		return is_null($number) ? 'ND' : round((double)($n));
+		return is_null($h) ? 'ND' : round((double)($h));
 	}
 
-	public function decorateDateTime($datetime, Mustache_LambdaHelper $helper = null) {
+	public function decorateDateTime($dt) {
 
-		$dt = isset($helper) ? $helper->render($datetime) : $datetime;
-
-		return isset($datetime)
+		return isset($dt)
 			? strtolower( strftime( '%c', strtotime($dt)))
 			: 'ND';
 	}
 
-	public function decorateTime($time, Mustache_LambdaHelper $helper = null) {
+	public function decorateTime($t) {
 
-		$t = isset($helper) ? $helper->render($time) : $time;
-
-		return isset($time)
-			? substr($t, 0, 5)
-			: 'ND';
+		return isset($t) ? substr($t, 0, 5) : 'ND';
 
 	}
 
-	private function formatDecimal($number) {
+	private function formatDecimal($n) {
 
-		static $decimals = 1;
+		static $dec = 1;
 
-		return floor( $number ) != $number
+		return floor( $n ) != $n
 			? number_format(
-				$number,
-				$decimals,
+				$n,
+				$dec,
 				$this->locale['decimal_point'],
 				$this->locale['thousands_sep']
-			) : round( $number )
+			) : round( $n )
 		;
 	}
-
 }

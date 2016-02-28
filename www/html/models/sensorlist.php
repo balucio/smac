@@ -1,57 +1,61 @@
 <?php
 
-class SensorStatusModel {
+class SensorListModel {
 
-    const
-        IN_MEDIA_SENSOR = 'inmedia',
-        OTHER_SENSOR = 'altri'
-    ;
+	const ENABLED = true;
+	const DISABLED = false;
+	const ALL = null;
+	const ID_AVG = 0;
 
-    private
-        $sensorStatus = null,
-        $sList = null
-    ;
+	private
 
+		$list = null,
 
-    public function __construct() {
+		$selected = null,
+		$status = null
+	;
 
-        $this->sensorStatus = new SensorDataModel();
+	public function __construct($status = self::ALL, $selected = 0) {
 
-    }
+		$this->selected = $selected;
+		$this->status = $status;
+	}
 
-    public function initData() {
+	public function getList($includeAvg = true) {
 
-        // Imposto di default il sensore "Media" ed elenco i sensori
-        $this->sensorStatus->setSensorId(null);
-        $this->enumerate();
-    }
+		return $includeAvg 
+			? $this->list
+			: (isset($this->list[self::ID_AVG])
+				? array_slice($this->list, 1, null, true)
+				: $this->list
+		);
+	}
 
-    public function sensordata() { return $this->sensorStatus; }
+	public function sensorList($status = self::ALL, $selected = 0) {
 
-    public function sensorlist($type) { return $this->sList->$type; }
+		$selected != $this->selected
+			&& $this->selected = $selected;
 
+		$status != $this->status
+			&& $this->status = $status;
 
-    public function enumerate() {
+		$this->list = [];
 
-        $query = "SELECT id_sensore, nome_sensore, incluso_in_media"
-            . " FROM sensori"
-           . " WHERE abilitato"
-        . " ORDER BY incluso_in_media DESC, nome_sensore ASC";
+		foreach ($this->enumerate($status) as $v) {
 
-        $this->sList = (object)[];
-        $this->sList->inmedia = $this->sList->altri = [];
+			$k = $v['id_sensore'];
+			$this->list[$k] = $v;
 
-        foreach (Db::get()->getResultSet($query) as $sensor) {
+			$this->list[$k]['selected'] = ( $selected == $k ) ? 'selected' : '';
+		}
+	}
 
-            if ($sensor['incluso_in_media'])
-                $this->sList->inmedia[] = $sensor;
-            else
-                $this->sList->altri[] = $sensor;
+	private function enumerate($status) {
 
-        }
+		$query = "SELECT * FROM elenco_sensori(:status)";
 
-        return $this;
-
-    }
-
+		return Db::get()->getResultSet(
+			$query, [':status' => $status ]
+		);
+	}
 }

@@ -1,6 +1,6 @@
 <?php
 
-class SensorStatusView {
+class StatoSensoriView {
 
 	private
 		$model,
@@ -17,17 +17,11 @@ class SensorStatusView {
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('statosensori');
-		$dcr = new Decorator();
+		$tpl = Template::get()->loadTemplate('statosensori.tpl');
 
 		return $tpl->render([
-			'in_average_sensor' => $this->model->sensorlist(SensorStatusModel::IN_MEDIA_SENSOR),
-			'other_sensor' => $this->model->sensorlist(SensorStatusModel::OTHER_SENSOR),
-			'have_others' => count($this->model->sensorlist(SensorStatusModel::OTHER_SENSOR)) > 0,
-			'decorateTemperature' => [$dcr, 'decorateTemperature'],
-			'decorateUmidity' => [$dcr, 'decorateUmidity'],
-			'decorateDateTime' => [$dcr, 'decorateDateTime'],
-			'sensor' => $this->model->sensordata()
+			'sensore' => $this->model->getData(),
+			'sensori' => $this->model->getList()
 		]);
 	}
 

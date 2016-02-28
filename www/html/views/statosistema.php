@@ -1,6 +1,6 @@
 <?php
 
-class ProgramStatusView {
+class StatoSistemaView {
 
 	private
 		$model,
@@ -18,18 +18,13 @@ class ProgramStatusView {
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('statosistema');
-		$dcr = new Decorator();
-		$progr = $this->model->programdata();
+		$tpl = Template::get()->loadTemplate('statosistema.tpl');
 
 		return $tpl->render([
-			'special_program' => $this->model->programlist(ProgramStatusModel::SPECIAL_PROGRAM),
-			'other_program' => $this->model->programlist(ProgramStatusModel::OTHER_PROGRAM),
-			'decorateTemperature' => [$dcr, 'decorateTemperature'],
-			'decorateUmidity' => [$dcr, 'decorateUmidity'],
-			'antigelo' => $progr->antigelo,
-			'temperature' => $progr->temperature,
-			'rif_temp_attuale' => $progr->rif_temp_attuale
+			'programmi' => $this->model->list,
+			'antigelo' => $this->model->antigelo,
+			'temperature' => $this->model->temperature,
+			'rif_temp_attuale' => $this->model->rif_temp_attuale
 
 		]);
 	}

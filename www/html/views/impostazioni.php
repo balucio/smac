@@ -15,7 +15,7 @@ class ImpostazioniView {
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('impostazioni');
+		$tpl = Template::get()->loadTemplate('impostazioni.tpl');
 		$dcr = new Decorator();
 
 		Assets::get()->addCss('/css/programedit.css');

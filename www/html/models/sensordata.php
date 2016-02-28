@@ -7,7 +7,11 @@ class SensorDataModel {
 		$sData = null
 	;
 
-	public function __construct() { }
+	public function __construct($sensorId = null) {
+
+		if ($sensorId)
+			$this->setSensorId($sensorId);
+	}
 
 	public function __isset($key) {
 

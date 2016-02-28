@@ -22,7 +22,7 @@ class ProgramDataView {
 
 	private function encodeHtml($pdata) {
 
-		$tpl = Template::get()->loadTemplate('temperature_riferimento');
+		$tpl = Template::get()->loadTemplate('temperature_riferimento.tpl');
 		$dcr = new Decorator();
 
 		return $tpl->render([

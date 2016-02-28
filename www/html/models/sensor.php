@@ -2,26 +2,30 @@
 
 class SensorModel {
 
-	const ENABLED = true;
-	const DISABLED = false;
-	const ALL = null;
-
 	private
-		$sData = null,
-		$sList = null
+		$sensorData = null,
+		$sensorList = null
 	;
 
-	public function __construct() { }
-
-	public function initData() {
-
-		// Imposto di default il sensore "Media" ed elenco i sensori
-		$this->sensorStatus->setSensorId(null);
-		$this->enumerate(self::ENABLED);
+	public function __construct() {
+		$this->sensorData = new SensorDataModel();
+		$this->sensorList = new SensorListModel();
 	}
 
-	public function sensordata() { return $this->sensorStatus; }
+	public function initData($sid = 0) {
 
-	public function sensorlist() { return $this->sList; }
+		// Selezionato per default sensore media "Media" 0
+		$this->sensorData->setSensorId(null);
+		$this->sensorList->sensorList(SensorListModel::ALL, $selected = 0 );
+	}
+
+	public function getData() {
+		return $this->sensorData;
+	}
+
+	public function getlist() {
+
+		return $this->sensorList->getList($includeAverage = true);
+	}
 
 }

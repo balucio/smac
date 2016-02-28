@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="{{ language }}">
+<html lang="{{ language|default('it') }}">
 <head>
 	<meta charset="utf-8">
 
@@ -31,16 +31,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<!-- Style sheet link -->
-	{{#css}}
-	<link rel="stylesheet" href="{{.}}" media="all">
-	{{/css}}
+	{% for link in css %}
+		<link rel="stylesheet" href="{{ link }}" media="all">
+	{% endfor %}
 
 	<!-- Inline Style -->
-	{{#internalCss}}
-	<style>
-	{{ . }}
-	</style>
-	{{/internalCss}}
+	{% if internalCss is defined %}
+		{% for style in internalCss %}
+			<style>{{ style }}</style>
+		{% endfor %}
+	{% endif %}
 
 </head>
 <body>
@@ -64,9 +64,9 @@
 				</div>
 				<div class="collapse navbar-collapse" id="smac-navbar">
 					<ul class="nav navbar-nav">
-						<li class="{{sit_selected}}"><a href="/situazione">Stato sistema</a></li>
-						<li class="{{stt_selected}}"><a href="/statistiche">Statistiche</a></li>
-						<li class="{{imp_selected}}"><a href="/impostazioni">Impostazioni</a></li>
+						<li class="{{sit_selected|default('')}}"><a href="/situazione">Stato sistema</a></li>
+						<li class="{{stt_selected|default('')}}"><a href="/statistiche">Statistiche</a></li>
+						<li class="{{imp_selected|default('')}}"><a href="/impostazioni">Impostazioni</a></li>
 					</ul>
 				</div>
 			</div>

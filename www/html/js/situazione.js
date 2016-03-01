@@ -9,7 +9,7 @@ $(function () {
 		var sid = $(this).val();
 		// requesting new sensor data
 		$.post(
-			'datisensore',
+			'sensor/setSensorId',
 			{ sensor : sid },
 			function(datisensore) {
 				for (var oid in datisensore)
@@ -19,23 +19,23 @@ $(function () {
 		);
 		// Force update event on graph
 		tchart.series[0].setData([]);
-		getStat(tchart.series[0], sid, 'temperatura');
+		getStats(tchart.series[0], sid, 'temperatura');
 		hchart.series[0].setData([]);
-		getStat(hchart.series[0], sid, 'umidita');
+		getStats(hchart.series[0], sid, 'umidita');
 
 
 	}
 
 	var sheduleDraw = function (series, sensor, type) {
 
-		getStat(series, sensor, type );
+		getStats(series, sensor, type );
 
 		setTimeout( function(){ sheduleDraw(series, sensor, type); }, req_interval * 1000 );
 
 	}
 
 
-	var getStat = function(series, sensor, type) {
+	var getStats = function(series, sensor, type) {
 
 		// Get actual number of point
 		var pntno = series.data.length;
@@ -43,7 +43,10 @@ $(function () {
 		// no point request the last hour else request last minute
 		var interval = pntno <= 0 ? (req_interval * 60) : null;
 
-		var data = { sensor : sensor };
+		var data = {
+			measure : type,
+			sensor : sensor
+		};
 
 		if (!interval) {
 
@@ -56,7 +59,8 @@ $(function () {
 		}
 
 		$.post(
-			'andamento/' + type, data,
+			'sensor/getStats',
+			data,
 
 			function(points) {
 

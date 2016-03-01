@@ -12,11 +12,11 @@ class SensorModel {
 		$this->sensorList = new SensorListModel();
 	}
 
-	public function initData($sid = 0) {
+	public function initData($sid = 0, $show = SensorListModel::ENABLED) {
 
 		// Selezionato per default sensore media "Media" 0
-		$this->sensorData->setSensorId(null);
-		$this->sensorList->sensorList(SensorListModel::ALL, $selected = 0 );
+		$this->sensorData->setSensorId($sid);
+		$this->sensorList->sensorList($show, $sid);
 	}
 
 	public function getData() {

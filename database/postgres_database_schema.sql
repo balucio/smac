@@ -671,7 +671,7 @@ ALTER FUNCTION public.elenco_sensori(stato boolean) OWNER TO smac;
 -- Name: esiste_programma(smallint); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION esiste_programma(progr_id smallint DEFAULT '-1'::integer) RETURNS boolean
+CREATE FUNCTION esiste_programma(progr_id smallint) RETURNS boolean
     LANGUAGE plpgsql
     AS $$
 
@@ -683,6 +683,23 @@ END$$;
 
 
 ALTER FUNCTION public.esiste_programma(progr_id smallint) OWNER TO smac;
+
+--
+-- Name: esiste_sensore(smallint, boolean); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION esiste_sensore(sens_id smallint, stato boolean DEFAULT true) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+
+BEGIN
+ RETURN EXISTS(
+    SELECT id_sensore FROM elenco_sensori(stato) WHERE id_sensore = sens_id
+ );
+END$$;
+
+
+ALTER FUNCTION public.esiste_sensore(sens_id smallint, stato boolean) OWNER TO smac;
 
 --
 -- Name: get_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: smac
@@ -840,12 +857,12 @@ ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWN
 -- Name: report_misurazioni(smallint, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION report_misurazioni(pid_sensore smallint DEFAULT NULL::smallint, data_ora_inizio timestamp without time zone DEFAULT (now() - '01:00:00'::interval), data_ora_fine timestamp without time zone DEFAULT now()) RETURNS SETOF report_sensore
+CREATE FUNCTION report_misurazioni(pid_sensore smallint, data_ora_inizio timestamp without time zone DEFAULT (now() - '01:00:00'::interval), data_ora_fine timestamp without time zone DEFAULT now()) RETURNS SETOF report_sensore
     LANGUAGE plpgsql
     AS $$DECLARE
 BEGIN
-    -- se non viene passato un sensore devo calcolare la "media"
-    IF pid_sensore IS NULL THEN
+    -- se null o 0 si tratta della media
+    IF pid_sensore IS NULL OR pid_sensore = 0  THEN
         RETURN QUERY
             SELECT date_trunc('minute', misurazioni.data_ora) as tr_data_ora,
                    0::smallint,

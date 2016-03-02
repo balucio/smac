@@ -1,6 +1,6 @@
 <?php
 
-class StatsController extends GenericController {
+class SensorStatsController extends GenericController {
 
 	const
 
@@ -17,11 +17,11 @@ class StatsController extends GenericController {
 
 	public function temperatura() {
 
-		$this->setModelPars(AndamentoModel::TEMPERATURA);
+		$this->setModelPars(SensorStatsModel::TEMPERATURA);
 	}
 
 	public function umidita() {
-		$this->setModelPars(AndamentoModel::UMIDITA);
+		$this->setModelPars(SensorStatsModel::UMIDITA);
 	}
 
 	private function setModelPars($grapType) {
@@ -39,7 +39,7 @@ class StatsController extends GenericController {
 		$int = Validate::IsPositiveInt($int) ? $int : self::DEF_INTERVAL;
 
 		if ($int > self::MAX_INTERVAL)
-			$int = self:MAX_INTERVAL;
+			$int = self::MAX_INTERVAL;
 
 		$sd = Request::Attr('start_date', null);
 		$ed = Request::Attr('end_date', null);
@@ -49,20 +49,30 @@ class StatsController extends GenericController {
 
 		if ( $vsd && $ved ) {
 
-			$cds = min($sd, $ed);
-			$cde = max($sd, $ed);
+			if ( $sd > $ed ) {
+				$tmp = $sd;
+				$sd = $ed;
+				$ed = $tmp;
+			} else if ( $sd == $ed ) {
+				$sd = $ed - $int;
+			}
 
-			if ($cde - $cds > self::MAX_INTERVAL)
-				$cds = $cde - self::MAX_INTERVAL;
+			if ( $ed - $sd > self::MAX_INTERVAL )
+				$sd = $ed - self::MAX_INTERVAL;
+
+			$this->model->setStartDate( Db::TimestampWt( $sd ) );
+			$this->model->setEndDate( Db::TimestampWt( $ed ) );
 
 		} else if ( $vsd ) {
 
-			$cds = $sd;
-			$cde = $sd + $int;
-		}
+			$this->model->setStartDate( Db::TimestampWt( $sd ) );
+			$this->model->setEndDate( Db::TimestampWt( $sd + $int ) );
 
-		$this->model->setStartDate($cds)
-		$this->model->setEndDate($cde);
+		} else if ( $ved ) {
+
+			$this->model->setStartDate( Db::TimestampWt( $ed - $int ) );
+			$this->model->setEndDate( Db::TimestampWt( $ed ) );
+		}
 	}
 
 

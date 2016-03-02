@@ -1,22 +1,23 @@
 <?php
 
-class SensorsStatsModel {
+class SensorStatsModel {
+
+	const
+		TEMPERATURA = 'temperatura',
+		UMIDITA = 'umidita'
+	;
 
 	private
-		$physicalType = null,
+		$physicalQt = null,
 		$sensorId = null,
 		$start_date = null,
 		$end_date = null
 	;
 
-	public function __construct() {
-
-		$this->dbh = Db::get();
-
-	}
+	public function __construct() { }
 
 	public function setPhysicalType($type) {
-		$this->physicalType = $type;
+		$this->physicalQt = $type;
 		return $this;
 	}
 
@@ -38,10 +39,10 @@ class SensorsStatsModel {
 	public function getData() {
 
 		$query = "SELECT EXTRACT(epoch FROM data_ora) * 1000,"
-			. "({$this->physicalType})::numeric(5,2) FROM "
-			. "report_misurazioni(?::smallint, ?::timestamp, ?::timestamp)";
+				. "({$this->physicalQt})::numeric(5,2) FROM "
+				. "report_misurazioni(?::smallint, ?::timestamp, ?::timestamp)";
 
-		$stmt = $this->dbh->prepare($query);
+		$stmt = Db::get()->prepare($query);
 
 		$stmt->bindParam(1, $this->sensorId, PDO::PARAM_INT);
 		$stmt->bindParam(2, $this->start_date, PDO::PARAM_STR);

@@ -1,14 +1,8 @@
 <?php
 
-class AndamentoModel {
-
-	const
-		TEMPERATURA = 'temperatura',
-		UMIDITA = 'umidita'
-	;
+class SensorsStatsModel {
 
 	private
-		$dbh = null,
 		$physicalType = null,
 		$sensorId = null,
 		$start_date = null,

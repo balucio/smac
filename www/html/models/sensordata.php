@@ -2,23 +2,14 @@
 
 class SensorDataModel {
 
-	const
-		TEMPERATURA = 'temperatura',
-		UMIDITA = 'umidita'
-	;
-
 	private
-		$dbh = null,
-		$data = null,
-		$measureType = null,
-		$startDate = null,
-		$endDate = null
+		$data = null
 	;
 
-	public function __construct($sensorId = null) {
+	public function __construct($sid = null) {
 
-		if ($sensorId)
-			$this->setSensorId($sensorId);
+		if ($sid)
+			$this->setSensorId($sid);
 	}
 
 	public function __isset($key) {
@@ -50,37 +41,5 @@ class SensorDataModel {
 			"SELECT esiste_sensore(:sid::smallint)",
 			[':sid' => $sid ]
 		);
-	}
-
-
-	public function setMeasureType($type) {
-		$this->measureType = $type;
-		return $this;
-	}
-
-	public function setStartDate($sd) {
-		$this->startDate = $sd;
-		return $this;
-	}
-
-	public function setEndDate($ed) {
-		$this->endDate = $ed;
-		return $this;
-	}
-
-	public function getStats() {
-
-		$query = "SELECT EXTRACT(epoch FROM data_ora) * 1000,"
-			. "({$this->physicalType})::numeric(5,2) FROM "
-			. "report_misurazioni(?::smallint, ?::timestamp, ?::timestamp)";
-
-		$stmt = $this->dbh->prepare($query);
-
-		$stmt->bindParam(1, $this->sensorId, PDO::PARAM_INT);
-		$stmt->bindParam(2, $this->start_date, PDO::PARAM_STR);
-		$stmt->bindParam(3, $this->end_date, PDO::PARAM_STR);
-
-		$stmt->execute();
-		return $stmt->fetchAll(PDO::FETCH_NUM);
 	}
 }

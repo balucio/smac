@@ -43,7 +43,9 @@ class Router {
 			// Pagina situazione sistema
 			'situazione' => new Route('Situazione', 'Situazione', 'Generic'),
 			// Gestione dei sensori
-			'sensor' => new Route('SensorData', 'SensorData', 'SensorData')
+			'sensor' => new Route('SensorData', 'SensorData', 'SensorData'),
+			// Statistiche
+			'stats' => new Route('Stats', 'Stats', 'Generic')
 		];
 	}
 

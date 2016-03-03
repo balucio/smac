@@ -28,33 +28,35 @@ class SensorStatsModel {
 	public function __construct() { }
 
 	public function setPhysicalType($type) {
-		$this->physicalQt = $type;
 
+		$this->physicalQt = $type;
 		$this->status |= self::$PHYQT;
-		d($this->status |= self::$PHYQT);
 		return $this;
 	}
 
 	public function setSensorId($sid) {
+
 		$this->sensorId = $sid;
-		$this->status |= self::SID;
+		$this->status |= self::$SID;
 		return $this;
 	}
 
 	public function setStartDate($sd) {
+
 		$this->start_date = $sd;
 		$this->status |= self::$START_DATE;
 		return $this;
 	}
 
 	public function setEndDate($ed) {
+
 		$this->end_date = $ed;
 		$this->status |= self::$END_DATE;
 		return $this;
 	}
 
 	public function getData() {
-d($this->status);
+
 		if ($this->status !== self::$STATUS_OK)
 			return null;
 

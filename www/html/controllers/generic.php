@@ -2,18 +2,18 @@
 
 class GenericController {
 
-    public
-        $action,
-        $status
-    ;
+	public
+		$action,
+		$status
+	;
 
-    private
-        $models = null
-    ;
+	private
+		$models = null
+	;
 
-    public function __construct($model) {
+	public function __construct($model) {
 
-        $this->model = $model;
-        $model->initData();
-    }
+		$this->model = $model;
+		$model->initData();
+	}
 }

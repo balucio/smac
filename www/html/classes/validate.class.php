@@ -19,7 +19,6 @@ class Validate {
 		return $var > 0;
 	}
 
-
 	public static function IsValidTimeStamp($ts) {
 
 		return ((string) (int) $ts === $ts) 

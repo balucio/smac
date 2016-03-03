@@ -29,7 +29,6 @@ $(function () {
 	var sheduleDraw = function (series, sensor, type) {
 
 		getStats(series, sensor, type );
-
 		setTimeout( function(){ sheduleDraw(series, sensor, type); }, req_interval * 1000 );
 
 	}
@@ -43,10 +42,7 @@ $(function () {
 		// no point request the last hour else request last minute
 		var interval = pntno <= 0 ? (req_interval * 60) : null;
 
-		var data = {
-			measure : type,
-			sensor : sensor
-		};
+		var data = { sensor : sensor };
 
 		if (!interval) {
 
@@ -59,7 +55,7 @@ $(function () {
 		}
 
 		$.post(
-			'sensor/getStats',
+			'stats/' + type,
 			data,
 
 			function(points) {

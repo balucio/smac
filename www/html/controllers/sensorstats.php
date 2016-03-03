@@ -21,16 +21,17 @@ class SensorStatsController extends GenericController {
 	}
 
 	public function umidita() {
+
 		$this->setModelPars(SensorStatsModel::UMIDITA);
 	}
 
-	private function setModelPars($grapType) {
+	private function setModelPars($graphType) {
 
-		$this->model->setPhysicalType($grapType);
+		$this->model->setPhysicalType($graphType);
 
 		$sid = Request::Attr('sensor', null);
 
-		if ($sid === null || $sid != 0 || !Validate::IsPositiveInt($sid))
+		if (!Validate::IsPositiveInt($sid) && $sid != '0')
 			return;
 
 		$this->model->setSensorId($sid);
@@ -68,7 +69,9 @@ class SensorStatsController extends GenericController {
 			$this->model->setStartDate( Db::TimestampWt( $sd ) );
 			$this->model->setEndDate( Db::TimestampWt( $sd + $int ) );
 
-		} else if ( $ved ) {
+		} else {
+
+			$ed = $ved ? $ed : time();
 
 			$this->model->setStartDate( Db::TimestampWt( $ed - $int ) );
 			$this->model->setEndDate( Db::TimestampWt( $ed ) );

@@ -9,7 +9,7 @@ class ProgramDataController extends GenericController {
 		// check for program id else we get actual program
 		$programId = Request::Attr('program', null);
 
-		($programId === '' ||  !Validate::IsProgramId($programId))
+		($programId === '' ||  !Validate::IsInteger($programId))
 			&& $programId = null;
 
 		$day = Request::Attr('day', null);
@@ -23,6 +23,10 @@ class ProgramDataController extends GenericController {
 	public function setProgramId($programId, $day = null) {
 
 		$this->model->setProgramId($programId, $day);
+	}
+
+	public function getProgramData() {
+
 	}
 
 }

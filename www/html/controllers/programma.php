@@ -11,7 +11,6 @@ class ProgrammaController extends GenericController {
 
 		$this->model = $model;
 		$this->initFromRequest();
-
 	}
 
 	public function setPid($v) {

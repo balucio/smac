@@ -42,7 +42,7 @@ $(function () {
 
 	var requestProgramData = function(pid, day, process) {
 		$.post(
-			'programmazione',
+			'program/getPrograData',
 			{
 				program : pid,
 				day : day

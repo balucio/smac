@@ -19,9 +19,14 @@ class Validate {
 		return $var > 0;
 	}
 
+	public static function IsInteger( $num ) {
+
+		return false !== filter_var($num, FILTER_VALIDATE_INT);
+	}
+
 	public static function IsValidTimeStamp($ts) {
 
-		return ((string) (int) $ts === $ts) 
+		return ((string) (int) $ts === $ts)
 			&& ($ts <= PHP_INT_MAX)
 			&& ($ts >= ~PHP_INT_MAX);
 	}

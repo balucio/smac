@@ -13,23 +13,20 @@ class ProgramDataView {
 
 	public function render() {
 
-		$rv = (object)[ 'jdata' => $this->model->programdata() ];
-		$rv->html = $this->encodeHtml($rv->jdata);
+		$rv = (object)[
+			'detaglio' => $this->model->dettaglio,
+			'temp_antigelo' => $this->model->antigelo,
+			'temp_riferimento' => $this->encodeHtml($this->model),
+			'temp_rif_att' => $this->model->rif_temp_attuale
+		];
 
-		//return '<pre>' . json_encode( $this->model->programdata(), JSON_PRETTY_PRINT) . '</pre>';
-		return json_encode( $rv );
+		return '<pre>' . json_encode( $rv, JSON_PRETTY_PRINT) . '</pre>';
+//		return json_encode( $rv );
 	}
 
 	private function encodeHtml($pdata) {
 
-		$tpl = Template::get()->loadTemplate('temperature_riferimento.tpl');
-		$dcr = new Decorator();
-
-		return $tpl->render([
-			'decorateTemperature' => [$dcr, 'decorateTemperature'],
-			'decorateUmidity' => [$dcr, 'decorateUmidity'],
-			'antigelo' => $pdata->antigelo,
-			'temperature' => $pdata->temperature
-		]);
+		$tpl = Template::get()->loadTemplate('tempriferimento.tpl');
+		return $tpl->render([ 'temperature' => $pdata->temperature ]);
 	}
 }

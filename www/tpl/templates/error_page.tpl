@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="{{ language }}">
+<html lang="{{ language|default('it') }}">
 <head>
 	<meta charset="utf-8">
 
@@ -31,9 +31,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<!-- Style sheet link -->
-	{{#css}}
-	<link rel="stylesheet" href="{{.}}" media="all">
-	{{/css}}
+	{% for link in css|default(null) %}
+		<link rel="stylesheet" href="{{ link }}" media="all">
+	{% endfor %}
 
 </head>
 <body>
@@ -44,7 +44,7 @@
 	</header>
 
 	<main role="main">
-	{{&message}}
+	{{message|raw}}
 	</main><!-- End primary page content -->
 	<div class="clearfix"></div>
 	<footer role="contentinfo">
@@ -52,8 +52,8 @@
 	</footer>
 
 	<!-- Javascrip link placing at end of the page in order to not interrupt rendering -->
-	{{#js}}
-	<script src="{{.}}"></script>
-	{{/js}}
+	{% for link in js|default(null)	 %}
+		<script src="{{link}}"></script>
+	{% endfor %}
 </body>
 </html>

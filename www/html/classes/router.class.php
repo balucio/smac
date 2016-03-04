@@ -45,7 +45,9 @@ class Router {
 			// Gestione dei sensori
 			'sensor' => new Route('SensorData', 'SensorData', 'SensorData'),
 			// Statistiche
-			'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats')
+			'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats'),
+			// Programma
+			'program' => new Route('ProgramData', 'ProgramData', 'ProgramData')
 		];
 	}
 

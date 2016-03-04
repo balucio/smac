@@ -2,30 +2,29 @@
 
 class ProgramDataController extends GenericController {
 
-	public function __construct($model) {
+	public function setProgramId($pid, $day = null) {
 
-		$this->model = $model;
+		$this->model->setProgramId($pid, $day);
+	}
+
+	public function getProgramData() {
+
+	}
+
+	protected function initFromRequest() {
 
 		// check for program id else we get actual program
-		$programId = Request::Attr('program', null);
+		$pid = Request::Attr('program', null);
 
-		($programId === '' ||  !Validate::IsInteger($programId))
-			&& $programId = null;
+		(!Validate::IsInteger($pid) || !$this->model->programExists($pid))
+			&& $pid = null;
 
 		$day = Request::Attr('day', null);
 
 		($day === '' ||  !Validate::IsDayOfWeek($day))
 			&& $day = null;
 
-		$this->setProgramId($programId, $day);
-	}
-
-	public function setProgramId($programId, $day = null) {
-
-		$this->model->setProgramId($programId, $day);
-	}
-
-	public function getProgramData() {
+		$this->setProgramId($pid, $day);
 
 	}
 

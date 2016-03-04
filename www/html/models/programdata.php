@@ -23,12 +23,18 @@ class ProgramDataModel {
 		);
 	}
 
+	public function programExists($pid) {
+
+		return Db::get()->getNthColumnOfRow(
+			"SELECT esiste_programma(:pid::smallint)",
+			[':pid' => $pid ]
+		);
+	}
+
 	private function getProgramData($pid) {
 
 		$query = "SELECT *, array_to_json(temperature_rif) as json_t_rif FROM dati_programma(:id)";
-
 		return Db::get()->getFirstRow($query, [':id' => $pid]);
-
 	}
 
 	private function getProgramDetails($pid, $pday = null) {

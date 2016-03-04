@@ -20,8 +20,8 @@ class ProgramDataView {
 			'temp_rif_att' => $this->model->rif_temp_attuale
 		];
 
-		return '<pre>' . json_encode( $rv, JSON_PRETTY_PRINT) . '</pre>';
-//		return json_encode( $rv );
+//		return '<pre>' . json_encode( $rv, JSON_PRETTY_PRINT) . '</pre>';
+		return json_encode( $rv );
 	}
 
 	private function encodeHtml($pdata) {

@@ -9,7 +9,6 @@ class ImpostazioniController extends GenericController {
 		$this->dettaglioCompleto();
 	}
 
-
 	protected function dettaglioCompleto() {
 
 		$this->action = __FUNCTION__;

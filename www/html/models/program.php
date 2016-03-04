@@ -30,7 +30,7 @@ class ProgramModel {
 
 	public function setDefault($pid) {
 
-		if ($this->programExists($pid))
+		if ($this->data->programExists($pid))
 			Db::get()->saveSetting(Db::CURR_PROGRAM, $pid);
 		else {
 			error_log("Id programma $pid non esistente");
@@ -38,14 +38,6 @@ class ProgramModel {
 		}
 
 		return true;
-	}
-
-	public function programExists($pid) {
-
-		return Db::get()->getNthColumnOfRow(
-			"SELECT esiste_programma(:pid::smallint)",
-			[':pid' => $pid ]
-		);
 	}
 
 	public function getDefault() {

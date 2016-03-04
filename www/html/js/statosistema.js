@@ -39,10 +39,9 @@ $(function () {
 		series: []
 	}
 
-
 	var requestProgramData = function(pid, day, process) {
 		$.post(
-			'program/getPrograData',
+			'program/getProgramData',
 			{
 				program : pid,
 				day : day
@@ -189,7 +188,7 @@ $(function () {
 		$('#programma').change(function() {
 			requestProgramData($(this).val(), isoDay(), function(reqData) {
 				$('#temperature-riferimento').html(reqData.html);
-				createChart(calculateNewChartSeries(reqData.jdata));
+				createChart(calculateNewChartSeries(reqData.dettaglio));
 			});
 		});
 
@@ -198,7 +197,7 @@ $(function () {
 			$('#programma').val(),
 			isoDay(),
 			function(reqData) {
-				createChart(calculateNewChartSeries(reqData.jdata));
+				createChart(calculateNewChartSeries(reqData.dettaglio));
 		});
 	});
 });

@@ -10,24 +10,18 @@ class SensorStatsController extends GenericController {
 		MAX_INTERVAL = 8035200
 	;
 
-	public function __construct($model) {
-
-		$this->model = $model;
-	}
-
 	public function temperatura() {
 
-		$this->setModelPars(SensorStatsModel::TEMPERATURA);
+		$this->model->setPhysicalType(SensorStatsModel::TEMPERATURA);
+
 	}
 
 	public function umidita() {
 
-		$this->setModelPars(SensorStatsModel::UMIDITA);
+		$this->model->setPhysicalType(SensorStatsModel::UMIDITA);
 	}
 
-	private function setModelPars($graphType) {
-
-		$this->model->setPhysicalType($graphType);
+	protected function initFromRequest() {
 
 		$sid = Request::Attr('sensor', null);
 
@@ -76,9 +70,8 @@ class SensorStatsController extends GenericController {
 			$this->model->setStartDate( Db::TimestampWt( $ed - $int ) );
 			$this->model->setEndDate( Db::TimestampWt( $ed ) );
 		}
+
 	}
-
-
 
 
 }

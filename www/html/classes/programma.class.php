@@ -47,8 +47,7 @@ class Programma implements JsonSerializable {
 		$rif_temp_attuale = null,
 		$antigelo = null,
 		$temperature = [],
-		$dettaglio = [],
-		$giorni = []
+		$dettaglio = []
 	;
 
 	public function __construct($data, $details) {
@@ -59,34 +58,30 @@ class Programma implements JsonSerializable {
 		$this->temperature = isset($data['json_t_rif']) ? $this->parseTemps($data['json_t_rif']) : [];
 		$this->antigelo = isset($data['t_anticongelamento']) ? json_decode($data['t_anticongelamento']) : null;
 
-		$cDay = date('N');
-		$dTime = time() - strtotime("today");
+		$nd = date('N');
+		$dt = time() - strtotime("today");
 
-		$dayDay = 0;
+		$i = 0;
 
 		foreach ($details as $row) {
 
 			$dp = new DettaglioProgramma($row);
 
-			if ( $dp->giorno == ( $dayDay + 1 ) ) {
-
-				$giorno = new stdClass();
-				$giorno->num = $dp->giorno;
-				$giorno->schedule =& $this->dettaglio[$dayDay];
-
-				$giorno->active = ($cDay == $dp->giorno) ? 'active' : '';
-
-				$this->giorni[$dayDay++] = $giorno;
+			if ( $dp->giorno != $i ) {
+				$i = $dp->giorno;
+				$this->dettaglio[$i] = [];
 			}
 
-			$this->dettaglio[$dayDay - 1][] = $dp;
+			$this->dettaglio[$i][] = $dp;
 
-			if ($cDay == $dp->giorno && $dTime <= $dp->intervallo)
+			// Calcolo temperatura attuale.
+			if ($nd == $dp->giorno && $dt <= $dp->intervallo)
 				$this->rif_temp_attuale = $dp->t_rif_valore;
 		}
 	}
 
 	public function jsonSerialize() {
+
 		return [
 			'id' => $this->id,
 			'nome' => $this->nome,

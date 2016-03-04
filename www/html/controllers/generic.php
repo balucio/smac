@@ -2,18 +2,22 @@
 
 class GenericController {
 
-	public
-		$action,
-		$status
+	protected
+
+		$action = null,
+		$model = null
 	;
 
-	private
-		$models = null
-	;
-
-	public function __construct($model) {
+	public function __construct($model, $init = true) {
 
 		$this->model = $model;
-		$model->initData();
+
+		if ($init)
+			$this->initFromRequest();
+	}
+
+	protected function initFromRequest() {
+
+		$this->model->initData();
 	}
 }

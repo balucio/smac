@@ -1,15 +1,6 @@
 <?php
 
-class SensorStatsView {
-
-	private $model;
-	private $controller;
-
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-	}
+class SensorStatsView extends BaseView {
 
 	public function render() {
 

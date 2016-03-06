@@ -1,17 +1,10 @@
 <?php
 
-class StatoSistemaView {
+class StatoSistemaView extends BaseView {
 
-	private
-		$model,
-		$controller
-	;
+	public function __construct($model) {
 
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-
+		parent::__construct($model);
 		Assets::get()->addJs('/js/rainbow.js');
 		Assets::get()->addJs('/js/statosistema.js');
 	}

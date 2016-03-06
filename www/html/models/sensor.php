@@ -3,29 +3,27 @@
 class SensorModel {
 
 	private
-		$sensorData = null,
-		$sensorList = null
+		$data = null,
+		$list = null
 	;
 
 	public function __construct() {
-		$this->sensorData = new SensorDataModel();
-		$this->sensorList = new SensorListModel();
+
+		$this->data = new SensorDataModel();
+		$this->list = new SensorListModel();
 	}
 
-	public function initData($sid = 0, $show = SensorListModel::ENABLED) {
+	public function get($type) {
+		return $type == 'data'
+			? $this->data->get()
+			: $this->list->get()
+		;
+	}
+
+	public function setSid($sid = 0, $show = SensorListModel::ENABLED) {
 
 		// Selezionato per default sensore media "Media" 0
-		$this->sensorData->setSensorId($sid);
-		$this->sensorList->sensorList($show, $sid);
+		$this->data->setSid($sid);
+		$this->list->enumerate($show, $sid);
 	}
-
-	public function getData() {
-		return $this->sensorData;
-	}
-
-	public function getlist() {
-
-		return $this->sensorList->getList($includeAverage = true);
-	}
-
 }

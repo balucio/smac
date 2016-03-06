@@ -18,14 +18,14 @@ class ProgramListModel {
 
 	public function __construct() { }
 
-	public function getList() {
+	public function get() {
 
 		return $this->list;
 	}
 
-	public function initData($spid = null, $include_special = self::ALL) {
+	public function enumerate($spid = null, $include_special = self::ALL) {
 
-		$rawList = $this->enumerate();
+		$rawList = Db::get()->getResultSet("SELECT * FROM elenco_programmi()");
 
 		if ($include_special & self::POWEROFF)
 			unset($rawList[self::ID_POWEROFF]);
@@ -43,10 +43,5 @@ class ProgramListModel {
 			$this->list[$k] = $v;
 			$this->list[$k]['selected'] = $spid == $k ? 'selected' : '';
 		}
-	}
-
-	private function enumerate() {
-
-		return Db::get()->getResultSet("SELECT * FROM elenco_programmi()");
 	}
 }

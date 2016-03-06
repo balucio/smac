@@ -15,40 +15,20 @@ class FrontController {
 		$params = array()
 	;
 
-	public function __construct($router, $route, $action, $params) {
+	public function __construct($route, $action, $params) {
 
-		$this->router = $router;
-		$this->setRoute($route)->setAction($action)->setParams($params);
-	}
+		// Routes are two levels. First level (route), second
+		// level subroute (action). The second level is mainly
+		// used to select the view. First params is used to
+		// select the controller action. If param does not exist.
+		// Action is used as controller action else default action
+		// is picked
+		$this->route = $this->getRoute($route, $action);
+		$model = $this->get('model');
+		$this->controller = $this->get('controller', $model);
+		$this->view = $this->get('view', $model);
 
-	public function setRoute($route) {
-
-		$route = $this->router->$route ?: $this->router->{Router::DEFAULT_ROUTE};
-
-		$modelName = $route->model;
-		$model = new $modelName();
-
-		$controllerName = $route->controller;
-		$this->controller = new $controllerName($model);
-		$viewName = $route->view;
-		$this->view = new $viewName($this->controller, $model);
-
-		return $this;
-	}
-
-	public function setAction($action) {
-
-		if (method_exists($this->controller, $action))
-			$this->action = $action;
-		else
-			error_log("The controller action '$action' has been not defined.");
-
-		return $this;
-	}
-
-	public function setParams($params) {
-		$this->params = $params;
-		return $this;
+		$this->setAction($action, $params)->setParams($params);
 	}
 
 	public function run() {
@@ -61,4 +41,50 @@ class FrontController {
 		echo $this->view->render();
 	}
 
+	private function get($t, $p = null) {
+
+		$n = $this->route->$t;
+		return new $n($p);
+	}
+
+	private function getRoute($main, $sub = null) {
+
+		$router = new Router();
+		$route = $main . '.' . $sub;
+
+		if (isset($router->$route))
+			return $router->$route;
+
+		$route = $main . '.' . Router::DEFAULT_SUBROUTE;
+
+		if (isset($router->$route))
+			return $router->$route;
+
+		$route = Router::DEFAULT_MAINROUTE . '.' . Router::DEFAULT_SUBROUTE;
+
+		return $router->$route;
+	}
+
+	private function setAction($action, &$params) {
+
+		$this->action = $this->controller->getDefaultAction();
+
+		$action = is_array($params)
+			? array_shift($params)
+			: $action;
+
+		if (!empty($action)) {
+			if (method_exists($this->controller, $action))
+				$this->action = $action;
+			else
+				error_log("Controller action '$action' is not defined, fallback to '{$this->action}'.");
+		}
+
+		return $this;
+	}
+
+	private function setParams($params) {
+		$this->params = $params;
+		return $this;
+	}
 }

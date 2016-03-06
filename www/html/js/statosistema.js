@@ -111,7 +111,7 @@ $(function () {
 				color : colors[t],
 				lineWidth : 0,
 				pointstart : todaySec,
-				name : "T<sub>" + temps[t].t_id + "</sub>",
+				name : "T<sub>" + temps[t].id + "</sub>",
 				data : []
 			};
 
@@ -181,14 +181,21 @@ $(function () {
 
 			// Saving actual program
 			if (programma.is(':disabled')) {
-				$.post('programma/salvaattuale', { program : programma.val() });
+				$.post(
+					'program/savedefault',
+					{ program : programma.val() },
+					function(data) {
+						if (!data.hasOwnProperty("program") || data.program == null)
+							alert("Impossibile salvare il programma");
+				});
 			}
 		});
 
 		$('#programma').change(function() {
 			requestProgramData($(this).val(), isoDay(), function(reqData) {
-				$('#temperature-riferimento').html(reqData.html);
-				createChart(calculateNewChartSeries(reqData.dettaglio));
+				$('#temperature-riferimento').html(reqData.temp_riferimento);
+				$('#temp_riferimento_attuale').html(reqData.temp_rif_att)
+				createChart(calculateNewChartSeries(reqData));
 			});
 		});
 
@@ -197,7 +204,7 @@ $(function () {
 			$('#programma').val(),
 			isoDay(),
 			function(reqData) {
-				createChart(calculateNewChartSeries(reqData.dettaglio));
+				createChart(calculateNewChartSeries(reqData));
 		});
 	});
 });

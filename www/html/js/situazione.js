@@ -33,7 +33,6 @@ $(function () {
 
 	}
 
-
 	var getStats = function(series, sensor, type) {
 
 		// Get actual number of point
@@ -55,7 +54,7 @@ $(function () {
 		}
 
 		$.post(
-			'stats/' + type,
+			'sensor/stats/' + type,
 			data,
 
 			function(points) {

@@ -1,31 +1,47 @@
 <?php
 
-class ProgramDataController extends GenericController {
+class ProgramDataController extends BaseController {
 
-	public function setProgramId($pid, $day = null) {
+	private
+		$pid = null,
+		$day = null
+	;
 
-		$this->model->setProgramId($pid, $day);
+	public function __construct($model, $init = true) {
+
+		parent::__construct($model, $init);
+		$this->setDefaultAction('setProgramId');
+	}
+
+	public function setProgramId() {
+
+		$this->model->setPid($this->pid, $this->day);
 	}
 
 	public function getProgramData() {
 
+		$this->model->setPid($this->pid, $this->day);
+	}
+
+	public function saveDefault() {
+
+		if ($this->pid !== null)
+			$this->model->setDefault($this->pid);
 	}
 
 	protected function initFromRequest() {
 
 		// check for program id else we get actual program
-		$pid = Request::Attr('program', null);
+		$this->pid = Request::Attr('program', null);
 
-		(!Validate::IsInteger($pid) || !$this->model->programExists($pid))
-			&& $pid = null;
+		( !Validate::IsInteger($this->pid)
+			|| !$this->model->exists($this->pid)
+		) && $this->pid = null;
 
-		$day = Request::Attr('day', null);
+		$this->day = Request::Attr('day', null);
 
-		($day === '' ||  !Validate::IsDayOfWeek($day))
-			&& $day = null;
-
-		$this->setProgramId($pid, $day);
-
+		($this->day === '' ||  !Validate::IsDayOfWeek($this->day))
+			&& $this->day = date('N');
 	}
 
 }

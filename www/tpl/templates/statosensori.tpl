@@ -16,7 +16,7 @@
 				<div class="col-xs-6 col-md-3 text-right"><small>Temperatura :</small></div>
 				<div class="col-xs-6 col-md-3">
 					<span class="wi wi-thermometer" aria-hidden="true"></span>
-					<span id="temperature-value">{{sensore.temperatura|Temperature|raw}}</span>
+					<span id="temperature-value">{{ sensore.temperatura|Temperature|raw }}</span>
 					<span class="wi wi-celsius fa-1x" aria-hidden="true"></span>
 				</div>
 			</h3>
@@ -25,7 +25,7 @@
 				<div class="col-xs-6 col-md-3 text-right"><small>Umidità :</small></div>
 				<div class="col-xs-6 col-md-3">
 					<span class="wi wi-humidity" aria-hidden="true"></span>
-					<span id="humidity-value">{{sensore.umidita|Umidity}}</span>
+					<span id="humidity-value">{{ sensore.umidita|Umidity }}</span>
 					<span class="fa fa-percent" aria-hidden="true"></span>
 				</div>
 			</h3>

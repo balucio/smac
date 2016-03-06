@@ -21,9 +21,9 @@ class SensorListModel {
 		$this->status = $status;
 	}
 
-	public function getList($includeAvg = true) {
+	public function get($includeAvg = true) {
 
-		return $includeAvg 
+		return $includeAvg
 			? $this->list
 			: (isset($this->list[self::ID_AVG])
 				? array_slice($this->list, 1, null, true)
@@ -31,7 +31,7 @@ class SensorListModel {
 		);
 	}
 
-	public function sensorList($status = self::ALL, $selected = 0) {
+	public function enumerate($status = self::ALL, $selected = 0) {
 
 		$selected != $this->selected
 			&& $this->selected = $selected;
@@ -41,21 +41,16 @@ class SensorListModel {
 
 		$this->list = [];
 
-		foreach ($this->enumerate($status) as $v) {
+		foreach (
+			Db::get()->getResultSet(
+				"SELECT * FROM elenco_sensori(:status)",
+				[':status' => $status ]
+		) as $v ) {
 
 			$k = $v['id_sensore'];
 			$this->list[$k] = $v;
 
 			$this->list[$k]['selected'] = ( $selected == $k ) ? 'selected' : '';
 		}
-	}
-
-	private function enumerate($status) {
-
-		$query = "SELECT * FROM elenco_sensori(:status)";
-
-		return Db::get()->getResultSet(
-			$query, [':status' => $status ]
-		);
 	}
 }

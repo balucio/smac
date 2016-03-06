@@ -3,8 +3,7 @@
 class ImpostazioniModel {
 
 	private
-		$programma,
-		$pid
+		$programma
 	;
 
 	public function __construct() {

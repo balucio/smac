@@ -1,23 +1,17 @@
 <?php
 
-class ProgramDataView {
-
-	private $model;
-	private $controller;
-
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-	}
+class ProgramDataView extends BaseView {
 
 	public function render() {
 
+		$dcr = new Decorator();
+
 		$rv = (object)[
-			'detaglio' => $this->model->dettaglio,
+			'dettaglio' => $this->model->dettaglio,
 			'temp_antigelo' => $this->model->antigelo,
+			'temperature' => $this->model->temperature,
 			'temp_riferimento' => $this->encodeHtml($this->model),
-			'temp_rif_att' => $this->model->rif_temp_attuale
+			'temp_rif_att' => $dcr->decorateTemperature($this->model->rif_temp_attuale)
 		];
 
 //		return '<pre>' . json_encode( $rv, JSON_PRETTY_PRINT) . '</pre>';

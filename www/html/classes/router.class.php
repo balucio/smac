@@ -31,32 +31,51 @@ class Route {
 
 class Router {
 
-	const DEFAULT_ROUTE = 'situazione';
+	const DEFAULT_MAINROUTE = 'situazione';
+	const DEFAULT_SUBROUTE = 'view';
 
-	private $table = [];
+	private static $table = null;
 
 	public function __construct() {
-
-		// model, view, controller
-		$this->table = [
-
-			// Pagina situazione sistema
-			'situazione' => new Route('Situazione', 'Situazione', 'Generic'),
-			// Gestione dei sensori
-			'sensor' => new Route('SensorData', 'SensorData', 'SensorData'),
-			// Statistiche
-			'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats'),
-			// Programma
-			'program' => new Route('ProgramData', 'ProgramData', 'ProgramData')
-		];
+		self::$table = self::initTable();
 	}
 
-	public function __get($route) {
+	public function __get($r) {
 
-		return array_key_exists(strtolower($route), $this->table)
-			? $this->table[strtolower($route)]
-			: null;
+		list($m, $s) = self::getRoutePath($r);
+		return isset(self::$table[$m][$s]) ? self::$table[$m][$s] : null;
+	}
 
+	public function __isset($r) {
+
+		list($m, $s) = self::getRoutePath($r);
+		return isset(self::$table[$m][$s]);
+	}
+
+	private static function getRoutePath($r) {
+
+		list($m, $s) = explode('.', strtolower("{$r}."), 2);
+		$s = rtrim($s, ".");
+
+		return [ $m, $s ];
+	}
+
+	private static function initTable() {
+		return [
+			// Pagina situazione sistema
+			'situazione' => [
+				'view' => new Route('Situazione', 'Situazione', 'Situazione')
+			],
+			'sensor' => [
+				'view' => new Route('SensorData', 'SensorData', 'SensorData'),
+				'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats')
+			],
+			'program' => [
+				'view' => new Route('ProgramData', 'ProgramData', 'ProgramData'),
+				'savedefault' => new Route('ProgramData', 'SaveProgram', 'ProgramData')
+			]
+			// Programmi
+		];
 	}
 
 }

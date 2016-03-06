@@ -49,7 +49,7 @@
 			<small class="text-muted pull-left">
 				<abbr title="Temperatura di riferimento">T</abbr>
 				<sub>Rif</sub>
-				<span>{{rif_temp_attuale|Temperature|raw}}</span>
+				<span id="temp_riferimento_attuale">{{rif_temp_attuale|Temperature|raw}}</span>
 				<span class="wi wi-celsius fa-1x" aria-hidden="true"></span>
 			</small>
 			<div class="clearfix"></div>

@@ -12,19 +12,15 @@ class SituazioneModel {
 		$this->program = new ProgramModel();
 	}
 
-	public function initData() {
 
-		$this->sensor->initData();
-		$this->program->initData();
+	public function __get($type) {
 
+		return $type == 'sensor' ? $this->sensor : $this->program;
 	}
 
-	public function getSensor() {
-		return $this->sensor;
-	}
+	public function init() {
 
-	public function getProgram() {
-		return $this->program;
+		$this->sensor->setSid(0, SensorListModel::ENABLED);
+		$this->program->setPid();
 	}
-
 }

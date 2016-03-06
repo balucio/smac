@@ -14,5 +14,5 @@ new Request();
 @list($route, $action, $param) = Request::ParseUri();
 
 
-$fc = new FrontController(new Router(), $route, $action, $param);
+$fc = new FrontController($route, $action, $param);
 $fc->run();

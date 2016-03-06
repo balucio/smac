@@ -24,7 +24,7 @@ class Template {
 			$tplh = new Twig_Environment($loader, array(
 				'cache' => ROOT_DIR . TplConfig::cache,
 				'debug' => DEBUG,
-				'strict_variables' => true
+				'strict_variables' => false
 			));
 
 			$tplh->addExtension(new TemplateExtension());

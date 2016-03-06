@@ -1,6 +1,6 @@
 <?php
 
-class SensorStatsController extends GenericController {
+class SensorStatsController extends BaseController {
 
 	const
 
@@ -10,10 +10,15 @@ class SensorStatsController extends GenericController {
 		MAX_INTERVAL = 8035200
 	;
 
+	public function __construct($model, $init = true) {
+
+		parent::__construct($model, $init);
+		$this->setDefaultAction('temperatura');
+	}
+
 	public function temperatura() {
 
 		$this->model->setPhysicalType(SensorStatsModel::TEMPERATURA);
-
 	}
 
 	public function umidita() {
@@ -70,8 +75,5 @@ class SensorStatsController extends GenericController {
 			$this->model->setStartDate( Db::TimestampWt( $ed - $int ) );
 			$this->model->setEndDate( Db::TimestampWt( $ed ) );
 		}
-
 	}
-
-
 }

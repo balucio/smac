@@ -1,17 +1,10 @@
 <?php
 
-class StatoSensoriView {
+class StatoSensoriView extends BaseView {
 
-	private
-		$model,
-		$controller
-	;
+	public function __construct($model) {
 
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-
+		parent::__construct($model);
 		Assets::get()->addJs('/js/situazione.js');
 	}
 
@@ -20,8 +13,8 @@ class StatoSensoriView {
 		$tpl = Template::get()->loadTemplate('statosensori.tpl');
 
 		return $tpl->render([
-			'sensore' => $this->model->getData(),
-			'sensori' => $this->model->getList()
+			'sensore' => $this->model->get('data'),
+			'sensori' => $this->model->get('list')
 		]);
 	}
 

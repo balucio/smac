@@ -1,6 +1,6 @@
 <?php
 
-class ImpostazioniController extends GenericController {
+class ImpostazioniController extends BaseController {
 
 	public function __construct($model) {
 

@@ -1,30 +1,17 @@
 <?php
 
-class SituazioneView {
-
-	private
-		$model,
-		$controller
-	;
-
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-	}
+class SituazioneView extends BaseView {
 
 	public function render() {
 
 		$tpl = Template::get()->loadTemplate('situazione.tpl');
 
 		$situazione = new StatoSensoriView(
-			$this->controller,
-			$this->model->getSensor()
+			$this->model->sensor
 		);
 
 		$programmi = new StatoSistemaView(
-			$this->controller,
-			$this->model->getProgram()
+			$this->model->program
 		);
 
 		return $tpl->render([

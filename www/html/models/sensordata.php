@@ -8,34 +8,30 @@ class SensorDataModel {
 
 	public function __construct($sid = null) {
 
-		if ($sid)
-			$this->setSensorId($sid);
+		if ($sid !== null)
+			$this->setSid($sid);
 	}
 
-	public function __isset($key) {
+	public function __get($v) {
 
-		return array_key_exists($key, $this->data);
+		return $this->data[$v];
 	}
 
-	public function __get($data) {
+	public function get() { return $this->data; }
 
-		return $this->data[$data];
-	}
+	public function setSid($sid) {
 
-	public function setSensorId($sid) {
-
-		if (!$this->sensorExists($sid))
+		if (!$this->exists($sid))
 			return false;
 
 		$this->data = Db::get()->getFirstRow(
 			"SELECT * FROM dati_sensore(:sid)",
 			[':sid' => $sid ]
 		);
-
 		return true;
 	}
 
-	public function sensorExists($sid) {
+	public function exists($sid) {
 
 		return Db::get()->getNthColumnOfRow(
 			"SELECT esiste_sensore(:sid::smallint)",

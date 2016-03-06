@@ -14,46 +14,19 @@ class ProgramModel {
 
  	}
 
- 	public function __get($name) {
- 		return $name == 'list'
- 			? $this->list->getList()
- 			: $this->data->$name;
- 	}
-
-	public function initData() {
-
-		$dpid = $this->getDefault();
-
-		$this->programList($dpid);
-		$this->programData($dpid);
+	public function __get($v) {
+		return $v == 'list'
+			? $this->list->get()
+			: $this->data->$v
+		;
 	}
 
-	public function setDefault($pid) {
+	public function setPid($pid = null) {
 
-		if ($this->data->programExists($pid))
-			Db::get()->saveSetting(Db::CURR_PROGRAM, $pid);
-		else {
-			error_log("Id programma $pid non esistente");
-			return false;
-		}
-
-		return true;
-	}
-
-	public function getDefault() {
-
-		return Db::get()->readSetting(Db::CURR_PROGRAM, '-1');
-	}
-
-	private function programData($pid) {
-
-		$this->data->initData($pid, date('N'));
-
-	}
-
-	private function programList($pid) {
-
-		$this->list->initData($pid, ProgramListModel::ALL);
-
+		$this->data->setPid(
+			$pid = $pid ?: $this->data->getDefault(),
+			date('N')
+		);
+		$this->list->enumerate($pid);
 	}
 }

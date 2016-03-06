@@ -54,7 +54,7 @@ class Db {
 		return date('Y-m-d H:i:s', ( $epoch ?: time() ));
 	}
 
-	static function UTC( $timestamp = null ) { 
+	static function UTC( $timestamp = null ) {
 		return (int)( ( $timestamp ?: time() ) - date('Z') );
 	}
 }

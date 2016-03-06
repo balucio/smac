@@ -1,17 +1,6 @@
-<?php
+ <?php
 
-class ImpostazioniView {
-
-	private
-		$model,
-		$controller
-	;
-
-	public function __construct($controller, $model) {
-
-		$this->controller = $controller;
-		$this->model = $model;
-	}
+class ImpostazioniView extends BaseView {
 
 	public function render() {
 

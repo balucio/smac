@@ -614,14 +614,11 @@ CREATE FUNCTION elenco_programmi() RETURNS SETOF programmi
     AS $$
 
 BEGIN
-    -- Sistema spento
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(-1::smallint), sensore_rif;
-    -- Sistema anticongelamento
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(0::smallint), sensore_rif;
-    -- Elenco programmi definiti dall'utente
+
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[], sensore_rif FROM dati_programma(-1::smallint);
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[], sensore_rif FROM dati_programma(0::smallint);
     RETURN QUERY SELECT * FROM programmi ORDER BY nome_programma;
-    -- Modalità manuale
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(32767::smallint), sensore_rif;
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[], sensore_rif FROM dati_programma(32767::smallint);
     RETURN;
        
 END$$;

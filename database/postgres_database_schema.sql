@@ -49,6 +49,23 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
+-- Name: report_programma; Type: TYPE; Schema: public; Owner: smac
+--
+
+CREATE TYPE report_programma AS (
+	id_programma integer,
+	nome_programma character varying(64),
+	descrizione_programma text,
+	temperature_rif numeric(9,4)[],
+	t_anticongelamento numeric(9,4),
+	sensore_rif smallint,
+	nome_sensore_rif character varying(64)
+);
+
+
+ALTER TYPE report_programma OWNER TO smac;
+
+--
 -- Name: report_sensore; Type: TYPE; Schema: public; Owner: smac
 --
 
@@ -291,21 +308,23 @@ ALTER FUNCTION public.aggiorna_tendenza(campione interval, previsione interval) 
 -- Name: dati_programma(integer); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION dati_programma(progr_id integer DEFAULT NULL::integer) RETURNS TABLE(id_programma integer, nome_programma character varying, descrizione_programma text, temperature_rif numeric[], t_anticongelamento numeric)
+CREATE FUNCTION dati_programma(progr_id integer DEFAULT NULL::integer) RETURNS SETOF report_programma
     LANGUAGE plpgsql ROWS 10
     AS $$
 DECLARE
-    progdata RECORD;
+    progdata report_programma;
     curr_progr text;
     t_anticongelamento numeric(9,4);
     t_manuale numeric(9,4);
+    id_sensore_rif smallint DEFAULT 0;
+    nome_sensore_rif varchar(64) default null;
 BEGIN
 
     IF progr_id IS NULL THEN
         SELECT get_setting('programma_attuale','-1'::text) INTO progr_id;
     END IF;
 
-    t_anticongelamento = get_setting('temperatura_anticongelamento'::varchar(64),'5'::text);
+    t_anticongelamento = get_setting('temperatura_anticongelamento'::varchar(64),'5'::text)::numeric(9,4);
 
     CASE progr_id::smallint
 
@@ -317,38 +336,54 @@ BEGIN
                get_setting('programma_spento_nome'::varchar(64),'Spento'::text)::varchar(64),
                get_setting('programma_spento_descrizione'::varchar(64),'Sistema Spento'::text),
                ARRAY[]::numeric(9,4)[],
-               t_anticongelamento;
+               t_anticongelamento,
+               null::smallint,
+               null::varchar(64);
 
         -- sistema in risparmio energia (anticongelamento)
         WHEN 0 THEN
+
+            id_sensore_rif = get_setting('programma_anticongelamento_sensore'::varchar(64),'0'::text)::smallint;
+            SELECT nome_sensore INTO nome_sensore_rif from elenco_sensori(null) where id_sensore = id_sensore_rif;
 
             RETURN QUERY
                SELECT
                   0,
                   get_setting('programma_anticongelamento_nome'::varchar(64),'Anticongelamento'::text)::varchar(64),
                   get_setting('programma_anticongelamento_descrizione'::varchar(64),'Sitema in Anticongelamento'::text),
-		  ARRAY[ t_anticongelamento, null,null, null, null],
-		  t_anticongelamento;
+		  (ARRAY[ t_anticongelamento, null,null, null, null])::numeric(9,4)[],
+		  t_anticongelamento,
+		  id_sensore_rif,
+		  nome_sensore_rif;
         WHEN 32767 THEN
 
             t_manuale = get_setting('temperatura_manuale'::varchar(64),'20'::text)::numeric(9,4);
+            id_sensore_rif = get_setting('programma_manuale_sensore'::varchar(64),'0'::text)::smallint;
+            SELECT nome_sensore INTO nome_sensore_rif from elenco_sensori(null) where id_sensore = id_sensore_rif;
 
             RETURN QUERY SELECT
                32767,
                get_setting('programma_manuale_nome'::varchar(64),'Manuale'::text)::varchar(64),
                get_setting('programma_manuale_descrizione'::varchar(64),'Sistema in Manuale'::text),
-               ARRAY[ t_manuale, null,null, null, null],
-               t_anticongelamento;
+               (ARRAY[ t_manuale, null,null, null, null])::numeric(9,4)[],
+               t_anticongelamento,
+               id_sensore_rif,
+               nome_sensore_rif;
 
 	-- richiesta specifico id programma
-        ELSE 
+        ELSE
+            
             RETURN QUERY
                SELECT p.id_programma,
                       p.nome_programma,
                       p.descrizione_programma,
-                      array_prepend(t_anticongelamento, p.temperature_rif) AS temperature_rif,
-                      t_anticongelamento
+                      array_prepend(t_anticongelamento, p.temperature_rif)::numeric(9,4)[] AS temperature_rif,
+                      t_anticongelamento,
+                      p.sensore_rif,
+                      e.nome_sensore
                  FROM programmi p
+            LEFT JOIN elenco_sensori(null) AS e
+                   ON e.id_sensore = p.sensore_rif
                 WHERE p.id_programma = progr_id;
 
        END CASE;
@@ -563,7 +598,8 @@ CREATE TABLE programmi (
     id_programma integer NOT NULL,
     nome_programma character varying(64),
     descrizione_programma text,
-    temperature_rif numeric(9,4)[] DEFAULT '{NULL,NULL,NULL,NULL,NULL}'::numeric[]
+    temperature_rif numeric(9,4)[] DEFAULT '{NULL,NULL,NULL,NULL,NULL}'::numeric[],
+    sensore_rif smallint DEFAULT 0 NOT NULL
 );
 
 
@@ -578,11 +614,14 @@ CREATE FUNCTION elenco_programmi() RETURNS SETOF programmi
     AS $$
 
 BEGIN
-
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(-1::smallint);
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(0::smallint);
+    -- Sistema spento
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(-1::smallint), sensore_rif;
+    -- Sistema anticongelamento
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(0::smallint), sensore_rif;
+    -- Elenco programmi definiti dall'utente
     RETURN QUERY SELECT * FROM programmi ORDER BY nome_programma;
-    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(32767::smallint);
+    -- Modalità manuale
+    RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[] FROM dati_programma(32767::smallint), sensore_rif;
     RETURN;
        
 END$$;

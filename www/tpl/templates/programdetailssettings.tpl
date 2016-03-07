@@ -15,10 +15,23 @@
 				<div class="list-group">
 					{% for p in programmi %}
 						{% set active = p.selected == 'selected' ? 'active' : '' %}
-						<a href="program/select?program={{p.id_programma}}" class="list-group-item {{active}}">
-							<h6 class="list-group-item-heading">{{p.nome_programma}}</h6>
+						<button type="button" class="list-group-item {{active}}" data-href="program/select?program={{p.id_programma}}">
+							<h4 class="list-group-item-heading">
+								{{p.nome_programma}}
+								{% if active == 'active' %}
+									<span class=" pull-right">
+										<a title="Modfica programma" class="bg-primary">
+											<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+										</a>
+										<a title="Elimina programma" class="bg-primary">
+											<i class="fa fa-trash-o" aria-hidden="true"></i>
+										</a>
+									</span>
+								{% endif %}
+							</h4>
+							<div class="clearfix"></div>
 							<small class="list-group-item-text">{{p.descrizione_programma}}</small>
-						</a>
+						</button>
 					{% else %}
 						<a href="#" class="list-group-item">
 							<h4 class="list-group-item-heading">Nessun programma</h4>

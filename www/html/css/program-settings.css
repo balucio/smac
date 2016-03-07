@@ -59,8 +59,13 @@ div.temperature_riferimento {
 	display: flex;
 }
 
-div.sensore_riferimento {
+div.temperature_riferimento h5 {
+	font-size: x-small;
+}
+
+div.info_programma {
 	text-align: center;
+	font-size: x-small;
 }
 
 

@@ -1,25 +1,28 @@
 <?php
 
-class ProgramSettingsView extends BaseView {
+class ProgramSettingsView extends MainView {
 
+	const
+		TPL = 'programsettings.tpl'
+	;
 
 	public function __construct($model) {
 
-		parent::__construct($model);
-			// Assets::get()->addJs('/js/rainbow.js');
-			Assets::get()->addCss('/css/program-settings.css');
+		parent::__construct($model, self::TPL);
+		// Assets::get()->addJs('/js/rainbow.js');
+		Assets::get()->addCss('/css/program-settings.css');
 	 }
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('programsettings.tpl');
-d($this->model);
-		return $tpl->render([
+		$this->addData([
 			'programmi' => $this->model->list,
 			'programma' => $this->model,
 			'temperature' => $this->model->temperature,
 			'tabactivate' => ''
 		]);
+
+		return parent::render();
 	}
 
 	private static function js() {

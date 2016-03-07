@@ -2,11 +2,11 @@
 
 class ProgramListModel {
 
-	const POWEROFF = 0b0001;
+	const POWEROFF = 0b001;
 	const ANTIFREEZE = 0b0010;
-	const MANUAL = 0b0100;
-	const ALL = 0b1000;
-	const NONE = 0b0000;
+	const MANUAL = 0b100;
+	const ALL = 0b111;
+	const NONE = 0b000;
 
 	const ID_POWEROFF = -1;
 	const ID_ANTIFREEZE = 0;

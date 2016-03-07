@@ -17,7 +17,8 @@ class StatoSistemaView extends BaseView {
 			'programmi' => $this->model->list,
 			'antigelo' => $this->model->antigelo,
 			'temperature' => $this->model->temperature,
-			'rif_temp_attuale' => $this->model->rif_temp_attuale
+			'rif_temp_attuale' => $this->model->rif_temp_attuale,
+			'sensore_rif' => $this->model->nome_sensore_rif
 
 		]);
 	}

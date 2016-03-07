@@ -75,7 +75,9 @@ class Router {
 				'savedefault' => new Route('ProgramData', 'SaveProgram', 'ProgramData')
 			],
 			'impostazioni' => [
-				'view' => new Route('Impostazioni', 'Impostazioni', 'Impostazioni')
+				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),
+				'sensori' => new Route('', 'Impostazioni', 'Impostazioni'),
+				'programmi' => new Route('Program', 'ProgramSettings', 'Impostazioni')
 			]
 			// Programmi
 		];

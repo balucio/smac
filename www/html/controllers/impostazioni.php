@@ -9,8 +9,8 @@ class ImpostazioniController extends BaseController {
         $this->setDefaultAction('view');
     }
 
-    public function view() {
+    public function programmi() {
 
-        $this->model->init();
+        $this->model->setPid(ProgramModel::CURRENT_PROGRAM, ProgramDataModel::DAY_ALL, ProgramListModel::NONE);
     }
 }

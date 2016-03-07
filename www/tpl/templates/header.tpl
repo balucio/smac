@@ -42,13 +42,23 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<p class="navbar-brand"><img alt="Smac" src="img/logo.png"></p>
+					<p class="navbar-brand"><img alt="Smac" src="/img/logo.png"></p>
 				</div>
 				<div class="collapse navbar-collapse" id="smac-navbar">
 					<ul class="nav navbar-nav">
 						<li class="{{sit_selected|default('')}}"><a href="/situazione">Stato sistema</a></li>
 						<li class="{{stt_selected|default('')}}"><a href="/statistiche">Statistiche</a></li>
-						<li class="{{imp_selected|default('')}}"><a href="/impostazioni">Impostazioni</a></li>
+						<li class="dropdown {{imp_selected|default('')}}">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+									aria-haspopup="true" aria-expanded="false">
+								Impostazioni <span class="caret"></span>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="/impostazioni/generali">Generali</a></li>
+								<li><a href="/impostazioni/programmi">Programmi</a></li>
+								<li><a href="/impostazioni/sensorei">Sensori</a></li>
+							</ul>
+						</li>
 					</ul>
 				</div>
 			</div>

@@ -46,8 +46,12 @@
 				<span>{{antigelo|Temperature|raw}}</span>
 				<span class="wi wi-celsius fa-1x" aria-hidden="true"></span>
 			</small>
+			<small class="text-muted">
+				<abbr title="Sensore di riferimento temperatura per il programma">S<sub>Rif</sub></abbr>
+				<b>{{sensore_rif}}</b>
+			</small>
 			<small class="text-muted pull-left">
-				<abbr title="Temperatura di riferimento">T</abbr>
+				<abbr title="Temperatura di riferimento attuale">T</abbr>
 				<sub>Rif</sub>
 				<span id="temp_riferimento_attuale">{{rif_temp_attuale|Temperature|raw}}</span>
 				<span class="wi wi-celsius fa-1x" aria-hidden="true"></span>

@@ -5,7 +5,7 @@
 	</footer>
 
 	<!-- Javascrip link placing at end of the page in order to not interrupt rendering -->
-	{% for link in js %}
+	{% for link in js|default(null) %}
 		<script src="{{link}}"></script>
 	{% endfor %}
 </body>

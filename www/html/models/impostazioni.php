@@ -3,23 +3,24 @@
 class ImpostazioniModel {
 
 	private
-		$programma
+		$sensor,
+		$program
 	;
 
 	public function __construct() {
-
-		$this->programma = new ProgrammaModel();
+		$this->sensor = new SensorModel();
+		$this->program = new ProgramModel();
 	}
 
-	public function __get($data) {
-		return $this->programma->$data;
+
+	public function __get($type) {
+
+		return $type == 'sensor' ? $this->sensor : $this->program;
 	}
 
-	public function dettaglioCompleto($pid) {
+	public function init() {
 
-		if (false !== $pid = $this->programma->programList($pid))
-			$this->programma->programData($pid, 0);
-
+		$this->sensor->setSid(0, SensorListModel::ALL);
+		$this->program->setPid(ProgramModel::CURRENT_PROGRAM, ProgramDataModel::DAY_ALL, ProgramListModel::NONE);
 	}
-
 }

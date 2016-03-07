@@ -1,4 +1,4 @@
-   <?php
+<?php
 
 class SituazioneController extends BaseController {
 
@@ -6,10 +6,10 @@ class SituazioneController extends BaseController {
 
 		parent::__construct($model, false);
 
-		$this->setDefaultAction('get');
+		$this->setDefaultAction('view');
 	}
 
-	public function get() {
+	public function view() {
 
 		$this->model->init();
 	}

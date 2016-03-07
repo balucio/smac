@@ -35,6 +35,7 @@ class DettaglioProgramma implements JsonSerializable {
 		];
 	}
 
+	public function __isset($key) { return property_exists($this, $key); }
 	public function __get($key) { return $this->$key; }
 }
 

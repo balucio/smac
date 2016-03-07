@@ -73,6 +73,9 @@ class Router {
 			'program' => [
 				'view' => new Route('ProgramData', 'ProgramData', 'ProgramData'),
 				'savedefault' => new Route('ProgramData', 'SaveProgram', 'ProgramData')
+			],
+			'impostazioni' => [
+				'view' => new Route('Impostazioni', 'Impostazioni', 'Impostazioni')
 			]
 			// Programmi
 		];

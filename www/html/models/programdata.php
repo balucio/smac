@@ -2,6 +2,11 @@
 
 class ProgramDataModel {
 
+	const
+		DAY_ALL=0,
+		DAY_NOW=null
+	;
+
 	private
 		$pid = null,
 		$programma = null
@@ -9,6 +14,7 @@ class ProgramDataModel {
 
 	public function __construct() { }
 
+ 	public function __isset($v) { return $this->programma->__isset($v); }
 	public function __get($name) { return $this->programma->$name; }
 
 	public function get() { return $this->programma; }
@@ -49,11 +55,11 @@ class ProgramDataModel {
 		return Db::get()->getFirstRow($query, [':id' => $pid]);
 	}
 
-	private function getDetails($pid, $pday = null) {
+	private function getDetails($pid, $day = self::DAY_NOW) {
 
 		return Db::get()->getResultSet(
 			"SELECT * FROM programmazioni(:id, :day)",
-			[':id' => $pid, ':day' => $pday ]
+			[':id' => $pid, ':day' => $day ]
 		);
 	}
 }

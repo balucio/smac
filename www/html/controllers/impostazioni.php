@@ -2,25 +2,15 @@
 
 class ImpostazioniController extends BaseController {
 
-	public function __construct($model) {
+    public function __construct($model) {
 
-		$this->model = $model;
+        parent::__construct($model, false);
 
-		$this->dettaglioCompleto();
-	}
+        $this->setDefaultAction('view');
+    }
 
-	protected function dettaglioCompleto() {
+    public function view() {
 
-		$this->action = __FUNCTION__;
-
-		// get program id default current program
-		$pid = Request::Attr('program', null);
-
-		($pid === '' ||  !Validate::IsProgramId($pid))
-			&& $pid = null;
-
-		$this->model->dettaglioCompleto($pid);
-
-	}
-
+        $this->model->init();
+    }
 }

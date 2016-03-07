@@ -1,24 +1,31 @@
- <?php
+<?php
 
-class ImpostazioniView extends BaseView {
+class ImpostazioniView extends MainView {
+
+	const
+		TPL = 'impostazioni.tpl'
+	;
+
+	public function __construct($model) {
+
+		parent::__construct($model, self::TPL);
+	}
 
 	public function render() {
 
-		$tpl = Template::get()->loadTemplate('impostazioni.tpl');
-		$dcr = new Decorator();
+//		$sensori = new SensorSettingsView(
+//			$this->model->sensor
+//		);
 
-		Assets::get()->addCss('/css/programedit.css');
+		$programmi = new ProgramSettingsView(
+			$this->model->program
+		);
 
-		return $tpl->render([
-			'css' => Assets::get()->Css(),
-			'js' => Assets::get()->Js(),
-			'imp_selected' => 'active',
-			'programedit' => $this->model->pdata,
-			'programlist' => $this->model->plist,
-			'decorateShortDay' => [ $dcr, 'decorateShortDay' ],
-			'decorateDay' => [ $dcr, 'decorateDay' ],
-			'decorateShedule' => [ $dcr, 'decorateShedule' ]
+		$this->addData([
+//			'sensori' => $sensori->render(),
+			'programmi' => $programmi->render(),
 		]);
-	}
 
+		return parent::render();
+	}
 }

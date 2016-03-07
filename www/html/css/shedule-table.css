@@ -1,0 +1,56 @@
+table#dettaglio-programma {
+	width: 100%;
+}
+
+table#dettaglio-programma thead,
+table#dettaglio-programma tbody,
+table#dettaglio-programma tr,
+table#dettaglio-programmatd,
+table#dettaglio-programma th {
+	display: block;
+}
+
+table#dettaglio-programma tr:after {
+	content: ' ';
+	display: block;
+	visibility: hidden;
+	clear: both;
+}
+
+table#dettaglio-programma thead th {
+	height: 30px;
+	/*text-align: left;*/
+}
+
+table#dettaglio-programma tbody {
+	height: 20em;
+	overflow-y: auto;
+}
+
+table#dettaglio-programma thead {
+	/* fallback */
+}
+
+table#dettaglio-programma tbody td:first-child,
+table#dettaglio-programma thead th:first-child,
+table#dettaglio-programma tbody td:last-child,
+table#dettaglio-programma thead th:last-child {
+	width: 20%;
+	float: left;
+}
+
+table#dettaglio-programma tbody td,
+table#dettaglio-programma thead th {
+	width: 30%;
+	float: left;
+}
+
+table#dettaglio-programma .temperatura {
+	width: 3em;
+	text-align: right;
+}
+
+div#elenco-programmi {
+	height: 25.5em;
+	display: auto;
+}

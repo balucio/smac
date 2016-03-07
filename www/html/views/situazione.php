@@ -1,10 +1,17 @@
 <?php
 
-class SituazioneView extends BaseView {
+class SituazioneView extends MainView {
+
+	const
+		TPL = 'situazione.tpl'
+	;
+
+	public function __construct($model) {
+
+		parent::__construct($model, self::TPL);
+	}
 
 	public function render() {
-
-		$tpl = Template::get()->loadTemplate('situazione.tpl');
 
 		$situazione = new StatoSensoriView(
 			$this->model->sensor
@@ -14,13 +21,11 @@ class SituazioneView extends BaseView {
 			$this->model->program
 		);
 
-		return $tpl->render([
-			'css' => Assets::get()->Css(),
-			'js' => Assets::get()->Js(),
-			'sit_selected' => 'active',
+		$this->addData([
 			'situazione' => $situazione->render(),
 			'programmazione' => $programmi->render()
 		]);
-	}
 
+		return parent::render();
+	}
 }

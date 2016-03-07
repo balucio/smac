@@ -47,6 +47,8 @@ class Programma implements JsonSerializable {
 		$descrizione,
 		$rif_temp_attuale = null,
 		$antigelo = null,
+		$id_sensore_rif,
+		$nome_sensore_rif,
 		$temperature = [],
 		$dettaglio = []
 	;
@@ -58,6 +60,8 @@ class Programma implements JsonSerializable {
 		$this->descrizione = isset($data['descrizione_programma']) ? $data['descrizione_programma'] : null;
 		$this->temperature = isset($data['json_t_rif']) ? $this->parseTemps($data['json_t_rif']) : [];
 		$this->antigelo = isset($data['t_anticongelamento']) ? json_decode($data['t_anticongelamento']) : null;
+		$this->id_sensore_rif = isset($data['sensore_rif']) ? $data['sensore_rif'] : null;
+		$this->nome_sensore_rif = isset($data['nome_sensore_rif']) ? $data['nome_sensore_rif'] : null;
 
 		$nd = date('N');
 		$dt = time() - strtotime("today");

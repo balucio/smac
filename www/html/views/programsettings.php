@@ -7,7 +7,7 @@ class ProgramSettingsView extends BaseView {
 
 		parent::__construct($model);
 			// Assets::get()->addJs('/js/rainbow.js');
-			Assets::get()->addCss('/css/shedule-table.css');
+			Assets::get()->addCss('/css/program-settings.css');
 	 }
 
 	public function render() {
@@ -17,6 +17,7 @@ d($this->model);
 		return $tpl->render([
 			'programmi' => $this->model->list,
 			'programma' => $this->model,
+			'temperature' => $this->model->temperature,
 			'tabactivate' => ''
 		]);
 	}

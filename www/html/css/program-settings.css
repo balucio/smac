@@ -54,3 +54,17 @@ div#elenco-programmi {
 	height: 25.5em;
 	display: auto;
 }
+
+div.temperature_riferimento {
+	display: flex;
+}
+
+div.sensore_riferimento {
+	text-align: center;
+}
+
+
+.panel-footer.panel-info {
+    background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #f5f5f5 0px, #e8e8e8 100%) repeat scroll 0 0;
+    color: black;
+}

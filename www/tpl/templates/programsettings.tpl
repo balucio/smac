@@ -10,4 +10,5 @@
 			</div>
 		</div>
 	</div>
+	{% include 'program_modal.tpl' %}
 {% include 'footer.tpl' %}

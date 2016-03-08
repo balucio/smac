@@ -6,7 +6,7 @@
 					<button class="btn btn-xs btn-link pull-left" data-toggle="collapse" data-parent="#menu-programmi" href="#elenco-programmi">
 						<span class="glyphicon glyphicon-align-justify"></span>
 					</button>
-					<button title="Aggiungi programma" class="btn btn-xs btn-link pull-right"><span class="glyphicon glyphicon-plus"></span></button>
+					<button id="new-program" title="Aggiungi programma" class="btn btn-xs btn-link pull-right"><span class="glyphicon glyphicon-plus"></span></button>
 					<div class="clearfix"></div>
 				</h4>
 
@@ -15,19 +15,18 @@
 				<div class="list-group">
 					{% for p in programmi %}
 						{% set active = p.selected == 'selected' ? 'active' : '' %}
-						<button type="button" class="list-group-item {{active}}" data-href="program/select?program={{p.id_programma}}">
+						{% set hidden = p.selected == 'selected' ? '' : 'hidden' %}
+						<button type="button" class="list-group-item {{active}} seleziona-programma" data-id="{{p.id_programma}}">
 							<h4 class="list-group-item-heading">
 								{{p.nome_programma}}
-								{% if active == 'active' %}
-									<span class=" pull-right">
-										<a title="Modfica programma" class="bg-primary">
-											<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-										</a>
-										<a title="Elimina programma" class="bg-primary">
-											<i class="fa fa-trash-o" aria-hidden="true"></i>
-										</a>
-									</span>
-								{% endif %}
+								<span class="pull-right {{hidden}}">
+									<a href="#" title="Modfica programma" class="bg-primary modifica-programma" data-id="{{p.id_programma}}">
+										<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+									</a>
+									<a href="#" title="Elimina programma" class="bg-primary elimina-programma" data-id="{{p.id_programma}}">
+										<i class="fa fa-trash-o" aria-hidden="true"></i>
+									</a>
+								</span>
 							</h4>
 							<div class="clearfix"></div>
 							<small class="list-group-item-text">{{p.descrizione_programma}}</small>

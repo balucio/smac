@@ -22,7 +22,7 @@ class Template {
 			$loader = new Twig_Loader_Filesystem( ROOT_DIR . TplConfig::templates );
 
 			$tplh = new Twig_Environment($loader, array(
-				'cache' => ROOT_DIR . TplConfig::cache,
+				'cache' => DEBUG ? false : ROOT_DIR . TplConfig::cache,
 				'debug' => DEBUG,
 				'strict_variables' => true
 			));

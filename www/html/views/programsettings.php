@@ -19,17 +19,16 @@ class ProgramSettingsView extends MainView {
 			'programmi' => $this->model->list,
 			'programma' => $this->model,
 			'temperature' => $this->model->temperature,
-			'tabactivate' => ''
 		]);
 
 		return parent::render();
 	}
-
+/*
 	private static function js() {
 		return "$('#programmazione-settimanale a').click(function (e) {
 			e.preventDefault()
 			$(this).tab('show')
 		})";
 	}
-
+*/
 }

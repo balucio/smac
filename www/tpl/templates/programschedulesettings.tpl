@@ -67,16 +67,14 @@
 						</div>
 					{% endfor %}
 				</div>
-			<script>
-				{{tabactivate}}
-			</script>
-		</div>
-		<div class="panel-footer panel-info">
-			<div class="temperature_riferimento">{% include "tempriferimento.tpl" %}</div>
-			<div class="info_programma">
-				Sensore di riferimento <b>{{programma.nome_sensore_rif}}</b>
-				- Temperatura antigelo <b>{{programma.antigelo|Temperature|raw}}
-		    	<span class="wi wi-celsius" aria-hidden="true"></span></b>
+			</div>
+			<div class="panel-footer panel-info">
+				<div class="temperature_riferimento">{% include "tempriferimento.tpl" %}</div>
+				<div class="info_programma">
+					Sensore di riferimento <b>{{programma.nome_sensore_rif}}</b>
+					- Temperatura antigelo <b>{{programma.antigelo|Temperature|raw}}
+			    	<span class="wi wi-celsius" aria-hidden="true"></span></b>
+				</div>
 			</div>
 		</div>
 	</div>

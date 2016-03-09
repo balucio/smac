@@ -1,9 +1,9 @@
 <div class="col-xs-12 col-sm-4 col-md-4">
-	<div class="panel-group" id="menu-programmi">
+	<div class="panel-group" id="elenco-programmi">
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<h4 class="panel-title">
-					<button class="btn btn-xs btn-link pull-left" data-toggle="collapse" data-parent="#menu-programmi" href="#elenco-programmi">
+					<button class="btn btn-xs btn-link pull-left" data-toggle="collapse" data-parent="#elenco-programmi" href="#elenco-programmi">
 						<span class="glyphicon glyphicon-align-justify"></span>
 					</button>
 					<button id="new-program" title="Aggiungi programma" class="btn btn-xs btn-link pull-right"><span class="glyphicon glyphicon-plus"></span></button>

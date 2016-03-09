@@ -1,5 +1,5 @@
 <div class="col-xs-12 col-sm-8 col-md-8">
-	<div class="panel-group" id="menu-programmi">
+	<div class="panel-group" id="orari-programma">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
 				<h4 class="panel-title">

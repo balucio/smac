@@ -13,15 +13,9 @@ class ProgramDataController extends BaseController {
 		$this->setDefaultAction('setProgramId');
 	}
 
-	public function setProgramId() {
+	public function setProgramId() { $this->model->setPid($this->pid, $this->day); }
 
-		$this->model->setPid($this->pid, $this->day);
-	}
-
-	public function getProgramData() {
-
-		$this->model->setPid($this->pid, $this->day);
-	}
+	public function getProgramData() { $this->setProgramId();}
 
 	public function saveDefault() {
 

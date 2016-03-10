@@ -2,7 +2,6 @@
 
 $(function () {
 
-
 	var showProgramModal = function(data) {
 
 		var modal = $('#program-modal').modal();
@@ -15,8 +14,48 @@ $(function () {
 		$('#nome_programma').val(data.nome_programma ? data.nome_programma : '');
 		$('#descrizione_programma').val(data.descrizione_programma ? data.descrizione_programma : '');
 		var sid = data.id_sensore_riferimento ? data.id_sensore_riferimento : ''
+		var trif = data.temperature_riferimento ? data.temperature_riferimento : [{id :0, val : 20}];
 
 		createSensorList(0, slist);
+		createTemperature(trif)
+	}
+
+	var createTemperature = function(t) {
+
+		var mdiv = $('#programma-temperature');
+		var model = $('#programma-temperature').children().first();
+		mdiv.children().not(':first').remove();
+		for ( var i = 0; i < t.length; i++ ) {
+			mdiv.append(setTempInput(model, t[i]));
+		}
+	}
+
+	var setTempInput = function(model, t) {
+
+		var cnt = model.clone();
+		cnt.removeClass('hidden');
+
+		var input = cnt.find('input');
+
+		// Setup input
+		if (t.val)
+			input.val(t.val);
+
+		input.attr('id', 'progr_temp_rif[]');
+
+		// Setup add button
+		var addbtn = cnt.find('span.temperature-add');
+		addbtn.removeClass('hidden');
+		addbtn.click(function() {
+			setTempInput(model, null);
+		});
+
+		var delbtn = cnt.find('span.temperature-del')
+
+		if (!delbtn.hasClass('hidden'))
+			delbtn.addClass('hidden');
+
+		return cnt;
 	}
 
 	var createSensorList = function(sid, select) {

@@ -68,12 +68,14 @@ class Router {
 			],
 			'sensor' => [
 				'view' => new Route('SensorData', 'SensorData', 'SensorData'),
-				'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats')
+				'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats'),
 			],
 			'program' => [
 				'view' => new Route('ProgramData', 'ProgramData', 'ProgramData'),
 				'savedefault' => new Route('ProgramData', 'SaveProgram', 'ProgramData'),
-				'getschedule' => new Route('ProgramData', 'ProgramSchedule', 'ProgramData')
+				'getschedule' => new Route('ProgramData', 'ProgramSchedule', 'ProgramData'),
+				'getdata' => new Route('ProgramData', 'ProgramDataRaw', 'ProgramData'),
+				'getsensorlist' => new Route('SensorList', 'SensorProgramList', 'SensorProgramList')
 			],
 			'impostazioni' => [
 				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),

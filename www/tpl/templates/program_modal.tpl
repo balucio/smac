@@ -11,6 +11,7 @@
 					<div class="form-group">
 						<label for="nome_programma" class="col-sm-2 control-label">Nome</label>
 						<div class="col-sm-10">
+							<input type="hidden" id="id_programma">
 							<input type="text" class="form-control" id="nome_programma" placeholder="Nome programma">
 						</div>
 					</div>
@@ -28,12 +29,11 @@
 							</select>
 						</div>
 					</div>
-					<div class="form-group">
 						<label for="temperature" class="col-sm-2 control-label">Temperature</label>
 						<div class="col-sm-10">
 							<div class="input-group col-sm-3">
 								<span class="input-group-btn">
-									<buttonclass="btn btn-default temperature-add" type="button" title="Aggiungi temperatura">+</button>
+									<button class="btn btn-default temperature-add" type="button" title="Aggiungi temperatura">+</button>
 								</span>
 								<input type="number" class="form-control" pattern="00.0"
 											placeholder="T°" min="3" max="30" maxlength="4" step="0.5" value="20">
@@ -42,7 +42,7 @@
 								</span>
 							</div>
 						</div>
-					</div>
+					<div class="clearfix"></div>
 				</form>
 			</div>
 			<div class="modal-footer">

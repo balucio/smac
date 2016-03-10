@@ -18,7 +18,7 @@
 								href="#{{g|ShortDay}}">
 								{{g|Day}}
 							</a>
-					</li>
+						</li>
 					{% endfor %}
 				</ul>
 			</div>

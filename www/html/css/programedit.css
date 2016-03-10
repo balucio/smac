@@ -1,8 +1,0 @@
-#programmazione-settimanale.nav-pills > li.active > a,
-#programmazione-settimanale.nav-pills > li.active > a:hover,
-#programmazione-settimanale.nav-pills > li.active > a:focus {
-	color: 	white;
-	cursor: default;
-	background-color: #e38d13;
-	border: 1px solid #e38d13;
-}

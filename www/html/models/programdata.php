@@ -15,7 +15,7 @@ class ProgramDataModel {
 	public function __construct() { }
 
  	public function __isset($v) { return $this->programma->__isset($v); }
-	public function __get($name) { return $this->programma->$name; }
+	public function __get($v) { return $this->programma->$v; }
 
 	public function get() { return $this->programma; }
 

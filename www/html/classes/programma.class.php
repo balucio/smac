@@ -98,9 +98,9 @@ class Programma implements JsonSerializable {
 		];
 	}
 
-	public function __isset($key) { return property_exists($this, $key); }
+	public function __isset($v) { return property_exists($this, $v); }
 
-	public function __get($data) { return $this->$data; }
+	public function __get($v) { return $this->$v; }
 
 
 	private function parseTemps($t) {

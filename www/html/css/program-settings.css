@@ -68,8 +68,20 @@ div.info_programma {
 	font-size: x-small;
 }
 
-
 .panel-footer.panel-info {
-    background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #f5f5f5 0px, #e8e8e8 100%) repeat scroll 0 0;
-    color: black;
+	background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #f5f5f5 0px, #e8e8e8 100%) repeat scroll 0 0;
+	color: black;
+}
+
+
+.seleziona-programma a:hover,
+.seleziona-programma a:focus,
+.seleziona-programma a:active {
+  text-decoration:none;
+  background: none;
+}
+
+.seleziona-programma i.fa:hover {
+	opacity: 0.75;
+	color: rgba(0, 0, 0, 0.75);
 }

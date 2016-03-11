@@ -31,13 +31,17 @@
 					</div>
 						<label for="temperature" class="col-sm-3 control-label">Temperature</label>
 						<div id="programma-temperature" class="col-sm-9">
-							<div class="input-group col-sm-3 hidden">
+							<div class="input-group col-sm-4 hidden">
 								<span class="input-group-btn">
-									<button class="btn btn-default temperature-add hidden" type="button" title="Aggiungi temperatura">+</button>
-									<button class="btn btn-default temperature-del hidden" type="button" title="Rimuovi temperatura">-</button>
+									<button class="btn btn-default temperature-del hidden"
+											type="button" title="Rimuovi temperatura">-</button>
 								</span>
 								<input type="number" class="form-control" pattern="00.0"
 											placeholder="T°" min="3" max="30" maxlength="4" step="0.5" value="20">
+								<span class="input-group-btn">
+									<button class="btn btn-default temperature-add hidden"
+											type="button" title="Aggiungi temperatura">+</button>
+								</span>
 							</div>
 						</div>
 					<div class="clearfix"></div>

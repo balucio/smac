@@ -2,6 +2,11 @@
 
 $(function () {
 
+	var MaxT = 4;
+	var NumT = 0;
+	var Temps = [];
+
+
 	var showProgramModal = function(data) {
 
 		var modal = $('#program-modal').modal();
@@ -25,35 +30,63 @@ $(function () {
 		var mdiv = $('#programma-temperature');
 		var model = $('#programma-temperature').children().first();
 		mdiv.children().not(':first').remove();
-		for ( var i = 0; i < t.length; i++ ) {
-			mdiv.append(setTempInput(model, t[i]));
-		}
+
+		for ( var i = 0; i < MaxT; i++ )
+			mdiv.append(addTempInput(model, t[i].val));
 	}
 
-	var setTempInput = function(model, t) {
+
+	var addTempInput = function(model, v) {
+
+		if (Temps.length >= MaxT)
+			return null;
 
 		var cnt = model.clone();
 		cnt.removeClass('hidden');
 
-		var input = cnt.find('input');
+		Temps.push(cnt);
+		NumT++;
 
 		// Setup input
-		if (t.val)
-			input.val(t.val);
+		if (v)
+			cnt.find('input').val(v);
 
-		input.attr('id', 'progr_temp_rif[]');
-
-		// Setup add button
-		var addbtn = cnt.find('span.temperature-add');
-		addbtn.removeClass('hidden');
+		// Setup del pulsante aggiungi
+		var addbtn = cnt.find('button.temperature-add');
 		addbtn.click(function() {
-			setTempInput(model, null);
+			addTempInput(model, null);
 		});
 
-		var delbtn = cnt.find('span.temperature-del')
+		// Setup del pulsante elimina
+		var delbtn = cnt.find('button.temperature-del');
+		delbtn.click(function() {
+			if (NumT == 1)
+				return;
+			// Ricavo la posizione relativa dell'elemento considerando il div nascosto
+			var id = $('#programma-temperature').children().index($(this).closest('div'));
+			var j = id != NumT ? ( NumT - 1 ) : ( id - 1 )
 
-		if (!delbtn.hasClass('hidden'))
-			delbtn.addClass('hidden');
+			Temps[ j ].find('button.temperature-add').removeClass('hidden');
+			Temps[ j ].find('button.temperature-del').addClass('hidden');
+			Temps.splice(id - 1, 1);
+
+			NumT--;
+			cnt.remove();
+		});
+
+		var tn = Temps.length;
+
+		// Correggo visualizzazione pulsanti temperatura precedente
+		if (tn > 1) {
+			Temps[ tn  - 2 ].find('button.temperature-add').addClass('hidden');
+			Temps[ tn  - 2 ].find('button.temperature-del').removeClass('hidden');
+		}
+
+		// Correggo visualizzazione pulsanti temperatura attuale
+		if (tn < MaxT)
+			addbtn.removeClass('hidden');
+		else
+			delbtn.removeClass('hidden');
 
 		return cnt;
 	}

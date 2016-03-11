@@ -29,9 +29,10 @@
 							</select>
 						</div>
 					</div>
+					<div class="form-group">
 						<label for="temperature" class="col-sm-3 control-label">Temperature</label>
-						<div id="programma-temperature" class="col-sm-9">
-							<div class="input-group col-sm-4 hidden">
+						<div id="programma-temperature" class="col-sm-9 ">
+							<div class="input-group col-sm-4 pull-left hidden">
 								<span class="input-group-btn">
 									<button class="btn btn-default temperature-del hidden"
 											type="button" title="Rimuovi temperatura">-</button>
@@ -44,7 +45,8 @@
 								</span>
 							</div>
 						</div>
-					<div class="clearfix"></div>
+					</div>
+					<div id="messaggi" class="alert alert-danger hidden" role="alert"></div>
 				</form>
 			</div>
 			<div class="modal-footer">

@@ -6,7 +6,6 @@ $(function () {
 	var NumT = 0;
 	var Temps = [];
 
-
 	var showProgramModal = function(data) {
 
 		var modal = $('#program-modal').modal();
@@ -15,14 +14,24 @@ $(function () {
 		var slist = $('#elenco-sensori');
 		slist.find('option').remove();
 
-		$('#id_programma').val(data.id_programma ? data.id_programma : '');
-		$('#nome_programma').val(data.nome_programma ? data.nome_programma : '');
-		$('#descrizione_programma').val(data.descrizione_programma ? data.descrizione_programma : '');
-		var sid = data.id_sensore_riferimento ? data.id_sensore_riferimento : ''
-		var trif = data.temperature_riferimento ? data.temperature_riferimento : [{id :0, val : 20}];
+		var pid = $('#id_programma');
+		var pname = $('#id_programma');
+		var pdescr = $('#descrizione_programma');
+		var psid = 0;
+		var ptrif = [{id : 0, val : 20}];
+
+		if (data) {
+			pid.val(data.hasOwnProperty("id_programma") ? data.id_programma : pid);
+			pname.val(data.hasOwnProperty("nome_programma") ? data.nome_programma : pname);
+			pdescr.val(data.hasOwnProperty("descrizione_programma") ? data.descrizione_programma : pdescr);
+			psid = data.hasOwnProperty("id_sensore_riferimento") ? data.id_sensore_riferimento : psid;
+			ptrif = data.hasOwnProperty("temperature_riferimento") ? data.temperature_riferimento : ptrif;
+		}
 
 		createSensorList(0, slist);
-		createTemperature(trif)
+		createTemperature(ptrif);
+
+		slist.val(0);
 	}
 
 	var createTemperature = function(t) {
@@ -30,6 +39,8 @@ $(function () {
 		var mdiv = $('#programma-temperature');
 		var model = $('#programma-temperature').children().first();
 		mdiv.children().not(':first').remove();
+		NumT = 0;
+		Temps.splice(0,Temps.length);
 
 		for ( var i = 0; i < MaxT; i++ )
 			mdiv.append(addTempInput(model, t[i].val));
@@ -54,7 +65,7 @@ $(function () {
 		// Setup del pulsante aggiungi
 		var addbtn = cnt.find('button.temperature-add');
 		addbtn.click(function() {
-			addTempInput(model, null);
+			$('#programma-temperature').append(addTempInput(model, null));
 		});
 
 		// Setup del pulsante elimina
@@ -64,10 +75,14 @@ $(function () {
 				return;
 			// Ricavo la posizione relativa dell'elemento considerando il div nascosto
 			var id = $('#programma-temperature').children().index($(this).closest('div'));
-			var j = id != NumT ? ( NumT - 1 ) : ( id - 1 )
+			var j = NumT - ( id != NumT ? 1 : 2 );
 
 			Temps[ j ].find('button.temperature-add').removeClass('hidden');
-			Temps[ j ].find('button.temperature-del').addClass('hidden');
+
+			// Se rimarrà un solo input temperature rimuovo possibilità di rimuoverlo
+			if ( NumT == 2 )
+				Temps[ j ].find('button.temperature-del').addClass('hidden');
+
 			Temps.splice(id - 1, 1);
 
 			NumT--;
@@ -85,8 +100,8 @@ $(function () {
 		// Correggo visualizzazione pulsanti temperatura attuale
 		if (tn < MaxT)
 			addbtn.removeClass('hidden');
-		else
-			delbtn.removeClass('hidden');
+
+		delbtn.removeClass('hidden');
 
 		return cnt;
 	}

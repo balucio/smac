@@ -8,9 +8,7 @@ class Assets
 			'/js/jquery.js',
 			'/js/bootstrap.js',
 			'/js/bootstrap-select.js',
-			'/js/bootstrap-select-i18n/defaults-it_IT.min.js',
-			'/js/highcharts.js',
-			'/js/highcharts-i18n/defaults-it_IT.js'
+			'/js/bootstrap-select-i18n/defaults-it_IT.min.js'
 		],
 		'css' => [
 			'/css/bootstrap.css',
@@ -39,9 +37,33 @@ class Assets
 		return $self;
 	}
 
-	public function addJs($js) { Self::$assets['js'][] = $js; return $this; }
-	public function addCss($css) { Self::$assets['css'][] = $css; return $this; }
-	public function addInternalCss($css) { Self::$assets['internalCss'][] = $css; return $this; }
+	public function addJs($js) {
+
+		!is_array($js)
+			&& $js = [ $js ];
+
+		foreach ($js as $j)
+			Self::$assets['js'][] = $j;
+
+		return $this;
+	}
+
+	public function addCss($css) {
+
+		!is_array($css)
+			&& $css = [ $css ];
+
+		foreach ($css as $c )
+			Self::$assets['css'][] = $c;
+
+		return $this;
+	}
+
+	public function addInternalCss($css) {
+
+		Self::$assets['internalCss'][] = $css;
+		return $this;
+	}
 
 	public function Css() { return Self::$assets['css']; }
 	public function Js() { return Self::$assets['js']; }

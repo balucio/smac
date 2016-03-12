@@ -9,7 +9,12 @@ class ProgramSettingsView extends MainView {
 	public function __construct($model) {
 
 		parent::__construct($model, self::TPL);
-		Assets::get()->addJs('/js/program-settings.js');
+
+		Assets::get()->addJs([
+			'/js/parsley.js',
+			'/js/program-settings.js'
+		]);
+
 		Assets::get()->addCss('/css/program-settings.css');
 	 }
 

@@ -8,7 +8,8 @@ class Assets
 			'/js/jquery.js',
 			'/js/bootstrap.js',
 			'/js/bootstrap-select.js',
-			'/js/bootstrap-select-i18n/defaults-it_IT.min.js'
+			'/js/bootstrap-select-i18n/eu_EU.js'
+			'/js/bootstrap-select-i18n/it_IT.js'
 		],
 		'css' => [
 			'/css/bootstrap.css',

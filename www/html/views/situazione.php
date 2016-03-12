@@ -12,7 +12,7 @@ class SituazioneView extends MainView {
 
 		Assets::get()->addJs([
 			'/js/highcharts.js',
-			'/js/highcharts-i18n/defaults-it_IT.js'
+			'/js/highcharts-i18n/it_IT.js'
 		]);
 	}
 

@@ -11,6 +11,10 @@ class SituazioneController extends BaseController {
 
 	public function view() {
 
-		$this->model->init(ProgramModel::CURRENT_PROGRAM, ProgramDataModel::DAY_NOW, ProgramListModel::ALL);
+		$this->model->init(
+            ProgramModel::CURRENT_PROGRAM,
+            ProgramDataModel::DAY_NOW,
+            ProgramListModel::ALL
+        );
 	}
 }

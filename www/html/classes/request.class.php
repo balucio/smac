@@ -11,7 +11,6 @@ class Request {
         session_start();
 
         Self::initLocale();
-
     }
 
     public static function Attr($name, $default = null) {
@@ -63,7 +62,7 @@ class Request {
 
         for( $i = 0; $i < count($browser_locale); $i++ ) {
 
-                //trick for "en;q=0.8"
+            //trick for "en;q=0.8"
             $lang = strtok( $browser_locale[$i], ';' );
 
             foreach ( $system_locale as $sys_locale ) {

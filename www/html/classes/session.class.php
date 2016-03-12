@@ -101,8 +101,8 @@ class Session extends SessionHandler {
 		return true;
 	}
 
-	public function isValid()
-	{
+	public function isValid() {
+
 		return ! $this->isExpired() && $this->isFingerprint();
 	}
 

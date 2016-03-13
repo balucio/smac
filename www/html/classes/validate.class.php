@@ -24,6 +24,10 @@ class Validate {
 		return false !== filter_var($num, FILTER_VALIDATE_INT);
 	}
 
+	public static function IsFloatInRange( $num, $min, $max ) {
+		return is_numeric( $num ) && $num >= $min && $num <= $max;
+	}
+
 	public static function IsValidTimeStamp($ts) {
 
 		return ((string) (int) $ts === $ts)

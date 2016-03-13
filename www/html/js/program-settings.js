@@ -148,6 +148,70 @@ $(function () {
 		return cnt;
 	}
 
+	var addProgramListEvent = function() {
+
+		// Selezione del programma da elenco
+		$('li.seleziona-programma').click(function(event){
+
+			var progr = $(this);
+
+			$.post(
+				'/program/getschedule',
+				{ program: progr.data('id'), day : 0 },
+				function(data) {
+					if (data.schedule) {
+						$('#orari-programma').parent().html(data.schedule);
+						var exProgram = $('li.seleziona-programma.active');
+						exProgram.find('span.program-action').addClass('hidden');
+						exProgram.removeClass('active');
+						progr.addClass('active');
+						progr.find('span.program-action').removeClass('hidden');
+					}
+				}
+			);
+		});
+
+		// Nuovo programma
+		$('#new-program').click(function(event) {
+			event.preventDefault()
+			showProgramModal(null);
+		});
+
+		// Modifica programma
+		$('a.modifica-programma').click(function(event) {
+			// Ottengo i dati del programma
+			$.post(
+				'/program/getdata',
+				{ program : $(this).data('id') },
+				function(data) {
+					showProgramModal(data);
+				}
+			);
+			// Visualizzo e popolo il modale
+
+		});
+
+		// Elimina programma
+		$('a.elimina-programma').click(function(event) {
+
+		});
+	}
+
+	var refreshProgramList = function() {
+
+		var pid = $('#elenco-programmi').find('li.seleziona-programma.active').data('id');
+		$.post('/program/getList',
+			{program: pid},
+			function(data) {
+				if (data.programlist) {
+					var div = $('#elenco-programmi').parent();
+					$('#elenco-programmi').remove();
+					div.html(data.programlist);
+					addProgramListEvent();
+				}
+		});
+	}
+
 	var createSensorList = function(sid, select) {
 		$.post('/program/getsensorlist',
 			{sensor: sid},
@@ -189,6 +253,8 @@ $(function () {
 
 				if (data.status == true) {
 					$('#program-modal').modal('hide');
+					// TODO Impostare il nuovo programma
+					refreshProgramList();
 					return;
 				}
 
@@ -204,49 +270,9 @@ $(function () {
 	}
 
 	$( document ).ready(function() {
-		// Selezione del programma da elenco
-		$('li.seleziona-programma').click(function(event){
 
-			var progr = $(this);
-
-			$.post(
-				'/program/getschedule',
-				{ program: progr.data('id'), day : 0 },
-				function(data) {
-					if (data.schedule) {
-						$('#orari-programma').parent().html(data.schedule);
-						var exProgram = $('li.seleziona-programma.active');
-						exProgram.find('span.program-action').addClass('hidden');
-						exProgram.removeClass('active');
-						progr.addClass('active');
-						progr.find('span.program-action').removeClass('hidden');
-					}
-				}
-			);
-		});
-		// Nuovo programma
-		$('#new-program').click(function(event) {
-			event.preventDefault()
-			showProgramModal(null);
-		});
-		// Modifica programma
-		$('a.modifica-programma').click(function(event) {
-			// Ottengo i dati del programma
-			$.post(
-				'/program/getdata',
-				{ program : $(this).data('id') },
-				function(data) {
-					showProgramModal(data);
-				}
-			);
-			// Visualizzo e popolo il modale
-
-		});
-		// Elimina programma
-		$('a.elimina-programma').click(function(event) {
-
-		});
-
+		// Setup eventi lista programmi
+		addProgramListEvent();
 		/*
 		 * Validatore differentNumbercustom per impedire che alcuni alcuni campi
 		 * input numerici identificati da una particolare classe abbiano lo stesso

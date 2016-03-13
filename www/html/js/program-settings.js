@@ -8,24 +8,57 @@ $(function () {
 
 	var showProgramModal = function(data) {
 
+		var form = $("#program-modal").find('form');
+
+		var validation = form.parsley({
+
+			successClass: "has-success",
+			errorClass: "has-error",
+			classHandler: function (el) {
+				return el.$element.closest(".form-group");
+			},
+			errorsContainer: function (el) {
+				return el.$element.closest(".form-group");
+			},
+			errorsWrapper: '<span class="help-block"></span>',
+			errorTemplate: '<div class="col-sm-9 col-md-offset-3"></div>'
+		});
+
 		var modal = $('#program-modal').modal();
-		modal.show();
+
+		modal.on('hidden.bs.modal', function () {
+			validation.destroy();
+			$('#message > span').addClass('hidden');
+			$('#message').addClass('hidden');
+			$(this).data('bs.modal', null);
+		});
+
+		$("#program-save").click(function(e){
+			e.preventDefault();
+			if (!validation.validate())
+				return false;
+			sendProgramData(form);
+		});
 
 		var slist = $('#elenco-sensori');
 		slist.find('option').remove();
 
 		var pid = $('#id_programma');
-		var pname = $('#id_programma');
+		var pname = $('#nome_programma');
 		var pdescr = $('#descrizione_programma');
 		var psid = 0;
 		var ptrif = [{id : 0, val : 20}];
 
 		if (data) {
-			pid.val(data.hasOwnProperty("id_programma") ? data.id_programma : pid);
-			pname.val(data.hasOwnProperty("nome_programma") ? data.nome_programma : pname);
-			pdescr.val(data.hasOwnProperty("descrizione_programma") ? data.descrizione_programma : pdescr);
+			pid.val(data.hasOwnProperty("id_programma") ? data.id_programma : '');
+			pname.val(data.hasOwnProperty("nome_programma") ? data.nome_programma : '');
+			pdescr.val(data.hasOwnProperty("descrizione_programma") ? data.descrizione_programma : '');
 			psid = data.hasOwnProperty("id_sensore_riferimento") ? data.id_sensore_riferimento : psid;
 			ptrif = data.hasOwnProperty("temperature_riferimento") ? data.temperature_riferimento : ptrif;
+		} else {
+			pid.val('');
+			pname.val('');
+			pdescr.val('');
 		}
 
 		createSensorList(0, slist);
@@ -38,14 +71,17 @@ $(function () {
 
 		var mdiv = $('#programma-temperature');
 		var model = $('#programma-temperature').children().first();
+
 		mdiv.children().not(':first').remove();
 		NumT = 0;
 		Temps.splice(0,Temps.length);
 
-		for ( var i = 0; i < MaxT; i++ )
+		if (t.length > MaxT)
+			t.length = MaxT;
+
+		for ( var i = 0; i < t.length; i++ )
 			mdiv.append(addTempInput(model, t[i].val));
 	}
-
 
 	var addTempInput = function(model, v) {
 
@@ -59,8 +95,13 @@ $(function () {
 		NumT++;
 
 		// Setup input
+		var input = cnt.find('input');
+		input.addClass('temperature');
+		input.attr('name', 'temperature[]');
+		input.attr("data-parsley-alldifferent", null);
+
 		if (v)
-			cnt.find('input').val(v);
+			input.val(v);
 
 		// Setup del pulsante aggiungi
 		var addbtn = cnt.find('button.temperature-add');
@@ -101,7 +142,8 @@ $(function () {
 		if (tn < MaxT)
 			addbtn.removeClass('hidden');
 
-		delbtn.removeClass('hidden');
+		if ( tn > 1 )
+			delbtn.removeClass('hidden');
 
 		return cnt;
 	}
@@ -119,6 +161,45 @@ $(function () {
 								.text(s[i].nome_sensore)
 						);
 				}
+		});
+	}
+
+	var sendProgramData = function(form) {
+
+		var showMessage = function(msgid) {
+			$('#message').removeClass('hidden');
+			$('#' + msgid).removeClass('hidden');
+		}
+
+		$('#message > span').addClass('hidden');
+		$('#message').addClass('hidden');
+
+		$.ajax({
+			type: "POST",
+			url: "/program/createOrUpdate",
+			data: form.serialize(),
+			success: function(data) {
+
+				var msgid = 'message-err-comm';
+
+				if (!data || !data.hasOwnProperty("status")) {
+					showMessage(msgid);
+					return;
+				}
+
+				if (data.status == true) {
+					$('#program-modal').modal('hide');
+					return;
+				}
+
+				if (data.hasOwnProperty("msgid") && $('#' + data.msgid).length)
+					msgid = data.msgid;
+
+				showMessage(msgid);
+			},
+
+			error: function() { showMessage('message-err-comm'); }
+
 		});
 	}
 
@@ -166,6 +247,44 @@ $(function () {
 
 		});
 
+		/*
+		 * Validatore differentNumbercustom per impedire che alcuni alcuni campi
+		 * input numerici identificati da una particolare classe abbiano lo stesso
+		 * valore. La validazione è di tipo numerica e la funzione di validazione
+		 * stessa richiede due parametri value e requirements. Requirements è la classe
+		 * dei campi input i cui valori verranno confrontanti. Value è il valore attuale
+		 * del campo input. Tale valore viene ignorato, in quanto il controllo di
+		 * validità viene eseguito in un campo nascosto della form.
+		 *
+		 */
+		window.Parsley.addValidator('alldifferent', {
+
+			validateString: function(value, requirements) {
+
+				var values = [];
+				var common = false;
+
+				$( '.' + requirements ).each( function() {
+
+					var v = $( this ).val();
+					if (values.indexOf(v) != -1) {
+						common = true;
+						return false;
+					}
+					values.push(v);
+				});
+
+				return !common;
+			},
+			priority: 32,
+			messages: {
+				en : 'Values must be different',
+				it : 'I valori devono essere diversi',
+				es : 'Todo el valor debe ser diferente',
+				fr: 'Tout valeur doit être différente',
+				de : 'Alle Wert muss anders sein',
+			}
+		});
 	});
 });
 

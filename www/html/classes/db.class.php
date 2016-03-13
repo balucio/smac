@@ -4,6 +4,11 @@ class Db {
 
 	const CURR_PROGRAM = 'programma_attuale';
 
+	const STATUS_OK = 0;
+	const STATUS_DUPLICATE = 1;
+	const STATUS_KEY_NOT_EXIST = 2;
+	const STATUS_ERR = -1;
+
 	private static $instance = null;
 
 	private static $dsn_tpl='%s:host=%s;port=%s;dbname=%s;';

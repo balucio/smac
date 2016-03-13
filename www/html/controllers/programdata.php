@@ -28,7 +28,13 @@ class ProgramDataController extends BaseController {
 		$this->model->setPid($this->pid, $this->day);
 	}
 
-	public function getProgramData() { $this->setProgramId();}
+	public function getProgramData() { $this->setProgramId(); }
+
+	public function getList() {
+
+		$this->model->enumerate($this->pid, ProgramListModel::NONE);
+
+ 	}
 
 	public function createOrUpdate() {
 

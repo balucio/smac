@@ -22,10 +22,10 @@ $(function () {
 			labels : { enabled : true, reserveSpace :true},
 			title : { text : null },
 			type: 'datetime',
-            dateTimeLabelFormats: {
-                hour: '%H:%M',
-                day :'%H:%M'
-            }
+			dateTimeLabelFormats: {
+				hour: '%H:%M',
+				day :'%H:%M'
+			}
 		},
 
 		yAxis: {
@@ -64,22 +64,69 @@ $(function () {
 		return  day;
 	}
 
-	var colorGradient = function(items) {
+	var colorGradient = function(temps) {
 
-		if (items <= 1)
-			return [ '#FFFF00' ];
+		// da -8 a +36 passo 2
+		//     0 a 21  passo 2
+		var ctable = [
+			'#0A36AD',
+			'#1514F4',
+			'#1080F6',
+			'#05BFF9',
+			'#00FFFE',
+			'#00F7CA',
+			'#0BD794',
+			'#00AA6C',
+			'#26AA43',
+			'#24C84B',
+			'#00FF52',
+			'#CBFE54',
+			'#FEFE56',
+			'#ECEC8E',
+			'#E4CB75',
+			'#DCAD5A',
+			'#FF5324',
+			'#FF001A',
+			'#C80012',
+			'#AD000E',
+			'#93000A',
+			'#780006'
+		];
+
+		var closestTo = function(v) {
+
+			var t = Math.round(v);
+			t = ( ( ( t % 2 == 0 ) ? t : ( t + 1 ) ) + 8 ) / 2;
+
+			t = Math.max(0, t);
+			t = Math.min(ctable.length - 1, t);
+
+			return ctable[t];
+		}
+
+
+		var items = temps.length;
+
+		if (items == 0)
+			return ctable[0];
+
+		if (items == 1)
+			return [ closestTo(temps[0].val) ];
 
 		var rainbow = new Rainbow();
 		rainbow.setNumberRange(1, items);
-		rainbow.setSpectrum('yellow', 'red');
+
+		var mincol = closestTo(temps[0].val);
+		var maxcol = closestTo(temps[items -1].val);
+
+		rainbow.setSpectrum(mincol, maxcol);
 
 		var colors = [];
 
 		for (var i = 1; i <= items; i++)
-    		colors.push('#' + rainbow.colourAt(i));
+			colors.push('#' + rainbow.colourAt(i));
 
-    	return colors;
-
+		return colors;
 	}
 
 	var calculateNewChartSeries = function(data) {
@@ -102,7 +149,7 @@ $(function () {
 
 		var seriesdata = [];
 
-		var colors = colorGradient(temps.length);
+		var colors = colorGradient(temps);
 
 		for ( var t = 0; t < temps.length; t++ ) {
 
@@ -130,11 +177,11 @@ $(function () {
 					lastValue
 				]);
 
-				lastValue = ( (cS.t_rif_codice == t) ? parseFloat(cS.t_rif_valore) : 0 );
+				lastValue = ( ( cS.t_rif_codice == temps[t].id ) ? parseFloat(cS.t_rif_valore) : 0 );
 
 				points.push([
 					millisec,
-					( (cS.t_rif_codice == t) ? lastValue : 0 )
+					( (cS.t_rif_codice == temps[t].id ) ? lastValue : 0 )
 				]);
 			}
 

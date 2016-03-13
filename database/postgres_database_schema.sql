@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.1
--- Dumped by pg_dump version 9.5.1
+-- Dumped from database version 9.5.0
+-- Dumped by pg_dump version 9.5.0
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -13,11 +13,12 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
+DROP DATABASE IF EXISTS smac;
 --
 -- Name: smac; Type: DATABASE; Schema: -; Owner: postgres
 --
 
-CREATE DATABASE smac WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'it_IT.UTF-8' LC_CTYPE = 'it_IT.UTF-8';
+CREATE DATABASE smac WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
 
 ALTER DATABASE smac OWNER TO postgres;
@@ -31,6 +32,22 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA public;
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
 
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
@@ -104,6 +121,46 @@ CREATE TYPE situazione_sensore AS (
 
 
 ALTER TYPE situazione_sensore OWNER TO smac;
+
+--
+-- Name: aggiorna_crea_programma(character varying, text, numeric[], smallint, integer); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION aggiorna_crea_programma(p_nome character varying, p_descrizione text, p_temps numeric[], p_sensore smallint DEFAULT 0, p_id integer DEFAULT NULL::integer) RETURNS smallint
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+   d smallint;
+BEGIN
+
+	IF p_id IS NULL OR p_id <= 0 THEN
+		INSERT INTO programmi(nome_programma, descrizione_programma, temperature_rif, sensore_rif)
+		     VALUES (p_nome, p_descrizione, p_temps, p_sensore) RETURNING id_programma INTO p_id;
+	ELSE
+		UPDATE programmi
+		  SET nome_programma = p_nome,
+	              descrizione_programma = p_descrizione,
+	              temperature_rif = p_temps,
+		      sensore_rif = p_sensore
+	        WHERE id_programma = p_id;
+	        
+		-- Non devo fare altro
+	        RETURN p_id;
+	END IF;
+
+	-- Crezione di una misurazione t_anticongelamento per tutti i giorni nel caso di nuovo programma
+	FOR d IN 1..7 LOOP
+		INSERT INTO dettaglio_programma(id_programma, giorno, ora, t_riferimento)
+		     VALUES (p_id, d, '00:00:00'::time, 0::smallint);
+        END LOOP;
+
+        RETURN p_id;
+
+END;
+$$;
+
+
+ALTER FUNCTION public.aggiorna_crea_programma(p_nome character varying, p_descrizione text, p_temps numeric[], p_sensore smallint, p_id integer) OWNER TO smac;
 
 --
 -- Name: aggiorna_dati_giornalieri(smallint, date); Type: FUNCTION; Schema: public; Owner: smac
@@ -377,7 +434,7 @@ BEGIN
                SELECT p.id_programma,
                       p.nome_programma,
                       p.descrizione_programma,
-                      array_prepend(t_anticongelamento, p.temperature_rif)::numeric(9,4)[] AS temperature_rif,
+                      p.temperature_rif,
                       t_anticongelamento,
                       p.sensore_rif,
                       e.nome_sensore
@@ -596,7 +653,7 @@ SET default_with_oids = false;
 
 CREATE TABLE programmi (
     id_programma integer NOT NULL,
-    nome_programma character varying(64),
+    nome_programma character varying(64) NOT NULL,
     descrizione_programma text,
     temperature_rif numeric(9,4)[] DEFAULT '{NULL,NULL,NULL,NULL,NULL}'::numeric[],
     sensore_rif smallint DEFAULT 0 NOT NULL
@@ -820,8 +877,7 @@ CREATE FUNCTION programmazioni(progr_id integer DEFAULT NULL::integer, prog_gior
     LANGUAGE plpgsql
     AS $$
 DECLARE
-    t_anticongelamento NUMERIC(9,4);
-    t_rif smallint DEFAULT null;
+    t_rif smallint DEFAULT 1;
     t_val NUMERIC(9,4) DEFAULT null;
     g_rif_min smallint DEFAULT 1;
     g_rif_max smallint DEFAULT 7;
@@ -831,8 +887,6 @@ BEGIN
     IF progr_id IS NULL THEN
        progr_id = get_setting('programma_attuale'::varchar,'-1'::text);
     END IF;
-
-    t_anticongelamento = get_setting('temperatura_anticongelamento'::varchar,'5'::text);
 
     -- if prog_giorno == 0 retrieve all day
     IF prog_giorno >= 1 AND prog_giorno <= 7 THEN
@@ -845,14 +899,15 @@ BEGIN
 
     CASE progr_id::smallint
     
-	-- sistema spento o anticongelamento 
-        WHEN -1, 0 THEN
+	-- sistema spento o anticongelamento o manuale 
+        WHEN -1, 0, 32767 THEN
 
-            -- t_rif = 0 per anticongelamento
-	    IF progr_id = 0 THEN
-	        t_rif = 0;
-	        t_val = t_anticongelamento;
-	    END IF;
+            -- t_rif = null solo per spento
+	    CASE progr_id::smallint
+	        WHEN -1 THEN t_rif = null;
+	        WHEN 0 THEN t_val = get_setting('temperatura_anticongelamento'::varchar,'5'::text);
+	        WHEN  32767 THEN t_val = get_setting('temperatura_manuale'::varchar,'20'::text);
+	     END CASE;
 
             WHILE g_rif_min <= g_rif_max LOOP
                 RETURN QUERY
@@ -861,7 +916,7 @@ BEGIN
                            (h || ':00')::time,
                            EXTRACT(EPOCH FROM (h || ':00')::time)::integer,
                            t_rif::smallint, t_val
-                      FROM generate_series(0,23) AS h;
+                      FROM generate_series(0,23, 12) AS h;
 
 	        g_rif_min = g_rif_min + 1;
 	    END LOOP;
@@ -872,8 +927,11 @@ BEGIN
                                 d.giorno,
                                 d.ora,
                                 EXTRACT(EPOCH FROM d.ora)::integer,
-                                COALESCE(d.t_riferimento,0)::smallint,
-                                CASE WHEN d.t_riferimento IS NULL OR d.t_riferimento = 0 THEN t_anticongelamento 
+                                
+                                CASE WHEN d.t_riferimento IS NULL OR d.t_riferimento = 0 THEN 1::smallint
+                                     ELSE d.t_riferimento
+                                END,
+                                CASE WHEN d.t_riferimento IS NULL OR d.t_riferimento = 0 THEN p.temperature_rif[1]
                                      ELSE p.temperature_rif[d.t_riferimento]
                                 END
                            FROM dettaglio_programma AS d

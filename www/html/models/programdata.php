@@ -9,7 +9,8 @@ class ProgramDataModel {
 
 	private
 		$pid = null,
-		$programma = null
+		$programma = null,
+		$status = null
 	;
 
 	public function __construct() { }
@@ -20,6 +21,8 @@ class ProgramDataModel {
 	public function get() { return $this->programma; }
 
 	public function getPid() { return $this->pid; }
+
+	public function getStatus() { return $this->status; }
 
 	public function setPid($pid = null, $pday = null) {
 
@@ -37,6 +40,59 @@ class ProgramDataModel {
 			"SELECT esiste_programma(:pid::smallint)",
 			[':pid' => $pid ]
 		);
+	}
+
+	public function getIdByName($nome) {
+
+		$query ="SELECT id_programma FROM programmi WHERE nome_programma = :nome";
+		return Db::get()->getNthColumnOfRow( $query, [ ':nome' => $nome] );
+	}
+
+	public function updateProgram( $pid, $nome, $descr, $temps, $sid ) {
+
+		$pid = ( empty($pid) || $pid < 0 ) ? null : $pid;
+
+		$data = [
+			':pid' => $pid,
+			':nome' => $nome,
+			':descrizione' => $descr,
+			':temps' => '{' . implode(',', $temps) . '}',
+			':sensore' => $sid
+		];
+
+		$epid = $this->getIdByName($nome);
+
+		if ( !empty($pid) && !$this->exists($pid) ) {
+
+				$this->status = Db::STATUS_KEY_NOT_EXIST;
+				return;
+
+		} else if (
+			( empty($pid) && !empty($epid) )
+			|| ( !empty($pid) && $epid != $pid )
+		) {
+				$this->status = Db::STATUS_DUPLICATE;
+				return;
+		}
+
+		$sth = null;
+		$query = "SELECT * FROM aggiorna_crea_programma(:nome, :descrizione, :temps, :sensore::smallint, :pid)";
+
+		try {
+
+			$sth = Db::get()->prepare( $query );
+			$sth->execute( $data );
+			$this->pid = $sth->fetchColumn(0);
+			$this->status = Db::STATUS_OK;
+
+		} catch (Exception $e) {
+
+			$msg = $sth ? $sth->errorInfo() : Db::get()->errorInfo();
+			error_log( "SQLSTATE {$msg[0]} - {$msg[1]} : {$msg[2]}");
+
+			$this->pid = null;
+			$this->status = Db::STATUS_ERR;
+		}
 	}
 
 	public function setDefault($pid) {

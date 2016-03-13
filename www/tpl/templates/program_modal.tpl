@@ -11,22 +11,25 @@
 					<div class="form-group">
 						<label for="nome_programma" class="col-sm-3 control-label">Nome</label>
 						<div class="col-sm-9">
-							<input type="hidden" id="id_programma">
-							<input type="text" class="form-control" id="nome_programma" placeholder="Nome programma">
+							<input type="hidden" id="id_programma" name="program" />
+							<input type="text" class="form-control" id="nome_programma" required=""
+								maxlength="64" placeholder="Nome programma" name="name"
+								data-parsley-trigger="change" />
 						</div>
 					</div>
 					<div class="form-group">
 						<label for="descrizione_programma" class="col-sm-3 control-label">Descrizione</label>
 						<div class="col-sm-9">
-							<textarea class="form-control" rows="3" id="descrizione_programma" placeholder="Descrizione programma"></textarea>
+							<textarea class="form-control" rows="3" data-parsley-trigger="change"
+								id="descrizione_programma" placeholder="Descrizione programma" name="description"
+								required=""></textarea>
 						</div>
 					</div>
 					<div class="form-group">
 						<label for="sensore_riferimento" class="col-sm-3 control-label">
 							<abbr title="Sensore di riferimento">S. Rif.</abbr></label>
 						<div class="col-sm-9">
-							<select id="elenco-sensori" class="form-control">
-							</select>
+							<select id="elenco-sensori" class="form-control" name="sensor"></select>
 						</div>
 					</div>
 					<div class="form-group">
@@ -37,8 +40,11 @@
 									<button class="btn btn-default temperature-del hidden"
 											type="button" title="Rimuovi temperatura">-</button>
 								</span>
-								<input type="number" class="form-control" pattern="00.0"
-											placeholder="T°" min="3" max="30" maxlength="4" step="0.5" value="20">
+								<input type="number" class="form-control"
+								 	pattern="\d?\d([,.]\d)?" step="0.5" min="3" max="30" maxlength="4"
+									data-parsley-trigger="change"
+									data-parsley-alldifferent='temperature'
+									placeholder="T°" value="20" required="">
 								<span class="input-group-btn">
 									<button class="btn btn-default temperature-add hidden"
 											type="button" title="Aggiungi temperatura">+</button>
@@ -46,12 +52,25 @@
 							</div>
 						</div>
 					</div>
-					<div id="messaggi" class="alert alert-danger hidden" role="alert"></div>
+					<div id="message" class="alert alert-danger hidden" role="alert">
+						<span id="message-err-data" class="hidden">
+							I dati ricevuti dal server non sono corretti
+						</span>
+						<span id="message-err-duplicate" class="hidden">
+							Impossibile creare il programma, nome già esistente
+						</span>
+						<span id="message-err-db" class="hidden">
+							Si è verificato un errore di scrittura sul database
+						</span>
+						<span id="message-err-comm" class="hidden">
+							Si è verificato un errore di comunicazione con il server
+						</span>
+					</div>
 				</form>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Anulla</button>
-				<button type="button" class="btn btn-primary">Salva</button>
+				<button type="button" class="btn btn-primary" id="program-save">Salva</button>
 			</div>
 		</div>
 	</div>

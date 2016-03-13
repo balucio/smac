@@ -75,7 +75,8 @@ class Router {
 				'savedefault' => new Route('ProgramData', 'SaveProgram', 'ProgramData'),
 				'getschedule' => new Route('ProgramData', 'ProgramSchedule', 'ProgramData'),
 				'getdata' => new Route('ProgramData', 'ProgramDataRaw', 'ProgramData'),
-				'getsensorlist' => new Route('SensorList', 'SensorProgramList', 'SensorProgramList')
+				'getsensorlist' => new Route('SensorList', 'SensorProgramList', 'SensorProgramList'),
+				'createorupdate' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
 			],
 			'impostazioni' => [
 				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),

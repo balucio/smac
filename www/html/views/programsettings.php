@@ -12,10 +12,13 @@ class ProgramSettingsView extends MainView {
 
 		Assets::get()->addJs([
 			'/js/parsley.js',
+			'/js/parsley-i18n/it.js',
 			'/js/program-settings.js'
 		]);
 
-		Assets::get()->addCss('/css/program-settings.css');
+		Assets::get()->addCss([
+			'/css/program-settings.css'
+		]);
 	 }
 
 	public function render() {

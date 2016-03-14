@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.0
--- Dumped by pg_dump version 9.5.0
+-- Dumped from database version 9.5.1
+-- Dumped by pg_dump version 9.5.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -759,6 +759,26 @@ END$$;
 
 
 ALTER FUNCTION public.elenco_sensori(stato boolean) OWNER TO smac;
+
+--
+-- Name: elimina_programma(integer); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION elimina_programma(progr_id integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+
+   DELETE FROM dettaglio_programma WHERE id_programma = progr_id;
+   DELETE FROM programmi WHERE id_programma = progr_id;
+   -- eventualmente metto il sistema in anticongelamento
+   IF ( progr_id = get_setting('programma_attuale'::varchar,'-1'::text)::integer ) THEN
+      PERFORM set_setting('programma_attuale'::varchar, '0'::text);
+   END IF;
+END$$;
+
+
+ALTER FUNCTION public.elimina_programma(progr_id integer) OWNER TO smac;
 
 --
 -- Name: esiste_programma(smallint); Type: FUNCTION; Schema: public; Owner: smac

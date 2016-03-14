@@ -77,7 +77,8 @@ class Router {
 				'getdata' => new Route('ProgramData', 'ProgramDataRaw', 'ProgramData'),
 				'getsensorlist' => new Route('SensorList', 'SensorProgramList', 'SensorProgramList'),
 				'getlist' => new Route('ProgramList', 'ProgramList', 'ProgramData'),
-				'createorupdate' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
+				'createorupdate' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
+				'delete' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
 			],
 			'impostazioni' => [
 				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),

@@ -27,6 +27,9 @@ class Template {
 				'strict_variables' => true
 			));
 
+			if (DEBUG)
+				$tplh->addExtension(new Twig_Extension_Debug());
+
 			$tplh->addExtension(new TemplateExtension());
 		}
 

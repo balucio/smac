@@ -6,16 +6,13 @@ class ProgramDataView extends BaseView {
 
 		$dcr = new Decorator();
 
-		$rv = (object)[
+		return json_encode((object)[
 			'dettaglio' => $this->model->dettaglio,
 			'temp_antigelo' => $this->model->antigelo,
 			'temperature' => $this->model->temperature,
 			'temp_riferimento' => $this->encodeHtml($this->model),
 			'temp_rif_att' => $dcr->decorateTemperature($this->model->rif_temp_attuale)
-		];
-
-//		return '<pre>' . json_encode( $rv, JSON_PRETTY_PRINT) . '</pre>';
-		return json_encode( $rv );
+		] );
 	}
 
 	private function encodeHtml($pdata) {

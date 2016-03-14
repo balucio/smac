@@ -53,7 +53,7 @@ class ProgramListModel {
 			}
 		}
 
-		if ($selected === null) {
+		if ($selected === null && $this->list) {
 			$selected = key($this->list);
 			$this->list[$selected]['selected'] = 'selected';
 		}

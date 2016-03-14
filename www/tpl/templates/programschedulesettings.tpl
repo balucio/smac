@@ -2,7 +2,7 @@
 	<div class="panel panel-primary">
 		<div class="panel-heading">
 			<h4 class="panel-title">
-				Programma <b>{{programma.nome}}</b>
+				Programma <b>{{programma.nome|default('')}}</b>
 			</h4>
 		</div>
 		<div class="panel-body">
@@ -24,7 +24,7 @@
 			</div>
 			<!-- Tab panes -->
 			<div id="programma-giornaliero" class="tab-content col-xs-8 col-sm-8 col-md-9">
-				{% for k, details in programma.dettaglio %}
+				{% for k, details in programma.dettaglio|default(null) %}
 					{% set selected = k == day ? 'in active' : '' %}
 					<div role="tabpanel" class="tab-pane fade {{selected}}" id="{{k|ShortDay}}">
 						<table id="dettaglio-programma" class="table table-responsive table-striped">
@@ -64,9 +64,12 @@
 							</tbody>
 						</table>
 					</div>
+				{% else %}
+					<div class="alert alert-danger" role="alert">Programmazione giornaliera non disponibile</div>
 				{% endfor %}
 			</div>
 		</div>
+		{% if programma.nome is defined %}
 		<div class="panel-footer panel-info">
 			<div class="temperature_riferimento">{% include "tempriferimento.tpl" %}</div>
 			<div class="info_programma">
@@ -75,5 +78,6 @@
 		    	<span class="wi wi-celsius" aria-hidden="true"></span></b>
 			</div>
 		</div>
+		{% endif %}
 	</div>
 </div>

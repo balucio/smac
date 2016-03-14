@@ -75,7 +75,3 @@
 		</div>
 	</div>
 </div>
-
-{% set confirmheader="Elimina programma" %}
-{% set confirmmessage="<p>Procedendo verrà eliminato il programma e la pianificazione settimanale.</p><small>Nb: se il programma è quello attualmente in " %}
-message

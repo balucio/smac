@@ -16,4 +16,7 @@
 		</div>
 	</div>
 	{% include 'program_modal.tpl' %}
+	{% set confirmheader="Elimina programma" %}
+	{% set confirmmessage="<p>Procedendo verrà eliminato il programma e la relativa pianificazione settimanale.</p><small>NB: se il programma è quello attualmente in uso nel sistema, questo passerà in modalità anticongelamento.</small>" %}
+	{% include 'confirm-delete.tpl' %}
 {% include 'footer.tpl' %}

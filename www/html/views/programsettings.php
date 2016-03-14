@@ -26,7 +26,7 @@ class ProgramSettingsView extends MainView {
 		$this->addData([
 			'programmi' => $this->model->list,
 			'programma' => $this->model,
-			'temperature' => $this->model->temperature,
+			'temperature' => isset($this->model->temperature) ? $this->model->temperature : null,
 		]);
 
 		return parent::render();

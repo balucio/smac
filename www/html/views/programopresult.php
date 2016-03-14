@@ -16,6 +16,7 @@ class ProgramOpResultView extends BaseView {
 		return json_encode((object)[
 			'status' => $status === Db::STATUS_OK,
 			'code' => $status,
+			'pid' => $this->model->getPid(),
 			'msgid' => $msgid
 		]);
 	}

@@ -190,8 +190,8 @@ $(function () {
 		});
 
 		// Elimina programma
-		$('a.elimina-programma').click(function(event) {
-
+		$('a.elimina-programma').click(function(e) {
+			e.preventDefault();
 			var pid = $(this).data('id');
 
 			// Visualizzo e popolo la richiesta di conferma
@@ -209,8 +209,9 @@ $(function () {
 					function(data) {
 
 						$('#confirm-delete').modal('hide');
-						// TODO Impostare il nuovo programma
-						refreshProgramList();
+						refreshProgramList(function(){
+							$('#elenco-programmi').find('li.seleziona-programma').first().click();
+						});
 						return;
 					}
 				);
@@ -218,19 +219,20 @@ $(function () {
 		});
 	}
 
-	var refreshProgramList = function() {
+	var refreshProgramList = function(callback) {
 
 		var pid = $('#elenco-programmi').find('li.seleziona-programma.active').data('id');
 		$.post('/program/getList',
-			{program: pid},
+			{ program: pid },
 			function(data) {
 				if (data.programlist) {
 					var div = $('#elenco-programmi').parent();
 					$('#elenco-programmi').remove();
 					div.html(data.programlist);
 					addProgramListEvent();
+					typeof callback === 'function' && callback();
 				}
-		});
+		})
 	}
 
 	var createSensorList = function(sid, select) {
@@ -274,8 +276,9 @@ $(function () {
 
 				if (data.status == true) {
 					$('#program-modal').modal('hide');
-					// TODO Impostare il nuovo programma
-					refreshProgramList();
+					refreshProgramList(function(){
+						$('#elenco-programmi').find("li.seleziona-programma[data-id='"+ data.pid + "']").click();
+					});
 					return;
 				}
 

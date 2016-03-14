@@ -42,6 +42,26 @@ class ProgramDataModel {
 		);
 	}
 
+	public function delete($pid) {
+
+		try {
+
+			$this->pid = $pid;
+			$sth = Db::get()->prepare("SELECT elimina_programma(:pid)");
+			$sth->execute([':pid' => (int)$pid ]);
+			$this->status = Db::STATUS_OK;
+
+		} catch (Exception $e) {
+
+			$msg = $sth ? $sth->errorInfo() : Db::get()->errorInfo();
+			error_log( "SQLSTATE {$msg[0]} - {$msg[1]} : {$msg[2]}");
+
+			$this->pid = null;
+			$this->status = Db::STATUS_ERR;
+		}
+
+	}
+
 	public function getIdByName($nome) {
 
 		$query ="SELECT id_programma FROM programmi WHERE nome_programma = :nome";

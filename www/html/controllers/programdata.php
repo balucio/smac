@@ -36,6 +36,15 @@ class ProgramDataController extends BaseController {
 
  	}
 
+ 	public function delete() {
+
+ 		if (!Validate::IsPositiveInt( $this->pid ))
+ 			return;
+
+ 		$this->model->delete($this->pid);
+
+ 	}
+
 	public function createOrUpdate() {
 
 		$pid = Request::Attr('program', null);

@@ -20,8 +20,8 @@ class ProgramModel {
 
  	public function __isset($v) {
  		return $v == 'list'
- 			? true
- 			: $this->data->__isset($v);
+ 			? ($this->list ? true : false )
+ 			: ($this->data->get() !== null ? $this->data->__isset($v) : false );
  	}
 
 	public function __get($v) {
@@ -39,11 +39,14 @@ class ProgramModel {
 
 		// Verifico che il pid passato esista veramente
 		$pid = $pid === self::CURRENT_PROGRAM ? $this->data->getDefault() : $pid;
+
 		// Non è detto che il pid sia incluso in elenco
 		$pid = $this->list->enumerate($pid, $include);
 
 		$day = $day === ProgramDataModel::DAY_NOW ? date('N') : $day;
-
-		$this->data->setPid($pid, $day);
+		// Se pid è null significa che nell'elenco non esiste il programma
+		// da selezionare pertanto è inutile ottenere i dati
+		if ($pid !== null)
+			$this->data->setPid($pid, $day);
 	}
 }

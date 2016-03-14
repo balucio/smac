@@ -50,9 +50,9 @@ table#dettaglio-programma .temperatura {
 	text-align: right;
 }
 
-div#elenco-programmi {
+div#elenco-programmi ul {
 	height: 25.5em;
-	display: auto;
+	overflow: auto;
 }
 
 div.temperature_riferimento {

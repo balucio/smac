@@ -11,7 +11,7 @@
 		</div>
 		<div id="elenco-programmi" class="panel-collapse collapse in">
 			<div class="list-group">
-				{% for p in programmi %}
+				{% for p in programmi|default([]) %}
 					{% set active = p.selected == 'selected' ? 'active' : '' %}
 					{% set hidden = p.selected == 'selected' ? '' : 'hidden' %}
 					<li class="list-group-item {{active}} seleziona-programma" data-id="{{p.id_programma}}">

@@ -73,6 +73,9 @@ $(function () {
 
 	function getChart(type) {
 
+		if (!$('#andamento-' + type).length)
+			return;
+
 		var colors = {
 			temperatura : '#ED561B',
 			umidita : '#6AF9C4'
@@ -126,7 +129,8 @@ $(function () {
 	var hchart = getChart('umidita');
 
 	$( document ).ready(function() {
-		$('#sensore').change(sensorChanged);
+		if ($('#sensore').length)
+			$('#sensore').change(sensorChanged);
 	});
 });
 

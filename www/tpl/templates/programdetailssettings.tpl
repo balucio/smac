@@ -30,8 +30,7 @@
 			{% else %}
 				<li class="list-group-item">
 					<div class="list-group-item">
-						<h4 class="list-group-item-heading">Nessun programma</h4>
-						<p class="list-group-item-text">Non è stato definito alcun programa</p>
+						<h4 class="list-group-item-heading">Nessun programma definito</h4>
 					</div>
 				</li>
 			{% endfor %}

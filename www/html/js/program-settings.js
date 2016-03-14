@@ -187,13 +187,34 @@ $(function () {
 					showProgramModal(data);
 				}
 			);
-			// Visualizzo e popolo il modale
-
 		});
 
 		// Elimina programma
 		$('a.elimina-programma').click(function(event) {
 
+			var pid = $(this).data('id');
+
+			// Visualizzo e popolo la richiesta di conferma
+			var confirm = $('#confirm-delete').modal();
+				confirm.on('hidden.bs.modal', function () {
+					$(this).data('bs.modal', null);
+			});
+
+			confirm.find('a.btn-ok').click( function(e) {
+
+				e.preventDefault();
+				$.post(
+					"/program/delete",
+					{ program : pid },
+					function(data) {
+
+						$('#confirm-delete').modal('hide');
+						// TODO Impostare il nuovo programma
+						refreshProgramList();
+						return;
+					}
+				);
+			});
 		});
 	}
 

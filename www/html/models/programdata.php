@@ -87,10 +87,8 @@ class ProgramDataModel {
 				$this->status = Db::STATUS_KEY_NOT_EXIST;
 				return;
 
-		} else if (
-			( empty($pid) && !empty($epid) )
-			|| ( !empty($pid) && $epid != $pid )
-		) {
+		} else if ( !empty($epid) && (empty($pid) || $epid != $pid ) ) {
+
 				$this->status = Db::STATUS_DUPLICATE;
 				return;
 		}
@@ -103,6 +101,7 @@ class ProgramDataModel {
 			$sth = Db::get()->prepare( $query );
 			$sth->execute( $data );
 			$this->pid = $sth->fetchColumn(0);
+
 			$this->status = Db::STATUS_OK;
 
 		} catch (Exception $e) {

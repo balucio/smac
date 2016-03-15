@@ -11,17 +11,20 @@
 						<div class="col-sm-9">
 							<input type="hidden" id="schedule-program" name="program" />
 							<input type="hidden" id="schedule-day" name="day" />
-							<input type="time" class="form-control" id="schedule-time" required=""
-								maxlength="5" placeholder="Orario" name="schedule-time[]"
-								data-parsley-trigger="change" />
+							<div class="input-group bootstrap-timepicker timepicker">
+								<input type="time" data-format="hh:mm" class="form-control" aria-describedby="time-addon"
+										id="schedule-time" required="" maxlength="6" placeholder="hh:mm"
+										name="schedule-time[]" data-parsley-trigger="change" data-provide="timepicker"
+										data-minute-step="1" data-show-inputs="false" data-show-seconds="false"
+										data-show-meridian="false" data-default-time="false" />
+								<span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+							</div>
 						</div>
 					</div>
 					<div class="form-group">
 						<label for="schedule-temp" class="col-sm-3 control-label">Temperatura</label>
 						<div class="col-sm-9">
-							<input type="numeric" class="form-control" id="schedule-temp" required=""
-								maxlength="4" placeholder="T°" name="schedule-temp[]"
-								data-parsley-trigger="change" />
+							<select id="schedule-temp" class="form-control" name="schedule-temp[]"></select>
 						</div>
 					</div>
 					<div id="schedule-message" class="alert alert-danger hidden" role="alert">

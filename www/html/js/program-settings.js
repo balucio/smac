@@ -214,6 +214,14 @@ $(function () {
 		});
 	}
 
+	var addProgramScheduleEvent = function() {
+
+		// Aggiungi programmazione oraria
+		$('button#schedule-add').click(function(event) {
+			editSchedule($(this));
+		});
+	}
+
 	var refreshProgramList = function(callback) {
 
 		var pid = $('#elenco-programmi').find('li.seleziona-programma.active').data('id');
@@ -231,6 +239,7 @@ $(function () {
 	}
 
 	var createSensorList = function(sid, select) {
+
 		$.post('/program/getsensorlist',
 			{sensor: sid},
 			function(data) {
@@ -244,6 +253,68 @@ $(function () {
 						);
 				}
 		});
+	}
+
+	var editSchedule = function(node) {
+
+		var validation = $('#schedule-modal').find('form').parsley({
+
+			successClass: "has-success",
+			errorClass: "has-error",
+			classHandler: function (el) {
+				return el.$element.closest(".form-group");
+			},
+			errorsContainer: function (el) {
+				return el.$element.closest(".form-group");
+			},
+			errorsWrapper: '<span class="help-block"></span>',
+			errorTemplate: '<div class="col-sm-9 col-md-offset-3"></div>'
+		});
+
+		var modal = $('#schedule-modal').modal();
+
+		modal.on('hidden.bs.modal', function () {
+			validation.destroy();
+			$('#schedule-message').empty();
+			$('#schedule-message').addClass('hidden');
+			$(this).data('bs.modal', null);
+		});
+
+		// Populating modal input
+		$('#schedule-program').val(node.data('program'));
+		$('#sschedule-day').val(node.data('day'));
+
+		// Creating temperature option
+		select = $("#schedule-temp");
+		$('.valore_temperatura').each(
+			function(n,v) {
+
+				var tid = $(v).data('tempid');
+				var tval = $(v).data('tempval');
+
+				select.append(
+					$("<option></option>")
+						.attr("value", tid )
+						.text(tval + '°')
+				);
+		});
+		// Se non è c'è alcun tempo passato si tratta di una
+		// nuova programmazione oraria quindi cerco la prima ora netta libera
+		var stime = node.data('time');
+		if (!stime) {
+			var otime = $('#programma-giornaliero > div.tab-pane.active')
+				.find('time').last().text().split(':');
+			var stime = ('0'  + (( (+otime[0]) + 1 ) % 24)).slice(-2) + ':' + otime[1];
+		}
+
+		$('#schedule-time').timepicker('setTime', stime);
+		var tid = node.data('tempid');
+		if (tid)
+			select.val(tid);
+	}
+
+	var deleteSchedule = function() {
+
 	}
 
 	var sendProgramData = function(form) {
@@ -298,6 +369,9 @@ $(function () {
 
 		// Setup eventi lista programmi
 		addProgramListEvent();
+		// Setup eventi programmazione oraria
+		addProgramScheduleEvent();
+
 		/*
 		 * Validatore differentNumbercustom per impedire che alcuni alcuni campi
 		 * input numerici identificati da una particolare classe abbiano lo stesso

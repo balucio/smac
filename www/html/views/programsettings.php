@@ -13,6 +13,7 @@ class ProgramSettingsView extends MainView {
 		Assets::get()->addJs([
 			'/js/parsley.js',
 			'/js/parsley-i18n/it.js',
+			'/js/confirm-delete.js',
 			'/js/program-settings.js'
 		]);
 

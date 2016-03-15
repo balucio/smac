@@ -52,20 +52,7 @@
 							</div>
 						</div>
 					</div>
-					<div id="message" class="alert alert-danger hidden" role="alert">
-						<span id="message-err-data" class="hidden">
-							I dati ricevuti dal server non sono corretti
-						</span>
-						<span id="message-err-duplicate" class="hidden">
-							Impossibile creare il programma, nome già esistente
-						</span>
-						<span id="message-err-db" class="hidden">
-							Si è verificato un errore di scrittura sul database
-						</span>
-						<span id="message-err-comm" class="hidden">
-							Si è verificato un errore di comunicazione con il server
-						</span>
-					</div>
+					<div id="program-message" class="alert alert-danger hidden" role="alert"></div>
 				</form>
 			</div>
 			<div class="modal-footer">

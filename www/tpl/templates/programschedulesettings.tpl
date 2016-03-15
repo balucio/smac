@@ -27,11 +27,13 @@
 				{% for k, details in programma.dettaglio|default(null) %}
 					{% set selected = k == day ? 'in active' : '' %}
 					<div role="tabpanel" class="tab-pane fade {{selected}}" id="{{k|ShortDay}}">
-						<table id="dettaglio-programma" class="table table-responsive table-striped">
+						<table class="table table-responsive table-striped dettaglio-programma">
 							<thead>
 								<tr>
 									<th>
-										<button title="Aggiungi programmazione oraria" class="btn btn-xs btn-link">
+										<button id="schedule-add" title="Aggiungi programmazione oraria"
+												class="btn btn-xs btn-link" data-day="{{k|ShortDay}}"
+												data-program="{{programma.id}}">
 											<span class="glyphicon glyphicon-plus"></span>
 										</button>
 									</th>
@@ -50,8 +52,15 @@
 							<tbody>
 							{% for shedule in details %}
 								<tr>
-									<td><a class="btn" title="Modifica"><span class="glyphicon glyphicon-edit"></span></a></td>
-									<td>{{ shedule.ora|Time }}</td>
+									<td>
+									<a class="btn" title="Modifica"
+											data-day="{{ k }}"
+											data-program="{{ programma.id }}"
+											data-time="{{ shedule.ora|Time }}"
+											data-tempid="{{ shedule.t_rif_codice }}">
+										<span class="glyphicon glyphicon-edit"></span>
+										</a></td>
+									<td><time>{{ shedule.ora|Time }}</time></td>
 									<td>
 										<div class="temperatura">
 											<div class="wi wi-celsius fa-1x pull-right" aria-hidden="true"></div>

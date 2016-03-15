@@ -13,11 +13,12 @@ class ProgramSettingsView extends MainView {
 		Assets::get()->addJs([
 			'/js/parsley.js',
 			'/js/parsley-i18n/it.js',
-			'/js/confirm-delete.js',
+			'/js/bootstrap-timepicker.js',
 			'/js/program-settings.js'
 		]);
 
 		Assets::get()->addCss([
+			'/css/bootstrap-timepicker.css',
 			'/css/program-settings.css'
 		]);
 	 }

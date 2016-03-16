@@ -6,11 +6,9 @@ $(function () {
 	var NumT = 0;
 	var Temps = [];
 
-	var showProgramModal = function(data) {
+	var setupValidation = function(form) {
 
-		var form = $("#program-modal").find('form');
-
-		var validation = form.parsley({
+		return form.parsley({
 
 			successClass: "has-success",
 			errorClass: "has-error",
@@ -23,6 +21,13 @@ $(function () {
 			errorsWrapper: '<span class="help-block"></span>',
 			errorTemplate: '<div class="col-sm-9 col-md-offset-3"></div>'
 		});
+	}
+
+	var showProgramModal = function(data) {
+
+		var form = $("#program-modal").find('form');
+
+		var validation = setupValidation(form);
 
 		var modal = $('#program-modal').modal();
 
@@ -61,10 +66,8 @@ $(function () {
 			pdescr.val('');
 		}
 
-		createSensorList(0, slist);
-		createTemperature(ptrif);
-
-		slist.val(0);
+		createSensorList(psid, slist);
+		createTemperature(ptrif);		
 	}
 
 	var createTemperature = function(t) {
@@ -252,24 +255,14 @@ $(function () {
 								.text(s[i].nome_sensore)
 						);
 				}
+				select.val(sid);
+				select.selectpicker('refresh');
 		});
 	}
 
 	var editSchedule = function(node) {
 
-		var validation = $('#schedule-modal').find('form').parsley({
-
-			successClass: "has-success",
-			errorClass: "has-error",
-			classHandler: function (el) {
-				return el.$element.closest(".form-group");
-			},
-			errorsContainer: function (el) {
-				return el.$element.closest(".form-group");
-			},
-			errorsWrapper: '<span class="help-block"></span>',
-			errorTemplate: '<div class="col-sm-9 col-md-offset-3"></div>'
-		});
+		var validation = setupValidation($('#schedule-modal').find('form'));
 
 		var modal = $('#schedule-modal').modal();
 
@@ -298,6 +291,13 @@ $(function () {
 						.text(tval + '°')
 				);
 		});
+
+		var tid = node.data('tempid');
+		if (tid)
+			select.val(tid);
+
+		select.selectpicker('refresh');
+
 		// Se non è c'è alcun tempo passato si tratta di una
 		// nuova programmazione oraria quindi cerco la prima ora netta libera
 		var stime = node.data('time');
@@ -308,9 +308,7 @@ $(function () {
 		}
 
 		$('#schedule-time').timepicker('setTime', stime);
-		var tid = node.data('tempid');
-		if (tid)
-			select.val(tid);
+
 	}
 
 	var deleteSchedule = function() {

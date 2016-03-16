@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.5.1
--- Dumped by pg_dump version 9.5.1
+-- Dumped from database version 9.5.0
+-- Dumped by pg_dump version 9.5.0
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -143,8 +143,11 @@ BEGIN
 	              temperature_rif = p_temps,
 		      sensore_rif = p_sensore
 	        WHERE id_programma = p_id;
-	        
-		-- Non devo fare altro
+
+	        -- E' necessario eliminare tutte le programmazioni relative alle temperature non più esistenti
+	        d = array_length( p_temps, 1 )::smallint;
+	        UPDATE dettaglio_programma SET t_riferimento = d WHERE id_programma = p_id AND t_riferimento > d;
+
 	        RETURN p_id;
 	END IF;
 

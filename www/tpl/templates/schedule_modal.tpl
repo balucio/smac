@@ -1,5 +1,5 @@
 <div class="modal fade" id="schedule-modal" tabindex="-1" role="dialog" aria-labelledby="ScheduleModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
+	<div class="modal-dialog modal-sm">
 		<div class="modal-content">
 			<div class="modal-header">
 				Programmazione oraria
@@ -7,8 +7,8 @@
 			<div class="modal-body">
 				<form class="form-horizontal">
 					<div class="form-group">
-						<label for="schedule-time" class="col-sm-3 control-label">Orario</label>
-						<div class="col-sm-9">
+						<label for="schedule-time" class="col-sm-4 control-label">Orario</label>
+						<div class="col-sm-8">
 							<input type="hidden" id="schedule-program" name="program" />
 							<input type="hidden" id="schedule-day" name="day" />
 							<div class="input-group bootstrap-timepicker timepicker">
@@ -22,9 +22,9 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="schedule-temp" class="col-sm-3 control-label">Temperatura</label>
-						<div class="col-sm-9">
-							<select id="schedule-temp" class="form-control" name="schedule-temp[]"></select>
+						<label for="schedule-temp" class="col-sm-4 control-label">Temperatura</label>
+						<div class="col-sm-8">
+							<select id="schedule-temp" class="form-control selectpicker" name="schedule-temp[]"></select>
 						</div>
 					</div>
 					<div id="schedule-message" class="alert alert-danger hidden" role="alert">

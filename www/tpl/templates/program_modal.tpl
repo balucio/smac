@@ -29,7 +29,7 @@
 						<label for="sensore_riferimento" class="col-sm-3 control-label">
 							<abbr title="Sensore di riferimento">S. Rif.</abbr></label>
 						<div class="col-sm-9">
-							<select id="elenco-sensori" class="form-control" name="sensor"></select>
+							<select id="elenco-sensori" class="form-control selectpicker" name="sensor"></select>
 						</div>
 					</div>
 					<div class="form-group">

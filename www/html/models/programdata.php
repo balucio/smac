@@ -37,7 +37,7 @@ class ProgramDataModel {
 	public function exists($pid) {
 
 		return Db::get()->getNthColumnOfRow(
-			"SELECT esiste_programma(:pid::smallint)",
+			"SELECT esiste_programma(:pid)",
 			[':pid' => $pid ]
 		);
 	}
@@ -105,6 +105,41 @@ class ProgramDataModel {
 			$this->status = Db::STATUS_OK;
 
 		} catch (Exception $e) {
+
+			$msg = $sth ? $sth->errorInfo() : Db::get()->errorInfo();
+			error_log( "SQLSTATE {$msg[0]} - {$msg[1]} : {$msg[2]}");
+
+			$this->pid = null;
+			$this->status = Db::STATUS_ERR;
+		}
+	}
+
+	public function updateSchedule($day, $schedule) {
+
+		$query = "SELECT aggiorna_crea_dettaglio_programma(:pid, :day::smallint, :hour::time, :temp::smallint)";
+
+		try {
+
+			/* Begin a transaction, turning off autocommit */
+			Db::get()->beginTransaction();
+
+			$sth = Db::get()->prepare( $query );
+
+			foreach ($schedule as $time => $temp) {
+				$sth->bindParam(':pid', $this->pid, PDO::PARAM_INT);
+				$sth->bindParam(':day', $day, PDO::PARAM_INT);
+				$sth->bindParam(':hour', $time, PDO::PARAM_STR);
+				$sth->bindParam(':temp', $temp, PDO::PARAM_INT);
+				$sth->execute();
+			}
+
+			Db::get()->commit();
+
+			$this->status = Db::STATUS_OK;
+
+		} catch (Exception $e) {
+
+			Db::get()->rollback();
 
 			$msg = $sth ? $sth->errorInfo() : Db::get()->errorInfo();
 			error_log( "SQLSTATE {$msg[0]} - {$msg[1]} : {$msg[2]}");

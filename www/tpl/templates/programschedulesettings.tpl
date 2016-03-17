@@ -12,7 +12,7 @@
 				<ul id="programmazione-settimanale" class="nav nav-pills nav-stacked" role="tablist">
 					{% for g in 1..7 %}
 						{% set selected =  day == g ? 'active' : '' %}
-						<li role="presentation" class="{{selected}}">
+						<li role="presentation" class="{{selected}}" data-day="{{ g }}">
 							<a aria-controls="{{g|ShortDay}}"
 								role="tab" data-toggle="pill"
 								href="#{{g|ShortDay}}">
@@ -39,11 +39,11 @@
 									</th>
 									<th class="col-md-6">Ora</th>
 									<th class="col-md-6">Temperatura</th>
-									<th>
-										<button title="Incolla programmazioni giornata" class="btn btn-xs btn-link">
+									<th class="col-md-1">
+										<button title="Incolla programmazioni giornata" class="btn btn-xs btn-link nowrap">
 											<span class="glyphicon glyphicon-paste"></span>
 										</button>
-										<button title="Copia programmazioni giornata" class="btn btn-xs btn-link">
+										<button title="Copia programmazioni giornata" class="btn btn-xs btn-link nowrap">
 											<span class="glyphicon glyphicon-copy"></span>
 										</button>
 									</th>

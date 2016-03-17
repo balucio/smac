@@ -169,6 +169,7 @@ $(function () {
 						exProgram.removeClass('active');
 						progr.addClass('active');
 						progr.find('span.program-action').removeClass('hidden');
+						addProgramScheduleEvent();
 					}
 				}
 			);
@@ -275,7 +276,7 @@ $(function () {
 
 		// Populating modal input
 		$('#schedule-program').val(node.data('program'));
-		$('#sschedule-day').val(node.data('day'));
+		$('#schedule-day').val(node.data('day'));
 
 		// Creating temperature option
 		select = $("#schedule-temp");

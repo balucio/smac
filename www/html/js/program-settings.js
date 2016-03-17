@@ -229,14 +229,24 @@ $(function () {
 	var refreshProgramList = function(callback) {
 
 		var pid = $('#elenco-programmi').find('li.seleziona-programma.active').data('id');
+		var day = $('#programmazione-settimanale').find('li.active').data('day');
+
 		$.post('/program/getList',
 			{ program: pid },
+
 			function(data) {
 				if (data.programlist) {
 					var div = $('#elenco-programmi').parent();
 					$('#elenco-programmi').remove();
 					div.html(data.programlist);
 					addProgramListEvent();
+
+					if (day === parseInt(day,10)) {
+						$('#programmazione-settimanale')
+							.find('li').eq(day -1 )
+								.find('a').click();
+					}
+
 					typeof callback === 'function' && callback();
 				}
 		})
@@ -330,6 +340,14 @@ $(function () {
 	}
 
 	var deleteSchedule = function() {
+
+		var deleteMessage = function() {
+			var msg = $('#schedule-message');
+			msg.empty();
+			msg.addClass('hidden');
+		}
+
+		deleteMessage();
 
 	}
 

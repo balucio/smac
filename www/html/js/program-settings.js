@@ -67,7 +67,7 @@ $(function () {
 		}
 
 		createSensorList(psid, slist);
-		createTemperature(ptrif);		
+		createTemperature(ptrif);
 	}
 
 	var createTemperature = function(t) {
@@ -309,10 +309,77 @@ $(function () {
 
 		$('#schedule-time').timepicker('setTime', stime);
 
+		// Salvataggio dei dati
+		$('#schedule-save').click(function(e) {
+
+			e.preventDefault();
+
+			if (!validation.validate())
+				return false;
+
+			sendScheduleData(
+				$('#schedule-modal').find('form').serialize(),
+				function(){
+					$('#elenco-programmi')
+						.find("li.seleziona-programma[data-id='"+ $('#schedule-program').val() + "']")
+						.click();
+				}
+			);
+		});
 	}
 
 	var deleteSchedule = function() {
 
+	}
+
+	var sendScheduleData = function(data, callback) {
+
+		var showMessage = function(msgid) {
+			var msg = $('#schedule-message');
+			msg.append($('#' + msgid).clone());
+			msg.removeClass('hidden');
+		}
+
+		var deleteMessage = function() {
+			var msg = $('#schedule-message');
+			msg.empty();
+			msg.addClass('hidden');
+		}
+
+		deleteMessage();
+
+		$.ajax({
+
+			type : "POST",
+			url : "/program/createOrUpdateSchedule",
+			data : data,
+
+			success : function(data) {
+
+				var msgid = 'message-err-comm';
+
+				if (!data || !data.hasOwnProperty("status")) {
+					showMessage(msgid);
+					return;
+				}
+
+				if (data.status == true) {
+					$('#schedule-modal').modal('hide');
+					$('#elenco-programmi').find("li.seleziona-programma[data-id='"+ data.pid + "']").click();
+					return;
+				}
+
+				if (data.hasOwnProperty("msgid") && $('#' + data.msgid).length)
+					msgid = data.msgid;
+
+				showMessage(msgid);
+			},
+
+			error: function() { showMessage('message-err-comm'); },
+
+			complete : function() {typeof callback === 'function' && callback(); }
+
+		});
 	}
 
 	var sendProgramData = function(form) {

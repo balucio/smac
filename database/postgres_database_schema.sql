@@ -123,6 +123,42 @@ CREATE TYPE situazione_sensore AS (
 ALTER TYPE situazione_sensore OWNER TO smac;
 
 --
+-- Name: aggiorna_crea_dettaglio_programma(integer, smallint, time without time zone, smallint); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION aggiorna_crea_dettaglio_programma(p_pid integer, p_day smallint, p_time time without time zone, p_temp_id smallint) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+   chk_time time DEFAULT null;
+BEGIN
+	IF NOT esiste_programma(p_pid) THEN
+		RAISE EXCEPTION 'Programma non esistente --> %', p_id;
+	END IF;
+
+	SELECT ora INTO chk_time
+	  FROM dettaglio_programma
+	 WHERE id_programma = p_pid AND giorno = p_day AND ora = p_time;
+
+	IF chk_time IS NOT NULL THEN
+	
+		UPDATE dettaglio_programma
+		   SET t_riferimento = p_temp_id
+		 WHERE id_programma = p_pid AND giorno = p_day AND ora = p_time;
+		 
+	ELSE
+		INSERT INTO dettaglio_programma
+		     VALUES (p_pid, p_day, p_time, p_temp_id);
+		     
+	END IF;
+
+END;
+$$;
+
+
+ALTER FUNCTION public.aggiorna_crea_dettaglio_programma(p_pid integer, p_day smallint, p_time time without time zone, p_temp_id smallint) OWNER TO smac;
+
+--
 -- Name: aggiorna_crea_programma(character varying, text, numeric[], smallint, integer); Type: FUNCTION; Schema: public; Owner: smac
 --
 
@@ -784,10 +820,10 @@ END$$;
 ALTER FUNCTION public.elimina_programma(progr_id integer) OWNER TO smac;
 
 --
--- Name: esiste_programma(smallint); Type: FUNCTION; Schema: public; Owner: smac
+-- Name: esiste_programma(integer); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION esiste_programma(progr_id smallint) RETURNS boolean
+CREATE FUNCTION esiste_programma(progr_id integer) RETURNS boolean
     LANGUAGE plpgsql
     AS $$
 
@@ -798,7 +834,7 @@ BEGIN
 END$$;
 
 
-ALTER FUNCTION public.esiste_programma(progr_id smallint) OWNER TO smac;
+ALTER FUNCTION public.esiste_programma(progr_id integer) OWNER TO smac;
 
 --
 -- Name: esiste_sensore(smallint, boolean); Type: FUNCTION; Schema: public; Owner: smac

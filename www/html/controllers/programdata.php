@@ -11,7 +11,8 @@ class ProgramDataController extends BaseController {
 		$descr = null,
 		$sensor = null,
 		$temps = [],
-		$day = null
+		$day = null,
+		$schedule = null
 	;
 
 	public function __construct($model, $init = true) {
@@ -81,6 +82,59 @@ class ProgramDataController extends BaseController {
 		);
 	}
 
+	public function createOrUpdateSchedule() {
+
+			// Verifico che il pid originario sia corretto
+		if ( $this->pid != Request::Attr('program', null))
+			return;
+
+			// Verifico che il giorno sia corretto
+		if ($this->day != Request::Attr('day', null))
+			return;
+
+
+		// Verifico che il programma esista
+		$this->model->setPid($this->pid, $this->day);
+
+		if (!isset($this->model->id) || $this->model->id != $this->pid )
+			return;
+		if (!count($this->schedule))
+			return;
+
+		$ct = count($this->model->temperature);
+
+		$schedule = [];
+
+			// normalizzo e verifico orari e temperature
+		foreach ($this->schedule as $time => $tid) {
+			if (
+				!Validate::IsTime( $time )
+				|| !Validate::IsInteger( $tid )
+				|| $tid > $ct
+				|| $tid < 0
+			) return;
+			unset($this->schedule[$time]);
+			$k = (new DateTime('0:40'))->format('H:i');
+
+			$schedule[$k] = $tid;
+		}
+
+		// Optimizing time
+		ksort($schedule);
+
+		$this->schedule = [];
+		$curr = null;
+
+		foreach ($schedule as $k => $v) {
+			if ($v !== $curr) {
+				$this->schedule[$k] = $v;
+				$curr = $v;
+			}
+		}
+
+		$this->model->updateSchedule($this->day, $this->schedule);
+	}
+
 	public function saveDefault() {
 
 		if ($this->pid !== null && !Validate::IsInteger($this->pid))
@@ -112,6 +166,13 @@ class ProgramDataController extends BaseController {
 		if (is_array($temps))
 			foreach ($temps as $t)
 				$this->temps[] = $t;
+
+		$schedule = Request::Attr('schedule', null);
+
+		if (is_array($schedule))
+			foreach ($schedule as $sh)
+				if (isset($sh['time']) && isset($sh['temp']))
+					$this->schedule[$sh['time']] = $sh['temp'];
 	}
 
 }

@@ -11,6 +11,10 @@ class Validate {
 		return $var >= 0 && $var <= 7;
 	}
 
+	public static function IsTime( $time ) {
+		return (bool)preg_match("/(1[012]|0?[0-9]):((0?|[1-5])[0-9])/", $time);
+	}
+
 	public static function IsPositiveInt( $num ) {
 
 		if (false === $var = filter_var($num, FILTER_VALIDATE_INT))

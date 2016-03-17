@@ -85,3 +85,6 @@ div.info_programma {
 	opacity: 0.75;
 	color: rgba(0, 0, 0, 0.75);
 }
+.nowrap {
+	white-space: nowrap;
+}

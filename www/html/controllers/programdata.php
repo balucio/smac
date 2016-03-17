@@ -114,7 +114,7 @@ class ProgramDataController extends BaseController {
 				|| $tid < 0
 			) return;
 			unset($this->schedule[$time]);
-			$k = (new DateTime('0:40'))->format('H:i');
+			$k = (new DateTime($time))->format('H:i');
 
 			$schedule[$k] = $tid;
 		}

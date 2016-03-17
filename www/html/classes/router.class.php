@@ -78,6 +78,7 @@ class Router {
 				'getsensorlist' => new Route('SensorList', 'SensorProgramList', 'SensorProgramList'),
 				'getlist' => new Route('ProgramList', 'ProgramList', 'ProgramData'),
 				'createorupdate' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
+				'createorppdateschedule' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
 				'delete' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
 			],
 			'impostazioni' => [

@@ -131,6 +131,7 @@ class ProgramDataModel {
 				$sth->bindParam(':hour', $time, PDO::PARAM_STR);
 				$sth->bindParam(':temp', $temp, PDO::PARAM_INT);
 				$sth->execute();
+				$sth->closeCursor();
 			}
 
 			Db::get()->commit();

@@ -157,6 +157,8 @@ $(function () {
 		$('li.seleziona-programma').click(function(event){
 
 			var progr = $(this);
+			// Provo a mantenere anche lo stesso giorno al momento selezionato
+			var day = $('#programmazione-settimanale').find('li.active').data('day');
 
 			$.post(
 				'/program/getschedule',
@@ -170,6 +172,9 @@ $(function () {
 						progr.addClass('active');
 						progr.find('span.program-action').removeClass('hidden');
 						addProgramScheduleEvent();
+
+						if (day === parseInt(day,10))
+							$('#programmazione-settimanale').find('li').eq(day -1 ).find('a').click();
 					}
 				}
 			);
@@ -221,15 +226,19 @@ $(function () {
 	var addProgramScheduleEvent = function() {
 
 		// Aggiungi programmazione oraria
-		$('button#schedule-add').click(function(event) {
+		$('button#schedule-add').click(function(e) {
 			editSchedule($(this));
+		});
+
+		$('a.schedule-edit').click(function(e) {
+			e.preventDefault();
+			editSchedule($(this).closest('tr'));
 		});
 	}
 
 	var refreshProgramList = function(callback) {
 
 		var pid = $('#elenco-programmi').find('li.seleziona-programma.active').data('id');
-		var day = $('#programmazione-settimanale').find('li.active').data('day');
 
 		$.post('/program/getList',
 			{ program: pid },
@@ -240,13 +249,6 @@ $(function () {
 					$('#elenco-programmi').remove();
 					div.html(data.programlist);
 					addProgramListEvent();
-
-					if (day === parseInt(day,10)) {
-						$('#programmazione-settimanale')
-							.find('li').eq(day -1 )
-								.find('a').click();
-					}
-
 					typeof callback === 'function' && callback();
 				}
 		})
@@ -312,13 +314,20 @@ $(function () {
 		// Se non è c'è alcun tempo passato si tratta di una
 		// nuova programmazione oraria quindi cerco la prima ora netta libera
 		var stime = node.data('time');
+
 		if (!stime) {
+
 			var otime = $('#programma-giornaliero > div.tab-pane.active')
 				.find('time').last().text().split(':');
-			var stime = ('0'  + (( (+otime[0]) + 1 ) % 24)).slice(-2) + ':' + otime[1];
-		}
 
-		$('#schedule-time').timepicker('setTime', stime);
+			var stime = ('0'  + (( (+otime[0]) + 1 ) % 24)).slice(-2) + ':' + otime[1];
+
+			$('#schedule-time').timepicker('setTime', stime);
+
+		} else {
+			// In caso di modifica impedisco di editare il campo orario
+			$('#schedule-time').attr('readonly', true).val(stime);
+		}
 
 		// Salvataggio dei dati
 		$('#schedule-save').click(function(e) {
@@ -341,14 +350,6 @@ $(function () {
 
 	var deleteSchedule = function() {
 
-		var deleteMessage = function() {
-			var msg = $('#schedule-message');
-			msg.empty();
-			msg.addClass('hidden');
-		}
-
-		deleteMessage();
-
 	}
 
 	var sendScheduleData = function(data, callback) {
@@ -359,13 +360,13 @@ $(function () {
 			msg.removeClass('hidden');
 		}
 
-		var deleteMessage = function() {
+		var removeMessage = function() {
 			var msg = $('#schedule-message');
 			msg.empty();
 			msg.addClass('hidden');
 		}
 
-		deleteMessage();
+		removeMessage();
 
 		$.ajax({
 
@@ -409,13 +410,13 @@ $(function () {
 			msg.removeClass('hidden');
 		}
 
-		var deleteMessage = function() {
+		var removeMessage = function() {
 			var msg = $('#program-message');
 			msg.empty();
 			msg.addClass('hidden');
 		}
 
-		deleteMessage();
+		removeMessage();
 
 		$.ajax({
 			type: "POST",

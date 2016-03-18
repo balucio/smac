@@ -37,12 +37,12 @@ class ProgramDataController extends BaseController {
 
  	}
 
- 	public function delete() {
+	public function delete() {
 
  		if (!Validate::IsPositiveInt( $this->pid ))
- 			return;
+			return;
 
- 		$this->model->delete($this->pid);
+		$this->model->delete($this->pid);
 
  	}
 

@@ -14,6 +14,7 @@ class ProgramSettingsView extends MainView {
 			'/js/parsley.js',
 			'/js/parsley-i18n/it.js',
 			'/js/bootstrap-timepicker.js',
+			'/js/confirm-delete.js',
 			'/js/program-settings.js'
 		]);
 

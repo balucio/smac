@@ -150,6 +150,42 @@ class ProgramDataModel {
 		}
 	}
 
+	public function deleteSchedule($day, $schedule) {
+
+		$query = "DELETE FROM dettaglio_programma WHERE id_programma=:pid AND giorno=:day AND ora=:hour";
+
+		try {
+
+			/* Begin a transaction, turning off autocommit */
+			Db::get()->beginTransaction();
+
+			$sth = Db::get()->prepare( $query );
+
+			foreach ($schedule as $time) {
+				$sth->bindParam(':pid', $this->pid, PDO::PARAM_INT);
+				$sth->bindParam(':day', $day, PDO::PARAM_INT);
+				$sth->bindParam(':hour', $time, PDO::PARAM_STR);
+				$sth->execute();
+				$sth->closeCursor();
+			}
+
+			Db::get()->commit();
+
+			$this->status = Db::STATUS_OK;
+
+		} catch (Exception $e) {
+
+			Db::get()->rollback();
+
+			$msg = $sth ? $sth->errorInfo() : Db::get()->errorInfo();
+			error_log( "SQLSTATE {$msg[0]} - {$msg[1]} : {$msg[2]}");
+
+			$this->pid = null;
+			$this->status = Db::STATUS_ERR;
+		}
+
+	}
+
 	public function setDefault($pid) {
 
 		Db::get()->saveSetting(Db::CURR_PROGRAM, $pid);

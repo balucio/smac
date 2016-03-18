@@ -234,6 +234,12 @@ $(function () {
 			e.preventDefault();
 			editSchedule($(this).closest('tr'));
 		});
+
+		// Elimina programmazione oraria
+		$('a.schedule-delete').click(function(e) {
+			e.preventDefault();
+			deleteSchedule($(this).closest('tr'));
+		});
 	}
 
 	var refreshProgramList = function(callback) {
@@ -348,8 +354,25 @@ $(function () {
 		});
 	}
 
-	var deleteSchedule = function() {
+	var deleteSchedule = function(odata) {
 
+		// Inizializzo il modale
+		$('#confirm-delete').showDeleteConfirm(
+			'confirm-delete-schedule-header',
+			'confirm-delete-schedule-body',
+			function() {
+				$.post(
+					"/program/deleteSchedule",
+					{
+						program : odata.data('program'),
+						day : odata.data('day'),
+						'schedule[][time]' : odata.data('time') 
+					}, function(data) {
+						$('#elenco-programmi').find('li.seleziona-programma').first().click();
+					}
+				);
+			}
+		);
 	}
 
 	var sendScheduleData = function(data, callback) {

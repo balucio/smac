@@ -37,6 +37,11 @@
 			<p>Procedendo verrà eliminato il programma e la relativa pianificazione settimanale.</p>
 			<small><b>NB</b>: se il programma è quello attualmente in uso nel sistema, questo passerà in modalità anticongelamento.</small>
 		</span>
+		<span id="confirm-delete-schedule-header">Elimina programmazione oraria</span>
+		<span id="confirm-delete-schedule-body">
+			<p>Procedendo verrà eliminata la programmazione oraria selezionata.</p>
+			<small><b>NB</b>:Non è possibile eliminare la programmazione alle ore 00:00.</small>
+		</span>
 	</div>
 
 {% include 'footer.tpl' %}

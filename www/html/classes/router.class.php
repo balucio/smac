@@ -79,7 +79,8 @@ class Router {
 				'getlist' => new Route('ProgramList', 'ProgramList', 'ProgramData'),
 				'createorupdate' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
 				'createorupdateschedule' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
-				'delete' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
+				'delete' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData'),
+				'deleteschedule' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
 			],
 			'impostazioni' => [
 				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),

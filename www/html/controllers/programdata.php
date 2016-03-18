@@ -58,7 +58,7 @@ class ProgramDataController extends BaseController {
 		if (!Validate::IsInteger($this->sensor))
 			return;
 
-			// Verifico presenza di
+			// Verifico presenza di nome programma, descrizione e temperature
 		foreach (['name', 'descr', 'temps'] as $k)
 			if (empty($this->$k))
 				return;
@@ -80,6 +80,39 @@ class ProgramDataController extends BaseController {
 			$this->temps,
 			$this->sensor
 		);
+	}
+
+	public function deleteschedule() {
+
+			// Verifico che il pid originario sia corretto
+		if ( $this->pid != Request::Attr('program', null))
+			return;
+
+			// Verifico che il giorno sia corretto
+		if ($this->day != Request::Attr('day', null))
+			return;
+
+
+		// Verifico che il programma esista
+		$this->model->setPid($this->pid, $this->day);
+
+		if (!isset($this->model->id) || $this->model->id != $this->pid )
+			return;
+
+		if (!count($this->schedule))
+			return;
+
+		$schedule = array_keys($this->schedule);
+
+			// normalizzo e verifico orari e temperature
+		foreach ($schedule as $time)
+			if (!Validate::IsTime( $time ))
+				return;
+
+		// Optimizing time
+		ksort($schedule);
+
+		$this->model->deleteschedule($this->day, $schedule);
 	}
 
 	public function createOrUpdateSchedule() {
@@ -171,8 +204,10 @@ class ProgramDataController extends BaseController {
 
 		if (is_array($schedule))
 			foreach ($schedule as $sh)
-				if (isset($sh['time']) && isset($sh['temp']))
-					$this->schedule[$sh['time']] = $sh['temp'];
+				if (isset($sh['time']))
+					$this->schedule[$sh['time']] = isset($sh['temp']) 
+						? $sh['temp']
+						: null;
 	}
 
 }

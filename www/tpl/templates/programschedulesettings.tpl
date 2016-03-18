@@ -64,7 +64,15 @@
 											<div class="pull-right">{{shedule.t_rif_valore|Temperature|raw}}</div>
 										</div>
 									</td>
-									<td><a class="btn schedule-delete" title="Elimina"><span class="glyphicon glyphicon-trash"></span></a></td>
+									<td>
+										{% if not loop.first %}
+											<a class="btn schedule-delete" title="Elimina">
+												<span class="glyphicon glyphicon-trash"></span>
+											</a>
+										{% else %}
+											&nbsp;
+										{% endif %}
+									</td>
 								</tr>
 							{% endfor %}
 							</tbody>

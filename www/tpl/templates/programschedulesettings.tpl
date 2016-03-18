@@ -51,13 +51,10 @@
 							</thead>
 							<tbody>
 							{% for shedule in details %}
-								<tr>
+								<tr data-day="{{ k }}" data-tempid="{{ shedule.t_rif_codice }}"
+										data-time="{{ shedule.ora|Time }}" data-program="{{ programma.id }}">
 									<td>
-									<a class="btn" title="Modifica"
-											data-day="{{ k }}"
-											data-program="{{ programma.id }}"
-											data-time="{{ shedule.ora|Time }}"
-											data-tempid="{{ shedule.t_rif_codice }}">
+									<a class="btn schedule-edit" title="Modifica">
 										<span class="glyphicon glyphicon-edit"></span>
 										</a></td>
 									<td><time>{{ shedule.ora|Time }}</time></td>
@@ -67,7 +64,7 @@
 											<div class="pull-right">{{shedule.t_rif_valore|Temperature|raw}}</div>
 										</div>
 									</td>
-									<td><a class="btn" title="Elimina"><span class="glyphicon glyphicon-trash"></span></a></td>
+									<td><a class="btn schedule-delete" title="Elimina"><span class="glyphicon glyphicon-trash"></span></a></td>
 								</tr>
 							{% endfor %}
 							</tbody>

@@ -14,7 +14,7 @@
 							<div class="input-group bootstrap-timepicker timepicker">
 								<input type="time" data-format="hh:mm" class="form-control" aria-describedby="time-addon"
 									id="schedule-time" required="" maxlength="6" placeholder="hh:mm"
-									name="schedule[0][time]" data-parsley-trigger="change" data-provide="timepicker"
+									name="schedule[0][time]" data-parsley-trigger="change"
 									data-minute-step="15" data-show-inputs="false" data-show-seconds="false"
 									data-show-meridian="false" data-default-time="false" />
 								<span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>

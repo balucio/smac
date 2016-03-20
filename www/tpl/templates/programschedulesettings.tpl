@@ -40,10 +40,12 @@
 									<th class="col-md-6">Ora</th>
 									<th class="col-md-6">Temperatura</th>
 									<th class="col-md-1">
-										<button title="Incolla programmazioni giornata" class="btn btn-xs btn-link nowrap">
+										<button class="btn btn-xs btn-link nowrap schedule-paste"
+												title="Incolla programmazioni giornata">
 											<span class="glyphicon glyphicon-paste"></span>
 										</button>
-										<button title="Copia programmazioni giornata" class="btn btn-xs btn-link nowrap">
+										<button  class="btn btn-xs btn-link nowrap schedule-copy"
+												title="Copia programmazioni giornata">
 											<span class="glyphicon glyphicon-copy"></span>
 										</button>
 									</th>

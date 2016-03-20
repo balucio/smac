@@ -2,43 +2,46 @@
 
 $(function () {
 
+
 	var MaxT = 4;
 	var NumT = 0;
 	var Temps = [];
 
-	var Schedule = new (function() {
+	var Schedule = {
 
-		var data = [];
-		var tempsno = 0;
+		data : [],
+		size : 0,
+		self : this,
 
-		function copy(tr) {
+		copy : function(tr) {
 
-			data = [];
+			self.data = [];
+			self.size = 0;
 
 			var t = [];
 
 			tr.each(function(idx, elm) {
 
 				var d = $(elm);
-				var tid = d.attr('tempid');
+				var tid = d.data('tempid');
 
 				if (t.indexOf(tid) == -1) {
 					t.push(tid);
-					tempsno++;
+					self.size++;
 				}
 
-				data.push({
-					time : d.attr('time'),
+				self.data.push({
+					time : d.data('time'),
 					temp : tid
 				});
 			});
-		}
+		},
 
-		function getTempNo() { return tempsno; }
+		getSize : function() { return self.size; },
 
-		function get() { return data; }
+		getData : function() { return self.data; }
 
-	});
+	};
 
 	var setupValidation = function(form) {
 
@@ -260,7 +263,7 @@ $(function () {
 	var addProgramScheduleEvent = function() {
 
 		// Aggiungi programmazione oraria
-		$('button#schedule-add').click(function(e) {
+		$('button.schedule-add').click(function(e) {
 			e.preventDefault();
 			editSchedule($(this));
 		});
@@ -277,13 +280,37 @@ $(function () {
 		});
 
 		$('button.schedule-paste').click(function(event) {
-			var tr = closest('table').find('thead tr');
-			/* Act on the event */
+
+			var btndata = $(this).closest('table').find('thead button.schedule-add');
+			var msgBody = '';
+
+			if ( !Schedule.getSize() )
+				msgBody = 'confirm-noscheduledatatopaste-body';
+
+			else if ( Schedule.getSize() > $('.valore_temperatura').length )
+				msgBody = 'confirm-incompatibileschedule-body';
+
+			if (msgBody.length != 0)
+				$('#confirm-delete').showDeleteConfirm('confirm-pasteschedule-header', msgBody);
+			else {
+				sendScheduleData({
+						program : btndata.data('program'),
+						day : btndata.data('day'),
+						schedule : Schedule.getData()
+					},
+					function(){
+						$('#elenco-programmi')
+							.find("li.seleziona-programma[data-id='"+ $('#schedule-program').val() + "']")
+							.click();
+					}
+				);
+			}
 		});
 
 		$('button.schedule-copy').click(function(event) {
-			var tr = closest('table').find('thead tr');
+			var tr = $(this).closest('table').find('tbody tr');
 			Schedule.copy(tr);
+			$(this).find('span.glyphicon').css('color', 'red');
 		});
 	}
 

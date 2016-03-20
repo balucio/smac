@@ -31,9 +31,9 @@
 							<thead>
 								<tr>
 									<th>
-										<button id="schedule-add" title="Aggiungi programmazione oraria"
-												class="btn btn-xs btn-link" data-day="{{ k }}"
-												data-program="{{programma.id}}">
+										<button title="Aggiungi programmazione oraria"
+												class="btn btn-xs btn-link schedule-add"
+												data-day="{{ k }}" data-program="{{programma.id}}">
 											<span class="glyphicon glyphicon-plus"></span>
 										</button>
 									</th>

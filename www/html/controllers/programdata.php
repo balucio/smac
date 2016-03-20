@@ -125,7 +125,6 @@ class ProgramDataController extends BaseController {
 		if ($this->day != Request::Attr('day', null))
 			return;
 
-
 		// Verifico che il programma esista
 		$this->model->setPid($this->pid, $this->day);
 
@@ -205,7 +204,7 @@ class ProgramDataController extends BaseController {
 		if (is_array($schedule))
 			foreach ($schedule as $sh)
 				if (isset($sh['time']))
-					$this->schedule[$sh['time']] = isset($sh['temp']) 
+					$this->schedule[$sh['time']] = isset($sh['temp'])
 						? $sh['temp']
 						: null;
 	}

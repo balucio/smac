@@ -15,12 +15,15 @@
 		// Popolo il modale e imposto la callback
 		this.find('div.modal-header').html($( '#' + header ).html());
 		this.find('div.modal-body').html($( '#' + body ).html());
-		this.find('a.btn-ok').click( function(e) {
-
+		if (typeof callback === 'function') {
+			this.find('a.btn-ok').one( 'click', function(e) {
 				e.preventDefault();
-				typeof callback === 'function' && callback();
+				callback();
 				self.modal('hide');
 			});
+		} else {
+			this.find('a.btn-ok').addClass('hidden');
+		}
 
 		return this;
 	};

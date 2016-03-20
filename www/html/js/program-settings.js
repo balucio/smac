@@ -6,6 +6,40 @@ $(function () {
 	var NumT = 0;
 	var Temps = [];
 
+	var Schedule = new (function() {
+
+		var data = [];
+		var tempsno = 0;
+
+		function copy(tr) {
+
+			data = [];
+
+			var t = [];
+
+			tr.each(function(idx, elm) {
+
+				var d = $(elm);
+				var tid = d.attr('tempid');
+
+				if (t.indexOf(tid) == -1) {
+					t.push(tid);
+					tempsno++;
+				}
+
+				data.push({
+					time : d.attr('time'),
+					temp : tid
+				});
+			});
+		}
+
+		function getTempNo() { return tempsno; }
+
+		function get() { return data; }
+
+	});
+
 	var setupValidation = function(form) {
 
 		return form.parsley({
@@ -227,6 +261,7 @@ $(function () {
 
 		// Aggiungi programmazione oraria
 		$('button#schedule-add').click(function(e) {
+			e.preventDefault();
 			editSchedule($(this));
 		});
 
@@ -239,6 +274,16 @@ $(function () {
 		$('a.schedule-delete').click(function(e) {
 			e.preventDefault();
 			deleteSchedule($(this).closest('tr'));
+		});
+
+		$('button.schedule-paste').click(function(event) {
+			var tr = closest('table').find('thead tr');
+			/* Act on the event */
+		});
+
+		$('button.schedule-copy').click(function(event) {
+			var tr = closest('table').find('thead tr');
+			Schedule.copy(tr);
 		});
 	}
 
@@ -298,6 +343,7 @@ $(function () {
 
 		// Creating temperature option
 		select = $("#schedule-temp");
+		select.find('option').remove();
 		$('.valore_temperatura').each(
 			function(n,v) {
 
@@ -310,7 +356,7 @@ $(function () {
 						.text(tval + '°')
 				);
 		});
-
+		select.selectpicker('refresh');
 		var tid = node.data('tempid');
 		if (tid)
 			select.val(tid);
@@ -335,8 +381,8 @@ $(function () {
 			$('#schedule-time').attr('readonly', true).val(stime);
 		}
 
-		// Salvataggio dei dati
-		$('#schedule-save').click(function(e) {
+		// Salvataggio dei dati, solo una invocazione
+		$('#schedule-save').one('click', function(e) {
 
 			e.preventDefault();
 
@@ -366,7 +412,7 @@ $(function () {
 					{
 						program : odata.data('program'),
 						day : odata.data('day'),
-						'schedule[][time]' : odata.data('time') 
+						'schedule[][time]' : odata.data('time')
 					}, function(data) {
 						$('#elenco-programmi').find('li.seleziona-programma').first().click();
 					}

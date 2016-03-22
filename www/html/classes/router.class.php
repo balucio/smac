@@ -84,7 +84,7 @@ class Router {
 			],
 			'impostazioni' => [
 				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),
-				'sensori' => new Route('', 'Impostazioni', 'Impostazioni'),
+				'sensori' => new Route('Sensor', 'SensorSettings', 'Impostazioni'),
 				'programmi' => new Route('Program', 'ProgramSettings', 'Impostazioni')
 			]
 			// Programmi

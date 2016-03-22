@@ -16,7 +16,7 @@ class SensorModel {
 	public function get($type) {
 		return $type == 'data'
 			? $this->data->get()
-			: $this->list->get()
+			: $this->list->get($type == 'list')
 		;
 	}
 

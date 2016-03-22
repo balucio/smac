@@ -3,6 +3,7 @@
 class SensorDataModel {
 
 	private
+		$sid = null,
 		$data = null
 	;
 
@@ -24,11 +25,21 @@ class SensorDataModel {
 		if (!$this->exists($sid))
 			return false;
 
+		$this->sid = $sid;
+
+		return true;
+	}
+
+	public function collectData() {
+
+	}
+
+	public function collectEnvData() {
+
 		$this->data = Db::get()->getFirstRow(
 			"SELECT * FROM dati_sensore(:sid)",
 			[':sid' => $sid ]
 		);
-		return true;
 	}
 
 	public function exists($sid) {

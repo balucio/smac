@@ -1,6 +1,7 @@
 <div class="panel-group" id="dati-sensore">
 	<div class="panel panel-primary">
 		<div class="panel-heading">
+        {{ dump(sensore) }}
 			<h4 class="panel-title">
 				Sensore <b>{{sensore.nome_sensore|default('Nuovo Sensore')}}</b>
 			</h4>

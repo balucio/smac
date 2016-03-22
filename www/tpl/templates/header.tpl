@@ -56,7 +56,7 @@
 							<ul class="dropdown-menu">
 								<li><a href="/impostazioni/generali">Generali</a></li>
 								<li><a href="/impostazioni/programmi">Programmi</a></li>
-								<li><a href="/impostazioni/sensorei">Sensori</a></li>
+								<li><a href="/impostazioni/sensori">Sensori</a></li>
 							</ul>
 						</li>
 					</ul>

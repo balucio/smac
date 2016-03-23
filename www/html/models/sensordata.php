@@ -32,13 +32,17 @@ class SensorDataModel {
 
 	public function collectData() {
 
+		$this->data = Db::get()->getFirstRow(
+			"SELECT * FROM sensori WHERE :sid)",
+			[':sid' => $this->sid ]
+		);
 	}
 
-	public function collectEnvData() {
+	public function collectEnviromentalData() {
 
 		$this->data = Db::get()->getFirstRow(
 			"SELECT * FROM dati_sensore(:sid)",
-			[':sid' => $sid ]
+			[':sid' => $this->sid ]
 		);
 	}
 

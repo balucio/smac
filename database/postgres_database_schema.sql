@@ -66,6 +66,25 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
+-- Name: parametri_sensore; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE parametri_sensore AS (
+	id smallint,
+	nome character varying,
+	descrizione character varying,
+	posizione point,
+	abilitato boolean,
+	incluso_in_media boolean,
+	id_driver smallint,
+	nome_driver character varying,
+	parametri_driver character varying
+);
+
+
+ALTER TYPE parametri_sensore OWNER TO postgres;
+
+--
 -- Name: report_programma; Type: TYPE; Schema: public; Owner: smac
 --
 
@@ -509,7 +528,6 @@ BEGIN
     dati_sensore.nome_sensore = null;
     dati_sensore.num_sensori = 0;
 
-
     -- verifico che non sia la media dei sensori
     l_id_sensore = @ COALESCE(l_id_sensore, 0);
 
@@ -681,6 +699,51 @@ END;$$;
 
 
 ALTER FUNCTION public.dbg_genera_misurazioni(data_iniziale date, data_finale date) OWNER TO smac;
+
+--
+-- Name: dettagli_sensore(smallint); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION dettagli_sensore(l_id_sensore smallint DEFAULT NULL::smallint) RETURNS SETOF parametri_sensore
+    LANGUAGE plpgsql ROWS 1
+    AS $$
+BEGIN
+    -- @ valore assoluto
+    l_id_sensore = @ COALESCE(l_id_sensore, 0);
+
+    IF l_id_sensore = 0 THEN
+
+        -- ottengo i valori medi attuali
+        RETURN QUERY SELECT
+               0::smallint,
+               get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(64),
+               get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(254),
+               null::point,
+               true,
+               false,
+               null::smallint,
+               null::varchar(16),
+               null::varchar(64);
+    ELSE RETURN QUERY
+        SELECT id_sensore,
+               nome_sensore,
+               descrizione,
+               posizione,
+               abilitato,
+               incluso_in_media,
+               s.id_driver,
+               d.nome_driver,
+               d.parametri_driver
+          FROM sensori AS s
+     LEFT JOIN driver_sensori AS d
+            ON (s.id_driver = d.id_driver)
+         WHERE s.id_sensore = l_id_sensore;
+    END IF;
+END;
+$$;
+
+
+ALTER FUNCTION public.dettagli_sensore(l_id_sensore smallint) OWNER TO smac;
 
 SET default_tablespace = '';
 

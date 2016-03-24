@@ -28,7 +28,7 @@ class SensorSettingsView extends MainView {
 
 		$this->addData([
 			'sensori' => $this->model->get('listnoavg'),
-			'sensore' => $this->model
+			'sensore' => $this->model->get('data')
 		]);
 
 		return parent::render();

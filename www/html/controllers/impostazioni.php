@@ -17,7 +17,7 @@ class ImpostazioniController extends BaseController {
 	public function sensori() {
 
 			// Get the first sensor
-		$this->model->setSid( 1, SensorListModel::ALL );
+		$this->model->setSidForData( 1, SensorListModel::ALL );
 	}
 
 }

@@ -20,10 +20,17 @@ class SensorModel {
 		;
 	}
 
+	public function setSidForData($sid = 0, $show = SensorListModel::ALL) {
+
+		// Selezionato per default sensore media "Media" 0
+		$this->data->collectData($sid);
+		$this->list->enumerate($show, $sid);
+	}
+
 	public function setSid($sid = 0, $show = SensorListModel::ENABLED) {
 
 		// Selezionato per default sensore media "Media" 0
-		$this->data->setSid($sid);
+		$this->data->collectEnviromentalData($sid);
 		$this->list->enumerate($show, $sid);
 	}
 }

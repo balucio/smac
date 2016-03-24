@@ -1,6 +1,6 @@
 	</main><!-- End primary page content -->
 	<div class="clearfix"></div>
-	<footer role="contentinfo">
+	<footer role="contentinfo" style="text-align: center;">
 		<small>Copyright &copy; <span>2013-{{ "now"|date('y') }}</span> by Saul Bertuccio</small>
 	</footer>
 

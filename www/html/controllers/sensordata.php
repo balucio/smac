@@ -9,19 +9,23 @@ class SensorDataController extends BaseController {
 	public function __construct($model, $init = true) {
 
 		parent::__construct($model, $init);
-		$this->setDefaultAction('setSensorId');
+		$this->setDefaultAction('getData');
 	}
 
-	public function setSensorId($sid = null) {
+	public function getMeasure() {
 
-		$sid !== null && $this->sid = (int)$sid;
+		$this->model->collectEnviromentalData($this->sid);
+	}
 
-		$this->model->setSid($this->sid);
+	public function getData() {
+
+		$this->model->collectData($this->sid);
 	}
 
 	protected function initFromRequest() {
 
-		$this->sid = (int)Request::Attr('sensor', null);
+		$sid = Request::Attr('sensor', null);
 
+		$this->sid = (int)($this->model->exists($sid) ? $sid : 0);
 	}
 }

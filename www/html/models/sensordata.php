@@ -3,14 +3,11 @@
 class SensorDataModel {
 
 	private
-		$sid = null,
 		$data = null
 	;
 
-	public function __construct($sid = null) {
+	public function __construct() {
 
-		if ($sid !== null)
-			$this->setSid($sid);
 	}
 
 	public function __get($v) {
@@ -20,29 +17,19 @@ class SensorDataModel {
 
 	public function get() { return $this->data; }
 
-	public function setSid($sid) {
-
-		if (!$this->exists($sid))
-			return false;
-
-		$this->sid = $sid;
-
-		return true;
-	}
-
-	public function collectData() {
+	public function collectData($sid) {
 
 		$this->data = Db::get()->getFirstRow(
-			"SELECT * FROM sensori WHERE :sid)",
-			[':sid' => $this->sid ]
+			"SELECT * FROM dettagli_Sensore(:sid::smallint)",
+			[':sid' => $sid ]
 		);
 	}
 
-	public function collectEnviromentalData() {
+	public function collectEnviromentalData($sid) {
 
 		$this->data = Db::get()->getFirstRow(
 			"SELECT * FROM dati_sensore(:sid)",
-			[':sid' => $this->sid ]
+			[':sid' => $sid ]
 		);
 	}
 

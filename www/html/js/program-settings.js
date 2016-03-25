@@ -342,8 +342,8 @@ $(function () {
 					for (var i = 0; i < s.length	; i++)
 						select.append(
 							$("<option></option>")
-								.attr("value", s[i].id_sensore)
-								.text(s[i].nome_sensore)
+								.attr("value", s[i].id)
+								.text(s[i].nome)
 						);
 				}
 				select.val(sid);

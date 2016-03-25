@@ -8,5 +8,14 @@
 	{% for link in js|default(null) %}
 		<script src="{{link}}"></script>
 	{% endfor %}
+	<!-- Javascript direct function wrapped in jquery -->
+	{% for directJs in jsReady|default([]) %}
+	<script>
+		jQuery(function(){
+			//dom ready codes
+			{{ directJs|raw }}
+		});
+	</script>
+	{% endfor %}
 </body>
 </html>

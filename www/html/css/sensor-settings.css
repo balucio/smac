@@ -1,4 +1,21 @@
+/** */
+
 .sensor-enabled {
 	color: red;
 	cursor: help;
+}
+
+
+.sensor-in-average {
+	cursor: help;
+}
+
+.sensor-info {
+	color: #959595;
+	font-size: 12px;
+	font-weight: 700;
+	left: 15px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	top: 15px;
 }

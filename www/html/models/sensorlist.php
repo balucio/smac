@@ -47,7 +47,7 @@ class SensorListModel {
 				[':status' => $status ]
 		) as $v ) {
 
-			$k = $v['id_sensore'];
+			$k = $v['id'];
 			$this->list[$k] = $v;
 
 			$this->list[$k]['selected'] = ( $selected == $k ) ? 'selected' : '';

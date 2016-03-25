@@ -22,6 +22,12 @@ class SensorSettingsView extends MainView {
 //			'/css/bootstrap-timepicker.css',
 			'/css/sensor-settings.css'
 		]);
+
+		Assets::get()->addOnReadyJs('
+			$(function () {
+				$(\'[data-toggle="tooltip"]\').tooltip({trigger : "click"})
+			})
+		');
 	 }
 
 	public function render() {

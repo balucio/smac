@@ -25,10 +25,13 @@ class MainView extends BaseView {
 
 	public function render() {
 
+		$asset = Assets::get();
+
 		$this->addData([
-			'css' => Assets::get()->Css(),
-			'js' => Assets::get()->Js(),
-			'internalCss' => Assets::get()->InternalCss()
+			'css' => $asset->Css(),
+			'js' => $asset->Js(),
+			'internalCss' => $asset->InternalCss(),
+			'jsReady' => $asset->OnLoadJs()
 		]);
 
 		$tpl = Template::get()->loadTemplate($this->template);

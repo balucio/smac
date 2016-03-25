@@ -19,8 +19,8 @@ class SensorSettingsView extends MainView {
 		]);
 
 		Assets::get()->addCss([
-			'/css/bootstrap-timepicker.css',
-//			'/css/program-settings.css'
+//			'/css/bootstrap-timepicker.css',
+			'/css/sensor-settings.css'
 		]);
 	 }
 

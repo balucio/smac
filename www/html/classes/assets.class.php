@@ -18,7 +18,8 @@ class Assets
 			'/css/weather-icons-wind.css',
 			'/css/bootstrap-select.css'
 		],
-		'internalCss' => []
+		'internalCss' => [],
+		'jsReady' => []
 	];
 
 	private function __construct() {}
@@ -48,6 +49,17 @@ class Assets
 		return $this;
 	}
 
+	public function addOnReadyJs($js) {
+
+		!is_array($js)
+			&& $js = [ $js ];
+
+		foreach ($js as $j)
+			Self::$assets['jsReady'][] = $j;
+
+		return $this;
+	}
+
 	public function addCss($css) {
 
 		!is_array($css)
@@ -68,6 +80,7 @@ class Assets
 	public function Css() { return Self::$assets['css']; }
 	public function Js() { return Self::$assets['js']; }
 	public function InternalCss() { return Self::$assets['internalCss']; }
+	public function OnLoadJs() { return Self::$assets['jsReady']; }
 }
 
 ?>

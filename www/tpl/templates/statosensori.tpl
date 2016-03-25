@@ -10,7 +10,7 @@
 						<option data-divider="true"></option>
 						{% set divider = s.incluso_in_media %}
 					{% endif %}
-					<option value="{{s.id_sensore}}">{{s.nome_sensore}}</option>
+					<option value="{{s.id}}">{{s.nome}}</option>
 				{% endfor %}
 			</select>
 			<h3 class="temperature">
@@ -40,7 +40,7 @@
 				<h4>Nessun sensore definito.</h4>
 				<p>Utilizzare il menu impostazioni per aggiungere i sensori necessari al funzionamento del sistema.</p>
 			</div>
-			
+
 			{% endif %}
 		</div>
 		<div class="panel-footer text-center">

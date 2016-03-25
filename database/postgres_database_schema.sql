@@ -71,14 +71,16 @@ SET search_path = public, pg_catalog;
 
 CREATE TYPE parametri_sensore AS (
 	id smallint,
-	nome character varying,
-	descrizione character varying,
+	nome character varying(64),
+	descrizione character varying(256),
 	posizione point,
 	abilitato boolean,
 	incluso_in_media boolean,
+	parametri character varying(64),
 	id_driver smallint,
-	nome_driver character varying,
-	parametri_driver character varying
+	nome_driver character varying(16),
+	parametri_driver character varying(64),
+	ultimo_aggiornamento timestamp without time zone
 );
 
 
@@ -459,7 +461,7 @@ BEGIN
         WHEN 0 THEN
 
             id_sensore_rif = get_setting('programma_anticongelamento_sensore'::varchar(64),'0'::text)::smallint;
-            SELECT nome_sensore INTO nome_sensore_rif from elenco_sensori(null) where id_sensore = id_sensore_rif;
+            SELECT nome INTO nome_sensore_rif from elenco_sensori(null) where id = id_sensore_rif;
 
             RETURN QUERY
                SELECT
@@ -474,7 +476,7 @@ BEGIN
 
             t_manuale = get_setting('temperatura_manuale'::varchar(64),'20'::text)::numeric(9,4);
             id_sensore_rif = get_setting('programma_manuale_sensore'::varchar(64),'0'::text)::smallint;
-            SELECT nome_sensore INTO nome_sensore_rif from elenco_sensori(null) where id_sensore = id_sensore_rif;
+            SELECT nome INTO nome_sensore_rif from elenco_sensori(null) where id = id_sensore_rif;
 
             RETURN QUERY SELECT
                32767,
@@ -495,10 +497,10 @@ BEGIN
                       p.temperature_rif,
                       t_anticongelamento,
                       p.sensore_rif,
-                      e.nome_sensore
+                      e.nome
                  FROM programmi p
             LEFT JOIN elenco_sensori(null) AS e
-                   ON e.id_sensore = p.sensore_rif
+                   ON e.id = p.sensore_rif
                 WHERE p.id_programma = progr_id;
 
        END CASE;
@@ -700,51 +702,6 @@ END;$$;
 
 ALTER FUNCTION public.dbg_genera_misurazioni(data_iniziale date, data_finale date) OWNER TO smac;
 
---
--- Name: dettagli_sensore(smallint); Type: FUNCTION; Schema: public; Owner: smac
---
-
-CREATE FUNCTION dettagli_sensore(l_id_sensore smallint DEFAULT NULL::smallint) RETURNS SETOF parametri_sensore
-    LANGUAGE plpgsql ROWS 1
-    AS $$
-BEGIN
-    -- @ valore assoluto
-    l_id_sensore = @ COALESCE(l_id_sensore, 0);
-
-    IF l_id_sensore = 0 THEN
-
-        -- ottengo i valori medi attuali
-        RETURN QUERY SELECT
-               0::smallint,
-               get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(64),
-               get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar(254),
-               null::point,
-               true,
-               false,
-               null::smallint,
-               null::varchar(16),
-               null::varchar(64);
-    ELSE RETURN QUERY
-        SELECT id_sensore,
-               nome_sensore,
-               descrizione,
-               posizione,
-               abilitato,
-               incluso_in_media,
-               s.id_driver,
-               d.nome_driver,
-               d.parametri_driver
-          FROM sensori AS s
-     LEFT JOIN driver_sensori AS d
-            ON (s.id_driver = d.id_driver)
-         WHERE s.id_sensore = l_id_sensore;
-    END IF;
-END;
-$$;
-
-
-ALTER FUNCTION public.dettagli_sensore(l_id_sensore smallint) OWNER TO smac;
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -786,42 +743,10 @@ END$$;
 ALTER FUNCTION public.elenco_programmi() OWNER TO smac;
 
 --
--- Name: sensori; Type: TABLE; Schema: public; Owner: smac
---
-
-CREATE TABLE sensori (
-    id_sensore smallint NOT NULL,
-    nome_sensore character varying(64),
-    descrizione character varying(256),
-    posizione point,
-    abilitato boolean DEFAULT true NOT NULL,
-    incluso_in_media boolean DEFAULT false,
-    id_driver smallint,
-    ultimo_aggiornamento timestamp without time zone
-);
-
-
-ALTER TABLE sensori OWNER TO smac;
-
---
--- Name: TABLE sensori; Type: COMMENT; Schema: public; Owner: smac
---
-
-COMMENT ON TABLE sensori IS 'elenco dei sensori usati';
-
-
---
--- Name: COLUMN sensori.ultimo_aggiornamento; Type: COMMENT; Schema: public; Owner: smac
---
-
-COMMENT ON COLUMN sensori.ultimo_aggiornamento IS 'Data e ora dell''ultimo aggiornamento delle previsioni delle misurazioni';
-
-
---
 -- Name: elenco_sensori(boolean); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION elenco_sensori(stato boolean DEFAULT NULL::boolean) RETURNS SETOF sensori
+CREATE FUNCTION elenco_sensori(stato boolean DEFAULT NULL::boolean) RETURNS SETOF parametri_sensore
     LANGUAGE plpgsql ROWS 100
     AS $$
 
@@ -845,13 +770,28 @@ BEGIN
                    NULL::Point,
                    statoMedia,
                    NULL::boolean,
+                   NULL::varchar(64),
                    NULL::smallint,
+                   NULL::varchar(16),
+                   NULL::varchar(64),
                    NOW()::Timestamp Without Time Zone;
      END IF;
 
      RETURN QUERY
-           SELECT *
-             FROM sensori
+           SELECT s.id_sensore,
+                  s.nome_sensore,
+                  s.descrizione,
+                  s.posizione,
+                  s.abilitato,
+                  s.incluso_in_media,
+                  s.parametri,
+                  s.id_driver,
+                  d.nome,
+                  d.parametri,
+                  s.ultimo_aggiornamento
+             FROM sensori s
+        LEFT JOIN driver_sensori d
+               ON s.id_driver = d.id
             WHERE queryAll
                OR abilitato = stato
          ORDER BY incluso_in_media DESC, nome_sensore ASC;
@@ -1171,9 +1111,9 @@ ALTER TABLE dettaglio_programma OWNER TO smac;
 --
 
 CREATE TABLE driver_sensori (
-    id_driver smallint NOT NULL,
-    nome_driver character varying(16),
-    parametri_driver character varying(64)
+    id smallint NOT NULL,
+    nome character varying(16),
+    parametri character varying(64)
 );
 
 
@@ -1197,7 +1137,7 @@ ALTER TABLE driver_sensori_id_driver_seq OWNER TO smac;
 -- Name: driver_sensori_id_driver_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
 --
 
-ALTER SEQUENCE driver_sensori_id_driver_seq OWNED BY driver_sensori.id_driver;
+ALTER SEQUENCE driver_sensori_id_driver_seq OWNED BY driver_sensori.id;
 
 
 --
@@ -1284,6 +1224,39 @@ ALTER SEQUENCE programma_id_programma_seq OWNED BY programmi.id_programma;
 
 
 --
+-- Name: sensori; Type: TABLE; Schema: public; Owner: smac
+--
+
+CREATE TABLE sensori (
+    id_sensore smallint NOT NULL,
+    nome_sensore character varying(64),
+    descrizione character varying(256),
+    posizione point,
+    abilitato boolean DEFAULT true NOT NULL,
+    incluso_in_media boolean DEFAULT false,
+    id_driver smallint,
+    ultimo_aggiornamento timestamp without time zone,
+    parametri character varying(64)
+);
+
+
+ALTER TABLE sensori OWNER TO smac;
+
+--
+-- Name: TABLE sensori; Type: COMMENT; Schema: public; Owner: smac
+--
+
+COMMENT ON TABLE sensori IS 'elenco dei sensori usati';
+
+
+--
+-- Name: COLUMN sensori.ultimo_aggiornamento; Type: COMMENT; Schema: public; Owner: smac
+--
+
+COMMENT ON COLUMN sensori.ultimo_aggiornamento IS 'Data e ora dell''ultimo aggiornamento delle previsioni delle misurazioni';
+
+
+--
 -- Name: sensori_id_sensore_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
@@ -1321,10 +1294,10 @@ CREATE TABLE situazione (
 ALTER TABLE situazione OWNER TO smac;
 
 --
--- Name: id_driver; Type: DEFAULT; Schema: public; Owner: smac
+-- Name: id; Type: DEFAULT; Schema: public; Owner: smac
 --
 
-ALTER TABLE ONLY driver_sensori ALTER COLUMN id_driver SET DEFAULT nextval('driver_sensori_id_driver_seq'::regclass);
+ALTER TABLE ONLY driver_sensori ALTER COLUMN id SET DEFAULT nextval('driver_sensori_id_driver_seq'::regclass);
 
 
 --
@@ -1369,7 +1342,7 @@ ALTER TABLE ONLY dettaglio_programma
 --
 
 ALTER TABLE ONLY driver_sensori
-    ADD CONSTRAINT driver_sensori_nome_driver_key UNIQUE (nome_driver);
+    ADD CONSTRAINT driver_sensori_nome_driver_key UNIQUE (nome);
 
 
 --
@@ -1377,7 +1350,7 @@ ALTER TABLE ONLY driver_sensori
 --
 
 ALTER TABLE ONLY driver_sensori
-    ADD CONSTRAINT driver_sensori_pkey PRIMARY KEY (id_driver);
+    ADD CONSTRAINT driver_sensori_pkey PRIMARY KEY (id);
 
 
 --
@@ -1463,7 +1436,7 @@ ALTER TABLE ONLY dettaglio_programma
 --
 
 ALTER TABLE ONLY sensori
-    ADD CONSTRAINT fk_driver_sensore FOREIGN KEY (id_driver) REFERENCES driver_sensori(id_driver);
+    ADD CONSTRAINT fk_driver_sensore FOREIGN KEY (id_driver) REFERENCES driver_sensori(id);
 
 
 --

@@ -5,6 +5,7 @@ class StatoSensoriView extends BaseView {
 	public function __construct($model) {
 
 		parent::__construct($model);
+
 		Assets::get()->addJs('/js/situazione.js');
 	}
 

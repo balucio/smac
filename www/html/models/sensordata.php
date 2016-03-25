@@ -20,7 +20,7 @@ class SensorDataModel {
 	public function collectData($sid) {
 
 		$this->data = Db::get()->getFirstRow(
-			"SELECT * FROM dettagli_Sensore(:sid::smallint)",
+			"SELECT * FROM elenco_sensori() WHERE id = :sid",
 			[':sid' => $sid ]
 		);
 	}

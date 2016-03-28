@@ -1,5 +1,5 @@
 <div id="messages" class="hidden">
-	{% include messages-generic.tpl %}
+	{% include "messages-generic.tpl" %}
 	<span id="confirm-delete-program-header">Elimina programma</span>
 	<span id="confirm-delete-program-body">
 		<p>Procedendo verrà eliminato il programma e la relativa pianificazione settimanale.</p>

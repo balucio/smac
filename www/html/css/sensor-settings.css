@@ -1,12 +1,6 @@
 /** */
 
-.sensor-enabled {
-	color: red;
-	cursor: help;
-}
-
-
-.sensor-in-average {
+.sensor-in-average, .sensor-enabled  {
 	cursor: help;
 }
 

@@ -10,6 +10,7 @@
 			</div>
 		</div>
 	</div>
+	{% include 'sensor_modal.tpl' %}
 	{% include 'confirm_delete.tpl' %}
-	{% include 'messages.tpl' %}
+	{% include 'messages-sensor.tpl' %}
 {% include 'footer.tpl' %}

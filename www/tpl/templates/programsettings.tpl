@@ -18,5 +18,5 @@
 	{% include 'program_modal.tpl' %}
 	{% include 'schedule_modal.tpl' %}
 	{% include 'confirm_delete.tpl' %}
-	{% include 'messages.tpl' %}
+	{% include 'messages-program.tpl' %}
 {% include 'footer.tpl' %}

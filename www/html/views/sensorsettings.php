@@ -15,17 +15,16 @@ class SensorSettingsView extends MainView {
 			'/js/parsley-i18n/it.js',
 			'/js/bootstrap-timepicker.js',
 			'/js/confirm-delete.js',
-//			'/js/program-settings.js'
+			'/js/sensor-settings.js'
 		]);
 
 		Assets::get()->addCss([
-//			'/css/bootstrap-timepicker.css',
 			'/css/sensor-settings.css'
 		]);
 
 		Assets::get()->addOnReadyJs('
 			$(function () {
-				$(\'[data-toggle="tooltip"]\').tooltip({trigger : "click"})
+				$(\'[data-toggle="tooltip"]\').tooltip({trigger : "click", container : "body"});
 			})
 		');
 	 }

@@ -23,12 +23,15 @@ class SensorListModel {
 
 	public function get($includeAvg = true) {
 
-		return $includeAvg
-			? $this->list
-			: (isset($this->list[self::ID_AVG])
-				? array_slice($this->list, 1, null, true)
-				: $this->list
-		);
+		if ($includeAvg)
+			return $this->list;
+
+
+		$list = $this->list;
+
+		unset($list[self::ID_AVG]);
+
+		return $list;
 	}
 
 	public function enumerate($status = self::ALL, $selected = 0) {

@@ -1,7 +1,7 @@
 <table class="table">
 	<thead>
 		<tr>
-			<th class="col-xs-3 col-sm-2"><button class="btn btn-xs btn-success" title="Nuovo sensore"><i class="fa fa-plus-square"></i></button></th>
+			<th class="col-xs-3 col-sm-2"><button class="btn btn-xs btn-success" id="new-sensor" title="Nuovo sensore"><i class="fa fa-plus"></i></button></th>
 			<th class="col-xs-2 col-sm-2">Nome</th>
 			<th class="hidden-xs">Descrizione</th>
 			<th class="col-xs-1 col-sm-1">Driver</th>
@@ -12,15 +12,14 @@
 	<tbody class="table-striped">
 		{% for s in sensori %}
 		<tr>
-
 			<td>
 				<div class="btn-toolbar" role="toolbar">
 					<div class="btn-group" role="group" >
 						<button class="btn btn-xs btn-info" data-id="{{ s.id }}" data-toggle="collapse" data-target="#sensore_{{ s.id }}" title="Informazioni estese">
 							<i class="fa fa-eye"></i>
 						</button>
-						<button class="btn btn-xs btn-warning" title="Modifica sensore" data-id="{{ s.id }}"><i class="fa fa fa-pencil"></i></button>
-						<button class="btn btn-xs btn-danger"  title="Elimina sensore" data-id="{{ s.id }}"><i class="fa fa-trash-o"></i></button>
+						<button class="btn btn-xs btn-warning sensor-edit" title="Modifica sensore" data-id="{{ s.id }}"><i class="fa fa fa-pencil"></i></button>
+						<button class="btn btn-xs btn-danger sensor-delete"  title="Elimina sensore" data-id="{{ s.id }}"><i class="fa fa-trash-o"></i></button>
 					</div>
 				</div>
 			</td>
@@ -35,20 +34,20 @@
 					{% if s.abilitato %}
 						{% if s.incluso_in_media %}
 							<button class="btn btn-xs btn-secondary sensor-in-average" data-toggle="tooltip" title="I dati rilevati da questo sensore contribuiscono al calcolo dei valori medi">
-								<i class="fa fa-sign-in"></i>
+								<i class="fa fa-bar-chart text-warning"></i>
 							</button>
 						{% else %}
 							<button class="btn btn-xs btn-secondary sensor-not-in-average" data-toggle="tooltip" title="I dati di questo sensore non sono inclusi nel calcolo dei valori medi" >
-								<i class="fa fa-sign-out"></i>
+								<i class="fa fa-bar-chart text-info"></i>
 							</button>
 
 						{% endif %}
-							<button class="btn btn-xs btn-secondary sensor-enabled" data-toggle="tooltip" title="Sensore abilitato">
-								<i class="fa fa-power-off"></i>
+							<button class="btn btn-xs btn-secondary" data-toggle="tooltip" title="Sensore abilitato">
+								<i class="fa fa-power-off text-danger"></i>
 							</button>
 					{% else %}
-						<button class="btn btn-xs btn-secondary sensor-disabled" title="Sensore non abilitato" data-toggle="tooltip">
-							<i class="fa fa-power-off"></i>
+						<button class="btn btn-xs btn-secondary" title="Sensore non abilitato" data-toggle="tooltip">
+							<i class="fa fa-power-off text-muted"></i>
 						</button>
 					{% endif %}
 					</div>

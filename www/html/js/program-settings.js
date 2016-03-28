@@ -70,6 +70,7 @@ $(function () {
 
 		modal.on('hidden.bs.modal', function () {
 			validation.destroy();
+			$("#program-save").unbind();
 			$('#program-message').empty();
 			$('#program-message').addClass('hidden');
 			$(this).data('bs.modal', null);
@@ -546,51 +547,48 @@ $(function () {
 		});
 	}
 
-	$( document ).ready(function() {
+	// Setup eventi lista programmi
+	addProgramListEvent();
+	// Setup eventi programmazione oraria
+	addProgramScheduleEvent();
 
-		// Setup eventi lista programmi
-		addProgramListEvent();
-		// Setup eventi programmazione oraria
-		addProgramScheduleEvent();
+	/*
+	 * Validatore differentNumbercustom per impedire che alcuni alcuni campi
+	 * input numerici identificati da una particolare classe abbiano lo stesso
+	 * valore. La validazione è di tipo numerica e la funzione di validazione
+	 * stessa richiede due parametri value e requirements. Requirements è la classe
+	 * dei campi input i cui valori verranno confrontanti. Value è il valore attuale
+	 * del campo input. Tale valore viene ignorato, in quanto il controllo di
+	 * validità viene eseguito in un campo nascosto della form.
+	 *
+	 */
+	window.Parsley.addValidator('alldifferent', {
 
-		/*
-		 * Validatore differentNumbercustom per impedire che alcuni alcuni campi
-		 * input numerici identificati da una particolare classe abbiano lo stesso
-		 * valore. La validazione è di tipo numerica e la funzione di validazione
-		 * stessa richiede due parametri value e requirements. Requirements è la classe
-		 * dei campi input i cui valori verranno confrontanti. Value è il valore attuale
-		 * del campo input. Tale valore viene ignorato, in quanto il controllo di
-		 * validità viene eseguito in un campo nascosto della form.
-		 *
-		 */
-		window.Parsley.addValidator('alldifferent', {
+		validateString: function(value, requirements) {
 
-			validateString: function(value, requirements) {
+			var values = [];
+			var common = false;
 
-				var values = [];
-				var common = false;
+			$( '.' + requirements ).each( function() {
 
-				$( '.' + requirements ).each( function() {
+				var v = $( this ).val();
+				if (values.indexOf(v) != -1) {
+					common = true;
+					return false;
+				}
+				values.push(v);
+			});
 
-					var v = $( this ).val();
-					if (values.indexOf(v) != -1) {
-						common = true;
-						return false;
-					}
-					values.push(v);
-				});
-
-				return !common;
-			},
-			priority: 32,
-			messages: {
-				en : 'Values must be different',
-				it : 'I valori devono essere diversi',
-				es : 'Todo el valor debe ser diferente',
-				fr: 'Tout valeur doit être différente',
-				de : 'Alle Wert muss anders sein',
-			}
-		});
+			return !common;
+		},
+		priority: 32,
+		messages: {
+			en : 'Values must be different',
+			it : 'I valori devono essere diversi',
+			es : 'Todo el valor debe ser diferente',
+			fr: 'Tout valeur doit être différente',
+			de : 'Alle Wert muss anders sein',
+		}
 	});
 });
 

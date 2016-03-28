@@ -7,6 +7,7 @@ class Db {
 	const STATUS_OK = 0;
 	const STATUS_DUPLICATE = 1;
 	const STATUS_KEY_NOT_EXIST = 2;
+	const STATUS_KEY_USED = 4;
 	const STATUS_ERR = -1;
 
 	private static $instance = null;

@@ -68,7 +68,11 @@ class Router {
 			],
 			'sensor' => [
 				'view' => new Route('SensorData', 'SensorData', 'SensorData'),
+				'getdata' => new Route('SensorData', 'SensorDetails', 'SensorData'),
 				'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats'),
+				'getdriverlist' => new Route('DriverList', 'SensorDriverList', 'SensorDriverList'),
+				'createorupdate' => new Route('SensorData', 'SensorOpResult', 'SensorData'),
+				'delete' => new Route('SensorData', 'SensorOpResult', 'SensorData')
 			],
 			'program' => [
 				'view' => new Route('ProgramData', 'ProgramData', 'ProgramData'),

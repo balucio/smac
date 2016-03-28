@@ -3,8 +3,8 @@
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<h4 class="modal-title">Nuovo Sensore</h4>
-				<h4 class="modal-title hidden">Modifica sensore</h4>
+				<h4 class="modal-title hidden" id="title-new">Nuovo Sensore</h4>
+				<h4 class="modal-title hidden" id="title-alter">Modifica sensore</h4>
 			</div>
 			<div class="modal-body">
 				<form class="form-horizontal">
@@ -27,16 +27,40 @@
 					</div>
 					<div class="form-group">
 						<label for="driver_sensore" class="col-sm-3 control-label">
-							<abbr title="Sensore di riferimento">Driver</abbr></label>
+							<abbr title="Driver utilizzato per gestire il sensore">Driver</abbr></label>
 						<div class="col-sm-9">
-							<select id="elenco-driver" class="form-control selectpicker" name="driver"></select>
+							<select id="driver_sensore" class="form-control selectpicker" name="driver"></select>
 						</div>
 					</div>
 					<div class="form-group">
-						<input type="text" class="form-control" id="parametri_sensore" required=""
+						<label for="parametri_sensore" class="col-sm-3 control-label">Parametri</label>
+						<div class="col-sm-9">
+							<input type="text" class="form-control" id="parametri_sensore" required=""
 								maxlength="64" placeholder="Parametri inizializzazione" name="parameters"
 								data-parsley-trigger="change" />
+						</div>
 					</div>
+					<div class="form-group">
+						<div class="col-sm-9 col-sm-offset-3">
+							<div class="checkbox">
+								<label>
+									<input id="incluso_in_media" name="inaverage" type="checkbox" value="t" checked="">
+							    	includi i dati del sensore nel calcolo dei valori medi
+								</label>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-9 col-sm-offset-3">
+							<div class="checkbox">
+								<label>
+									<input id="abilitato" name="enabled" type="checkbox" value="t" checked="checked">
+							    	abilita il sensore
+								</label>
+							</div>
+						</div>
+					</div>
+
 					<div id="sensor-message" class="alert alert-danger hidden" role="alert"></div>
 				</form>
 			</div>

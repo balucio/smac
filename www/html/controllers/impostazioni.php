@@ -20,4 +20,8 @@ class ImpostazioniController extends BaseController {
 		$this->model->setSidForData( 1, SensorListModel::ALL );
 	}
 
+	public function generali() {
+
+	}
+
 }

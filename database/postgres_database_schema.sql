@@ -794,7 +794,7 @@ BEGIN
                ON s.id_driver = d.id
             WHERE queryAll
                OR abilitato = stato
-         ORDER BY incluso_in_media DESC, nome_sensore ASC;
+         ORDER BY abilitato DESC, incluso_in_media DESC, nome_sensore ASC;
     RETURN;
 
 END$$;
@@ -849,7 +849,7 @@ CREATE FUNCTION esiste_sensore(sens_id smallint, stato boolean DEFAULT true) RET
 
 BEGIN
  RETURN EXISTS(
-    SELECT id_sensore FROM elenco_sensori(stato) WHERE id_sensore = sens_id
+    SELECT id FROM elenco_sensori(stato) WHERE id = sens_id
  );
 END$$;
 

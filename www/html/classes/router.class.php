@@ -87,7 +87,7 @@ class Router {
 				'deleteschedule' => new Route('ProgramData', 'ProgramOpResult', 'ProgramData')
 			],
 			'impostazioni' => [
-				'generali' => new Route('', 'Impostazioni', 'Impostazioni'),
+				'generali' => new Route('MainSettings', 'MainSettings', 'Impostazioni'),
 				'sensori' => new Route('Sensor', 'SensorSettings', 'Impostazioni'),
 				'programmi' => new Route('Program', 'ProgramSettings', 'Impostazioni')
 			]

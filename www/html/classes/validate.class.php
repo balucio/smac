@@ -1,6 +1,8 @@
 <?php
 class Validate {
 
+	const MIN_TEMP = 3.0;
+	const MAX_TEMP = 30.0;
 
 	public static function IsDayOfWeek( $num ) {
 

@@ -2,9 +2,6 @@
 
 class ProgramDataController extends BaseController {
 
-	const MIN_TEMP = 3.0;
-	const MAX_TEMP = 30.0;
-
 	private
 		$pid = null,
 		$name = null,
@@ -65,7 +62,7 @@ class ProgramDataController extends BaseController {
 
 
 		foreach ($this->temps as &$t)
-			if (!Validate::IsFloatInRange($t, self::MIN_TEMP, self::MAX_TEMP ))
+			if (!Validate::IsFloatInRange($t, Validate::MIN_TEMP, Validate::MAX_TEMP ))
 				return;
 			else
 				$t = (float)$t;

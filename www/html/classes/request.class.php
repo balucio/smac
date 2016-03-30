@@ -13,6 +13,11 @@ class Request {
         Self::initLocale();
     }
 
+    public static function Redirect($location) {
+        header('Location: '. $location);
+        die();
+    }
+
     public static function Attr($name, $default = null) {
 
         return isset($_REQUEST[$name])

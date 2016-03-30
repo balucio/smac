@@ -9,16 +9,16 @@ class MainSettingsView extends MainView {
 	public function __construct($model) {
 
 		parent::__construct($model, self::TPL);
-
-		// Assets::get()->addJs([]);
 	}
 
 	public function render() {
 
 		$this->addData([
-			'sensori' => $this->model->sensori,
-			'antigelo' => $this->model->antigelo,
-			'manuale' => $this->model->manuale,
+			'sensori' => $this->model->list,
+			'antigelo' => $this->model->antifreezeTemp,
+			'manuale' => $this->model->manualTemp,
+			'santigelo' => $this->model->antifreezeSensor,
+			'smanuale' => $this->model->manualSensor
 		]);
 
 		return parent::render();

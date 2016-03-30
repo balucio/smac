@@ -38,6 +38,7 @@ class FrontController {
 
 		if (Request::IsAjax())
 			header("Content-type: application/json");
+
 		echo $this->view->render();
 	}
 

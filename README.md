@@ -6,38 +6,53 @@ Si osservi che il progetto è ancora in uno stato embrionale pertanto alcune car
 
 Il presente documento dovrebbe rispecchiare lo stato finale dell'applicazione.
 
--
-
 L'applicativo si propone di implementare un sistema di monitoraggio e di controllo di un impianto di riscaldamento con caldaia usando un dispositivo Rasperry.
 
 A progetto terminato il repository conterrà tutto l'occorrente per poter installare l'applicativo su tale dispositivo:
 
 - Codice PHP (versione supportata 5.5)
-- Dump iniziale del DB (supportato al momento solo Postgresql versione 8.5 e 9.X)
-- Configurazione base di Apache (httpd), incluso mod_rewrite
-- Schemi di collegamento sensori (per le misurazioni) e Relè (per il controllo della caldaia)
+- Database con schema e dati minimali che consentano il funzionamento iniziale dell'applicativo. Al momento è supportato solo Postgresql versione 9.X.
+- Configurazione base del webserver Apache (httpd).
+- Schemi di collegamento sensori (per le misurazioni) e del Relè (per il controllo della caldaia)
+
+-
 
 Logicamente l'applicazione è suddivisa nei seguenti blocchi:
 
 - Interfaccia Utente:
 
-Si tratta di un'interfaccia WEB, scritta principalmente in PHP. Lato client sono usate alcune librerie javascript (jquery, boostrap e plugin), incluse nel presente repository.
+Si tratta di un'interfaccia WEB, scritta in PHP. Lato client sono usate alcune librerie javascript (jquery, boostrap e plugin). Tutto l'occorrente è incluso nel repository.
 
 Tramite interfaccia è possibile:
 
-    - controllare lo stato del sistema (accenzione, spegnimento, scelta programmi)
-    - definire un programma (temperature di riferimento, giorni e orari di applicazione)
-    - aggiungere un sensore (al momento sono supportati sensori DH11 e DH22 con misure di temperatura e umidità)
-    - configurare parametri di base: temperatura anticongelamento, temperatura in caso di funzionamento manuale
-    - visualizzare l'andamento dei dati atmosferici (al momento solo temperatura e umidità) rilevati dai sensori
-
-- Interfacciamento con l'Hardware:
-
-Un insieme di script per lo più in python che si interfacciano con i sensori e relè. Usati sia per raccogliere i dati di teperatura/umidita dai sensori, sia per accedendere e spegnere la caldaia in base alla programmazione impostata.
+- controllare lo stato del sistema (accenzione, spegnimento, scelta programmi)
+- definire un programma (temperature di riferimento, giorni e orari di applicazione)
+- aggiungere un sensore (al momento sono supportati sensori DH11 e DH22 con misure di temperatura e umidità)
+- configurare parametri di base: temperatura anticongelamento, temperatura in caso di funzionamento manuale
+- visualizzare l'andamento dei dati atmosferici (al momento solo temperatura e umidità) rilevati dai sensori
 
 - Il database.
 
-Al momento l'applicazione supporta esclusivamente il DB Postgresl. Sono forniti gli script di importazione per la versione 9.x e la versione 8.5.x. Per progetto questo componente è parte integrante dell'applicazione, non ha solo il compito - ovvio - di conservare tutte le informazioni provenienti dai sensori e dall'interfaccia grafica, ma gioca un ruolo abbastanza importante nell'elaborazione dei dati. Tali funzionalità sono state realizzate usando trigger, stored procedure e regole.
+Al momento l'applicazione supporta esclusivamente il DB Postgresl. È fornito lo script di importazione per la versione 9.x. Il database è parte fondamentale di Smac; non ha solo il compito - ovvio - di conservare tutte le informazioni provenienti dai sensori e dall'interfaccia grafica, ma gioca un ruolo molto importante nell'elaborazione dei dati. Gran parte dell'applicazione infatti utilizza stored procedure per leggere o scrivere i dati. Inoltre un triggere si preoccupa dell'elaborazione dei dati provenienti dai sensori.
+
+- Interfacciamento con l'Hardware:
+
+Si tratta di un insieme di script per lo più in python che si interfacciano con i sensori e relè. Usati sia per raccogliere i dati di teperatura/umidita dai sensori, sia per accedendere e spegnere la caldaia in base alla programmazione impostata.
+
+Al momento sono supportati i sensori DHT11 e DHT22.
+Il Relè che si occupa del controllo della caldaia è direttamente controllato tramite un pin dell'interfaccia GPIO. La scelta del PIN può essere effettuata nella pagina di impostazioni dell'interfaccia Web.
+
+Ci sono vari componenti software che si preoccupano di gestire l'hardware:
+
+- Collector: uno script python la cui esecuzione è pianificata in CRON ogni minuto che per ogni "Sensore" attivo, in base al driver (DHT11 o DHT22) e ai parametri impostati (PIN GPIO) legge i dati di temperatura e umidità e li scrive sul database
+
+- Switcher: un demone python che controllando PIN GPIO del relè accende o spegne la caldaia. Lo switcher reagisce ad alcuni segnali:
+    - on : attiva il relè chiudendo il circuito e accendendo la caldaia
+    - off: disattiva lo stato del relè aprendo il circuito e spegnendo la caldaia
+    - status: riporta lo stato del relè (on oppure off)
+    - reload: ricarica la configurazione del relè
+
+- Actuator: uno script python la cui esecuzione è pianificata ogni due minuti che in base al programma impostato, e ai dati del sensore di riferimento, accende o spegne la caldaia inviando sengali allo "Switcher";
 
 -
 
@@ -62,7 +77,3 @@ Prima di procedere all'importazione del database stesso è necessario creare l'u
 Importare quindi uno dei due file del database:
 
 psql -U smac smac < "nomefile.sql"
-
-
-
-

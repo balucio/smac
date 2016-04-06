@@ -23,7 +23,7 @@ SET search_path = public, pg_catalog;
 -- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: smac
 --
 
-INSERT INTO impostazioni VALUES ('programma_attuale', '31');
+INSERT INTO impostazioni VALUES ('programma_attuale', '-1');
 INSERT INTO impostazioni VALUES ('programma_spento_nome', 'Spento');
 INSERT INTO impostazioni VALUES ('programma_spento_descrizione', 'Il sistema rimarrà sempre spento, indipendentemente dalle temperature registrate');
 INSERT INTO impostazioni VALUES ('programma_anticongelamento_nome', 'Anticongelamento');
@@ -34,6 +34,7 @@ INSERT INTO impostazioni VALUES ('programma_manuale_descrizione', 'Il sistema pr
 INSERT INTO impostazioni VALUES ('programma_manuale_sensore', '0');
 INSERT INTO impostazioni VALUES ('temperatura_anticongelamento', '5');
 INSERT INTO impostazioni VALUES ('temperatura_manuale', '20');
+INSERT INTO impostazioni VALUES ('rele_gpio_pin_no', '4');
 
 
 -- Completed on 2016-03-22 04:36:16 CET

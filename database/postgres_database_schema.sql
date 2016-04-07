@@ -6,12 +6,10 @@
 -- Dumped by pg_dump version 9.5.0
 
 SET statement_timeout = 0;
-SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET row_security = off;
 
 DROP DATABASE IF EXISTS smac;
 --
@@ -26,18 +24,16 @@ ALTER DATABASE smac OWNER TO postgres;
 \connect smac
 
 SET statement_timeout = 0;
-SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-SET row_security = off;
 
 --
 -- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
-CREATE SCHEMA public;
+CREATE IF NOT EXISTS SCHEMA public;
 
 
 ALTER SCHEMA public OWNER TO postgres;

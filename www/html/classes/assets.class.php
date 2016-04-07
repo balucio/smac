@@ -77,10 +77,10 @@ class Assets
 		return $this;
 	}
 
-	public function Css() { return Self::$assets['css']; }
-	public function Js() { return Self::$assets['js']; }
-	public function InternalCss() { return Self::$assets['internalCss']; }
-	public function OnLoadJs() { return Self::$assets['jsReady']; }
+	public function Css() { return self::$assets['css']; }
+	public function Js() { return self::$assets['js']; }
+	public function InternalCss() { return self::$assets['internalCss']; }
+	public function OnLoadJs() { return self::$assets['jsReady']; }
 }
 
 ?>

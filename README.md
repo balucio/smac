@@ -64,15 +64,39 @@ Una particolarità dell'approccio allo sviluppo di questo applicativo è proprio
 
 -
 
+Installazione
+
+apt-get install postgresql apache2 php5
+
+mkdir /opt/smac
+** copia intera cartella
+ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
+mkdir /opt/smac/log/
+chown -R www-data /opt/smac/
+
+a2enmod rewrite
+
+
+/etc/init.d/
+
 Creazione del Database
 
+Modificare il file di configurazione di pg_hba.conf di Postgres in modo da consentire l'autenticazione MD5 per l'utente smac aggiungere la riga
+
+    # TYPE  DATABASE        USER            METHOD
+    local   smac            smac            password
+
+che all'utente smac di autenticarsi con password esclusivamente su connessioni "Linux Socket" (generalmente tutte le connessioni effettuate su localhost o su ip 127.0.0.1), quando il database è smac.
+
+
 Prima di procedere all'importazione del database stesso è necessario creare l'utente "smac" è l'omonimo database, con i grant necessari:
+    su postgresq
+    psql
 
-    psql -U postgres
-
-    create user smac
+    create user smac password smac
     create database smac
     grant all privileges on database smac to smac
+
 
 Importare quindi uno dei due file del database:
 

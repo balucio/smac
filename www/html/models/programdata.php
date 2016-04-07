@@ -198,8 +198,12 @@ class ProgramDataModel {
 
 	private function getData($pid) {
 
-		$query = "SELECT *, array_to_json(temperature_rif) as json_t_rif FROM dati_programma(:id)";
-		return Db::get()->getFirstRow($query, [':id' => $pid]);
+		// FIX: rimpiazzata funzione array_to_json perchè è supportata solo su postgres >= 9.2
+		$query = "SELECT *, temperature_rif as json_t_rif FROM dati_programma(:id)";
+		$row = Db::get()->getFirstRow($query, [':id' => $pid]);
+		if (isset($row['json_t_rif']))
+			$row['json_t_rif'] = '[' . trim($row['json_t_rif'], '{}') . ']';
+		return $row;
 	}
 
 	private function getDetails($pid, $day = self::DAY_NOW) {

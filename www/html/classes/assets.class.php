@@ -55,7 +55,7 @@ class Assets
 			&& $js = [ $js ];
 
 		foreach ($js as $j)
-			Self::$assets['jsReady'][] = $j;
+			self::$assets['jsReady'][] = $j;
 
 		return $this;
 	}
@@ -66,14 +66,14 @@ class Assets
 			&& $css = [ $css ];
 
 		foreach ($css as $c )
-			Self::$assets['css'][] = $c;
+			self::$assets['css'][] = $c;
 
 		return $this;
 	}
 
 	public function addInternalCss($css) {
 
-		Self::$assets['internalCss'][] = $css;
+		self::$assets['internalCss'][] = $css;
 		return $this;
 	}
 

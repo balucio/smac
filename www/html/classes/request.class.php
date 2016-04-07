@@ -10,7 +10,7 @@ class Request {
         session_set_save_handler( new Session() );
         session_start();
 
-        Self::initLocale();
+        self::initLocale();
     }
 
     public static function Redirect($location) {

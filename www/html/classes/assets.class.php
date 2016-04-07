@@ -44,7 +44,7 @@ class Assets
 			&& $js = [ $js ];
 
 		foreach ($js as $j)
-			Self::$assets['js'][] = $j;
+			self::$assets['js'][] = $j;
 
 		return $this;
 	}

@@ -202,7 +202,7 @@ class ProgramDataModel {
 		$query = "SELECT *, temperature_rif as json_t_rif FROM dati_programma(:id)";
 		$row = Db::get()->getFirstRow($query, [':id' => $pid]);
 		if (isset($row['json_t_rif']))
-			$row['json_t_rif'] = '[' . trim($row['json_t_rif'], '{}') . ']';
+			$row['json_t_rif'] = '[' . trim(strtolower($row['json_t_rif']), '{}') . ']';
 		return $row;
 	}
 

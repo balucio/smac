@@ -60,12 +60,11 @@ class ProgramDataController extends BaseController {
 			if (empty($this->$k))
 				return;
 
-
 		foreach ($this->temps as &$t)
 			if (!Validate::IsFloatInRange($t, Validate::MIN_TEMP, Validate::MAX_TEMP ))
 				return;
 			else
-				$t = (float)$t;
+				$t = number_format($t, 2, ".","");
 
 		sort( $this->temps, SORT_NUMERIC );
 		$this->temps = array_unique( $this->temps, SORT_NUMERIC );

@@ -46,14 +46,14 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -158,15 +158,15 @@ BEGIN
 	 WHERE id_programma = p_pid AND giorno = p_day AND ora = p_time;
 
 	IF chk_time IS NOT NULL THEN
-	
+
 		UPDATE dettaglio_programma
 		   SET t_riferimento = p_temp_id
 		 WHERE id_programma = p_pid AND giorno = p_day AND ora = p_time;
-		 
+
 	ELSE
 		INSERT INTO dettaglio_programma
 		     VALUES (p_pid, p_day, p_time, p_temp_id);
-		     
+
 	END IF;
 
 END;
@@ -250,7 +250,7 @@ BEGIN
     syrep_min = giorno - '1 day'::interval + '23:30'::time;
     syrep_max = giorno + '23:30'::time;
 
-    
+
     -- tabella di comodo per salvare i dati dei sensori nell'intervallo utile
     DROP TABLE IF EXISTS log_giornata;
     CREATE TEMPORARY TABLE log_giornata(
@@ -362,7 +362,7 @@ BEGIN
      WHERE situazione.id_sensore = new.id_sensore;
 
     IF s_att.id_sensore IS NULL THEN
-       
+
         INSERT INTO situazione(data_ora, id_sensore, temperatura, umidita)
             VALUES (NEW.data_ora, NEW.id_sensore, NEW.temperatura, NEW.umidita);
     ELSE
@@ -371,7 +371,7 @@ BEGIN
               temperatura = NEW.temperatura,
               umidita = NEW.umidita
         WHERE id_sensore = s_att.id_sensore;
-  
+
     END IF;
 
     PERFORM pg_notify('NUOVA_SITUAZIONE', NEW.id_sensore::text || '|' || NEW.temperatura::text || '|' || NEW.umidita::text);
@@ -394,8 +394,8 @@ CREATE FUNCTION aggiorna_tendenza(campione interval DEFAULT '01:00:00'::interval
     previsione_umidita numeric(9,4);
 BEGIN
 
-  
-    FOR l_sensore IN SELECT situazione.id_sensore 
+
+    FOR l_sensore IN SELECT situazione.id_sensore
                        FROM situazione
                  INNER JOIN sensori ON(situazione.id_sensore = sensori.id_sensore)
                       WHERE ultimo_aggiornamento IS NULL
@@ -485,7 +485,7 @@ BEGIN
 
 	-- richiesta specifico id programma
         ELSE
-            
+
             RETURN QUERY
                SELECT p.id_programma,
                       p.nome_programma,
@@ -502,7 +502,7 @@ BEGIN
        END CASE;
 
        RETURN;
-       
+
 END$$;
 
 
@@ -584,26 +584,26 @@ BEGIN
          WHERE sns.id_sensore = l_id_sensore
            AND sns.abilitato = true;
     END IF;
- 
+
     -- verifico se ci sono risultati
     IF dati_sensore.num_sensori >= 1 THEN
 
         -- aggiorno se necessario e solo se non è stata richiesta la media
-        IF dati_sensore.id_sensore <> 0::smallint 
+        IF dati_sensore.id_sensore <> 0::smallint
            AND (dati_sensore.ultima_previsione IS NULL
             OR dati_sensore.ultima_previsione <= (NOW() - target)) THEN
 
-            SELECT previsione_mq(dati_sensore.id_sensore, 'temperatura', campione, target) 
+            SELECT previsione_mq(dati_sensore.id_sensore, 'temperatura', campione, target)
               INTO dati_sensore.tendenza_temperatura;
-                  
-            SELECT previsione_mq(dati_sensore.id_sensore, 'umidita', campione, target) 
+
+            SELECT previsione_mq(dati_sensore.id_sensore, 'umidita', campione, target)
               INTO dati_sensore.tendenza_umidita;
-        
+
             UPDATE situazione
                SET tendenza_temperatura = dati_sensore.tendenza_temperatura,
                    tendenza_umidita = dati_sensore.tendenza_umidita
              WHERE situazione.id_sensore = dati_sensore.id_sensore;
-                 
+
             UPDATE sensori
                SET ultimo_aggiornamento = NOW()
              WHERE sensori.id_sensore = dati_sensore.id_sensore;
@@ -620,10 +620,10 @@ BEGIN
 
         -- determino la condizione della query
         IF dati_sensore.id_sensore = 0::smallint THEN
-        
+
             query = query || ' INNER JOIN sensori ON (misurazioni.id_sensore = sensori.id_sensore)'
                           || ' WHERE data_ora >= $1 AND incluso_in_media = $2';
-                        
+
             EXECUTE query
                INTO dati_sensore.temperatura_min,
                     dati_sensore.temperatura_med,
@@ -636,7 +636,7 @@ BEGIN
         ELSE
 
             query = query || ' WHERE data_ora >= $1 AND id_sensore = $2';
-           
+
             EXECUTE query
                INTO dati_sensore.temperatura_min,
                     dati_sensore.temperatura_med,
@@ -647,7 +647,7 @@ BEGIN
               USING NOW() - campione, dati_sensore.id_sensore;
 
         END IF;
-    
+
     END IF;
 
     RETURN NEXT dati_sensore;
@@ -671,7 +671,7 @@ CREATE FUNCTION dbg_genera_misurazioni(data_iniziale date DEFAULT now(), data_fi
     id_sens smallint;
     temp numeric(9,4);
     humy numeric(9,4);
-   
+
 BEGIN
     start_campione = data_iniziale + '00:00:00'::interval;
     end_campione = data_finale +'24:00:00'::interval;
@@ -690,7 +690,7 @@ BEGIN
         END LOOP;
 
         start_campione = start_campione + '1 minute'::interval;
-        
+
         EXIT WHEN start_campione >= end_campione;
    END LOOP;
 END;$$;
@@ -732,7 +732,7 @@ BEGIN
     RETURN QUERY SELECT * FROM programmi ORDER BY nome_programma;
     RETURN QUERY SELECT  id_programma, nome_programma::varchar(64), descrizione_programma, temperature_rif::numeric(9,4)[], sensore_rif FROM dati_programma(32767::smallint);
     RETURN;
-       
+
 END$$;
 
 
@@ -876,12 +876,12 @@ ALTER FUNCTION public.get_setting(in_nome character varying, predef text) OWNER 
 CREATE FUNCTION previsione_mq(sensore smallint, grandezza character varying, campione interval DEFAULT '01:00:00'::interval, target interval DEFAULT '00:10:00'::interval) RETURNS numeric
     LANGUAGE plpgsql
     AS $_$DECLARE
-	media_date integer DEFAULT 0;
-	media_valori numeric DEFAULT 0.0;
-	scarto numeric DEFAULT 0.0;
-	scarto_quadratico numeric DEFAULT 0.0;
-	coeff_angolare numeric DEFAULT 0.0;
-	termine_noto numeric DEFAULT 0.0;
+  media_date double precision DEFAULT 0.0;
+  media_valori double precision DEFAULT 0.0;
+  scarto double precision DEFAULT 0.0;
+  scarto_quadratico double precision DEFAULT 0.0;
+  coeff_angolare double precision DEFAULT 0.0;
+  termine_noto double precision DEFAULT 0.0;
 BEGIN
 	-- Muting errors
 	SET LOCAL client_min_messages TO WARNING;
@@ -905,7 +905,7 @@ BEGIN
         grandezza
     ) USING campione, sensore;
 
-	
+
     -- Calcolod i valori medi per tempi e valori
 	SELECT AVG(epoch_date), AVG(valore) INTO media_date, media_valori FROM campioni;
 
@@ -956,8 +956,8 @@ BEGIN
     END IF;
 
     CASE progr_id::smallint
-    
-	-- sistema spento o anticongelamento o manuale 
+
+	-- sistema spento o anticongelamento o manuale
         WHEN -1, 0, 32767 THEN
 
             -- t_rif = null solo per spento
@@ -985,7 +985,7 @@ BEGIN
                                 d.giorno,
                                 d.ora,
                                 EXTRACT(EPOCH FROM d.ora)::integer,
-                                
+
                                 CASE WHEN d.t_riferimento IS NULL OR d.t_riferimento = 0 THEN 1::smallint
                                      ELSE d.t_riferimento
                                 END,

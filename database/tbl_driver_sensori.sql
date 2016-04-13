@@ -15,8 +15,8 @@ SET search_path = public, pg_catalog;
 --
 
 COPY driver_sensori (id, nome, parametri) FROM stdin;
-1	DHT11	\N
-2	DHT22	\N
+1	DHT11	--sensor=11 --retries=7 --delay_seconds=3
+2	DHT22	--sensor=22 --retries=7 --delay_seconds=3
 \.
 
 

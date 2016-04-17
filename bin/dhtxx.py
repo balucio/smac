@@ -5,19 +5,24 @@ import sys
 import argparse
 import Adafruit_DHT
 
+
 def check_interval(value, vmin, vmax):
 
     ivalue = int(value)
 
-    if ivalue < vmin or ivalue > vmax :
-         raise argparse.ArgumentTypeError("Il valore deve essere compreso nell'intervallo tra %s e %s " % (vmin, vmax))
+    if ivalue < vmin or ivalue > vmax:
+        raise argparse.ArgumentTypeError(
+            "Il valore deve essere compreso nell'intervallo tra %s e %s "
+            % (vmin, vmax))
 
     return ivalue
 
-def check_retries(value) :
+
+def check_retries(value):
     return check_interval(value, 1, 7)
 
-def check_delay(value) :
+
+def check_delay(value):
     return check_interval(value, 2, 10)
 
 # Controllo argomenti:
@@ -44,9 +49,11 @@ args = parser.parse_args()
 
 # Try to grab a sensor reading.  Use the read_retry method which will retry up
 # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
-humidity, temperature = Adafruit_DHT.read_retry(args.sensor, args.pin, args.retries, args.delay_seconds)
+humidity, temperature = Adafruit_DHT.read_retry(args.sensor, args.pin,
+                                                args.retries,
+                                                args.delay_seconds)
 
 if humidity is not None and temperature is not None:
-    print '{:f} {:f}'.format(temperature, humidity)
+    print "{:f} {:f}".format(temperature, humidity)
 else:
     raise SystemError("Impossibile leggere dati dal sensore")

@@ -30,7 +30,7 @@ class Switch(object):
 
     def __init__(self):
         self.swc = SwitcherCom()
-        setup_logger(self.__class__.__name__, BASE_LOG + 'switcher.log')
+        setup_logger(self.__class__.__name__, BASE_LOG + 'switch.log')
         self._log = getLogger(self.__class__.__name__)
 
         self._log.info('Inizializzazione switch')
@@ -66,7 +66,7 @@ class Switch(object):
 
         if not self.swc.is_response_ok(resp):
             self._log.warning(
-                "Errore invio comando %s: %s " % (command, resp)
+                "Errore invio comando %s, ricevuto %s " % (command, resp)
             )
 
             return SwitcherCom.state_unknow

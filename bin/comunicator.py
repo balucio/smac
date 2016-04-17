@@ -5,6 +5,7 @@ import os
 import stat
 import select
 import re
+import threading
 
 
 class Comunicator(object):
@@ -23,10 +24,12 @@ class Comunicator(object):
         self.pipe_name_in = pipe_name_in
         self.pipe_name_out = pipe_name_out
 
+        self.mode = mode
+
         # In modalità client devo scambiare le due pipe
-        if mode == self.MODE_SERVE:
-            self._cretate_pipe(self.pipe_name_in)
-            self._cretate_pipe(self.pipe_name_out)
+        if mode == self.MODE_SERVER:
+            self._create_pipe(self.pipe_name_in)
+            self._create_pipe(self.pipe_name_out)
         elif mode == self.MODE_CLIENT:
             self.pipe_name_in = pipe_name_out
             self.pipe_name_out = pipe_name_in
@@ -36,10 +39,18 @@ class Comunicator(object):
         self.pipein = self._open_pipe(self.pipe_name_in, os.O_RDONLY)
         self.pipeout = self._open_pipe(self.pipe_name_out, os.O_WRONLY)
 
+        # Imposto un watchdog che verifica che le pipe siano aperte
+        threading.Timer(120, self._check_pipe).start()
+
     def send_message(self, pid, message):
 
         if self.pipeout:
-            os.write(self.pipeout, "[%s]: %s\n" % (pid, message))
+            try:
+                os.write(self.pipeout, "[%s]: %s\n" % (pid, message))
+            except (OSError, IOError) as e:
+                self.pipeout.close()
+                self.pipeout = None
+                print("Errore scrittura messaggio: %s" % (repr(e)))
             return True
         else:
             return False
@@ -63,11 +74,13 @@ class Comunicator(object):
                 msg = (os.getpid(), 'TIMEOUT')
 
         except (OSError, IOError) as e:
+            self.pipein.close()
+            self.pipein = None
             print("Errore lettura messaggio: %s" % (repr(e)))
 
         return msg
 
-    def _cretate_pipe(pipe_name):
+    def _create_pipe(pipe_name):
 
         if not os.path.exists(pipe_name):
             os.mkfifo(pipe_name)
@@ -84,10 +97,31 @@ class Comunicator(object):
 
         return ph
 
-    def __del__(self):
+    def _check_pipe(self):
+
+        print("Verifico pipe")
+        if (self.mode == self.MODE_CLIENT
+                and (not self.pipein or not self.pipeout)):
+            self._clean()
+            self.pipein = self._open_pipe(self.pipe_name_in, os.O_RDONLY)
+            self.pipeout = self._open_pipe(self.pipe_name_out, os.O_WRONLY)
+
+        threading.Timer(120, self._check_pipe).start()
+
+    def _clean(self):
 
         if self.pipein:
             self.pipein.close()
 
         if self.pipeout:
             self.pipeout.close()
+
+        if self.mode == self.MODE_SERVER:
+            try:
+                os.remove(self.pipe_name_in)
+                os.remove(self.pipe_name_out)
+            except OSError:
+                pass
+
+    def __del__(self):
+        self._clean()

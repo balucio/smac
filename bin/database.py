@@ -3,7 +3,10 @@
 
 import psycopg2
 
+
 class Database(object):
+
+    WATCHDOG_TIMEOUT = 300
 
     _db_connection = None
     _db_cur = None
@@ -14,20 +17,26 @@ class Database(object):
         self.user = user
         self.pwd = pwd
         self.db = db
-
         self.make_connection()
-        self._db_cur = self._db_connection.cursor()
 
     def query(self, query, params=None):
         self._db_cur.execute(query, params)
         return self._db_cur.fetchall()
 
-    def lock_table(self, table, lock_mode = 'ROW EXCLUSIVE'):
+    def lock_table(self, table, lock_mode='ROW EXCLUSIVE'):
         self._db_cur.execute('LOCK %s IN %s MODE' % (table, lock_mode))
-
 
     def insert_many(self, query, values):
         self._db_cur.executemany(query, values)
+
+    def get_setting(self, name, default):
+
+        try:
+            self.db_cur.execute('SELECT get_setting(%s, %s)', (name, default))
+            result = self.db_cur.fetchall()
+            return result[0]
+        except:
+            return default
 
     def set_notification(self, notification):
         self._db_cur.execute('LISTEN ' + notification)
@@ -62,12 +71,14 @@ class Database(object):
 
     def make_connection(self):
 
-        dsn = 'dbname=' + self.db + ' user=' + self.user + ' host=' + self.host + ' password=' + self.pwd
+        dsn = 'dbname=%s user=%s host=%s password=%s' % (
+            self.db, self.user, self.host, self.pwd)
 
         try:
-            _db_cur = None
             self._db_connection = psycopg2.connect(dsn)
             self._db_connection.autocommit = True
             self._db_cur = self._db_connection.cursor()
+
         except:
-                print "Unable to connect to the database"
+            self._db_cur = None
+            print("Unable to connect to the database")

@@ -25,7 +25,6 @@ class Actuator(Daemon):
         self.db = self._get_db_connection(
             smac_utils.read_db_config()
         )
-
         self.sw = Switch()
 
         delay_check = 0
@@ -131,7 +130,7 @@ class Actuator(Daemon):
         stato_attuale = self.sw.state()
         nuovo_stato = stato_attuale
 
-        self.log.info('Sistema attualmente in  stato %s' % (stato_attuale))
+        self.log.info('Sistema attualmente in stato %s' % (stato_attuale))
 
         # Commuto il sistema in on/off se si supera la soglia minima
         if deltat >= self.TEMP_THRESHOLD:

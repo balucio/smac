@@ -1,33 +1,32 @@
 #!/usr/bin/python
 #-*- coding: utf8 -*-
 
-import sys, time, re, subprocess, logging
+import time
+import subprocess
 import argparse
 
 from daemon import Daemon
 from database import Database
 from datetime import datetime
+from smac_utils import read_db_config
+from logging import INFO
 
-from subprocess import CalledProcessError, check_output
 
 class Collector(Daemon):
 
-    DBCONFIG = '/opt/smac/www/html/configs/DbConfig.php'
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = logging.INFO
+    DEF_LOG_LEVEL = INFO
 
     DRIVERS_BASE_PATH = '/opt/smac/bin/'
 
     DRIVERS_COMMANDS = {
-        'DHT11' : 'dhtxx.py',
-        'DHT22' : 'dhtxx.py'
+        'DHT11': 'dhtxx.py',
+        'DHT22': 'dhtxx.py'
     }
 
     def run(self):
 
-        logging.basicConfig(level=self.DEF_LOG_LEVEL, format='%(asctime)s %(message)s')
-
-        self.db = self._get_db_connection(self._read_db_config(self.DBCONFIG))
+        self.db = self._get_db_connection(read_db_config())
 
         self.sensors = self.sensors = self._get_sensor_list()
 
@@ -45,7 +44,7 @@ class Collector(Daemon):
                 self.sensors = self.sensors = self._get_sensor_list()
 
             detections = []
-            logging.debug('Elaboro elenco sensori')
+            self.log.debug('Elaboro elenco sensori')
             # per ciascun sensore ricavo i dati e li scrivo a database
             # id_sensore, driver_params, driver, driver_low_level_param
             for sid, spars, driver, driverpars in self.sensors:
@@ -54,8 +53,12 @@ class Collector(Daemon):
                 driver = driver.upper()
 
                 if driver in self.DRIVERS_COMMANDS:
-                    exec_data = self._driver_exec(self.DRIVERS_COMMANDS[driver], param )
-                    measuredata = self._decode_driver_result(sid, driver, exec_data)
+                    exec_data = self._driver_exec(
+                        self.DRIVERS_COMMANDS[driver], param)
+
+                    measuredata = self._decode_driver_result(
+                        sid, driver, exec_data)
+
                     if measuredata is not None:
                         detections.append(measuredata)
 
@@ -74,53 +77,49 @@ class Collector(Daemon):
     def _get_db_connection(self, dbd):
         return Database(dbd['host'], dbd['user'], dbd['pass'], dbd['schema'])
 
-    def _read_db_config(self, fname):
-
-        logging.info('Lettura configurazione database')
-
-        fd = open(fname,"r")
-        data = fd.read()
-        rx = re.compile(r'const[^\w]+(\w+)[^=]+[^\w]+(\w+)', re.MULTILINE)
-        raw_set = [m.groups() for m in rx.finditer(data)]
-        db_set = {}
-        for s in raw_set:
-            db_set[s[0]] = s[1]
-
-        return db_set
-
     def _get_sensor_list(self):
 
-        logging.info('Lettura elenco sensori')
-        slist = self.db.query("SELECT id, parametri, nome_driver, parametri_driver FROM elenco_sensori(true)")
+        self.log.debug('Lettura elenco sensori')
+        slist = self.db.query(
+            "SELECT id, parametri, nome_driver, parametri_driver"
+            " FROM elenco_sensori(true)")
         # elimino la media che è sempre il primo
         slist.pop(0)
-
         return slist
 
     def _write_sensor_data(self, measures):
 
-        query = """INSERT INTO misurazioni(data_ora, id_sensore, temperatura, umidita)
-                        VALUES ( %(date_time)s, %(sensor_id)s, %(temperatura)s, %(umidita)s )"""
+        query = """
+            INSERT INTO misurazioni (
+                data_ora, id_sensore, temperatura, umidita
+            )
+            VALUES(
+                %(date_time)s, %(sensor_id)s, %(temperatura)s, %(umidita)s
+            )
+        """
 
         error = False
-        try :
+        try:
             self.db.insert_many(query, measures)
-            logging.info('Misurazioni dei sensori salvate sul database')
+            self.log.debug('Misurazioni dei sensori salvate sul database')
 
         except Exception as e:
-             logging.error('Impossibile scrivere le misurazioni a database : %s' % repr(e))
-             error = True
+            self.log.error(
+                'Impossibile scrivere le misurazioni a database : %s'
+                % repr(e))
+            error = True
 
         return error
 
-    def _driver_exec(self, command, parameters) :
+    def _driver_exec(self, command, parameters):
 
-        cmnd = [ 'sudo', self.DRIVERS_BASE_PATH + command ] + parameters
+        cmnd = ['sudo', self.DRIVERS_BASE_PATH + command] + parameters
         try:
-            pipes = subprocess.Popen(cmnd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            pipes = subprocess.Popen(cmnd, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
             std_out, std_err = pipes.communicate()
             code = pipes.returncode
-        except Exception, e:
+        except Exception as e:
             code = 127
             std_err = repr(e)
 
@@ -133,15 +132,17 @@ class Collector(Daemon):
 
     def _needs_reload(self):
 
-        logging.info('Verifico eventuali notifiche')
+        self.log.debug('Verifico eventuali notifiche')
         self.db.poll_notification()
-        needs_reload = False;
+        needs_reload = False
 
         # notify.pid, notify.channel, notify.payload
         notify = self.db.get_notification()
         while notify:
-            logging.warning('Ricevuta notifica pid %s, canale %s, contenuto: %s'
-                % (notify.pid, notify. channel, notify.payload))
+            self.log.info(
+                'Ricevuta notifica pid %s, canale %s, contenuto: %s'
+                % (notify.pid, notify. channel, notify.payload)
+            )
             needs_reload = True
             notify = self.db.get_notification()
 
@@ -151,21 +152,27 @@ class Collector(Daemon):
 
         if output[0] != 0:
 
-            logging.error("Errore nell'esecuzione del driver %s sul sensore %s: %s" % (driver, sid, output[1]))
+            self.log.error(
+                "Errore nell'esecuzione del driver %s sul sensore %s: %s"
+                % (driver, sid, output[1])
+            )
 
-        elif driver == 'DHT11' or driver == 'DHT22' :
+        elif driver == 'DHT11' or driver == 'DHT22':
 
             (temperatura, umidita) = output[1].split(' ')
-            logging.info("Sensore %s: temperatura %s, umidità %s"  % (sid, temperatura, umidita))
+            self.log.info(
+                "Sensore %s: temperatura %s, umidità %s"
+                % (sid, temperatura, umidita)
+            )
             return {
-                'sensor_id' : sid,
-                'date_time' : datetime.today(),
-                'temperatura'  : temperatura,
-                'umidita' : umidita
+                'sensor_id': sid,
+                'date_time': datetime.today(),
+                'temperatura': temperatura,
+                'umidita': umidita
             }
 
-        else :
-            logging.error("%s Driver %s sconosciuto"  % (log_time, driver))
+        else:
+            self.log.error("Driver %s sconosciuto" % (driver))
 
         return None
 
@@ -185,12 +192,12 @@ if __name__ == "__main__":
         help="PID file del demone")
 
     parser.add_argument(
-        "--log", required=False, nargs='?', default=COLLECTOR_PID,
+        "--log", required=False, nargs='?', default=COLLECTOR_LOG,
         help="LOG file")
 
     args = parser.parse_args()
 
-    daemon = Collector(args.pid, '/dev/null', args.pid, args.log)
+    daemon = Collector(args.pid, logfile=args.log)
 
     if 'start' == args.action:
         daemon.start()
@@ -198,4 +205,3 @@ if __name__ == "__main__":
         daemon.stop()
     elif 'restart' == args.action:
         daemon.restart()
-    exit(0)

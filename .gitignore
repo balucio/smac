@@ -3,3 +3,4 @@ log/
 lib*.so.*
 *~
 gpio/gpio
+*.pyc

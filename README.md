@@ -62,43 +62,48 @@ Una particolarità dell'approccio allo sviluppo di questo applicativo è proprio
 
 Installazione
 
-apt-get install postgresql apache2 php5
+Installazione dipendenze
+    sudo apt-get install postgresql apache2 php5
 
-mkdir /opt/smac
-** copia intera cartella
-ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
-mkdir /opt/smac/log/
-chown -R www-data /opt/smac/
+Installazione librerie python per il controllo GPIO
 
-a2enmod rewrite
+    sudo apt-get install python-rpi.gpio
 
-/etc/init.d/
 
-Creazione del Database
+Installazione dei binari e configurazione di Apache
+    mkdir /opt/smac
+    ** copia intera cartella
+    ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
+    mkdir /opt/smac/log/
+    chown -R www-data /opt/smac/
 
-Modificare il file di configurazione di pg_hba.conf di Postgres in modo da consentire l'autenticazione MD5 per l'utente smac aggiungere la riga
+    # Abilitazione del modrewrite
+    a2enmod rewrite
+
+
+Configurazione e importazione del Database
+
+Abilitare l'utente smac per la connessione locale con password su "Linux Socket" (localhost) modificando il file pg_hba.conf. Nell'installazione standard tale file dovrebbe trovarsi in /etc/postgresql/9.1/main
+
+    # Usare vi su
+    vi /etc/postgresql/9.1/main/pg_hba.conf
+
+    # Aggiungere la seguente riga
 
     # TYPE  DATABASE        USER            METHOD
     local   smac            smac            password
 
-che all'utente smac di autenticarsi con password esclusivamente su connessioni "Linux Socket" (generalmente tutte le connessioni effettuate su localhost o su ip 127.0.0.1), quando il database è smac.
+Usare l'utente postgres per importare il database, che contiene la struttura e i dati minimali per consentire il funzionamento dell'applicativo.
 
-Prima di procedere all'importazione del database stesso è necessario creare l'utente "smac" è l'omonimo database, con i grant necessari:
     su postgresq
-    psql
-
-    create user smac password smac
-    create database smac
-    grant all privileges on database smac to smac
-
-Importare quindi uno dei due file del database:
-
-psql -U smac smac < "nomefile.sql"
+    psql < "/opt/smac/database/postgres_database_schema.sql"
 
 Installazione e configurazione dei demoni
     dalla directory /etc/init.d dell'applicativo copiare i tre script di init.d
         - collector
         - actuator
         - switcher
+
     procedere quindi all'installazione usando:
-    sudo update-rc.d nome_demone defaults
+    sudo update-rc.d <nome_demone> defaults
+

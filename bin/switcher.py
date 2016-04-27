@@ -92,12 +92,12 @@ class Switcher(Daemon):
     def _set_pin_on(self, pin):
         self.log.debug("Pin: %s impostato in ON" % (pin))
         GPIO.output(pin, GPIO.LOW)
-        return GPIO.HIGH
+        return GPIO.LOW
 
     def _set_pin_off(self, pin):
         self.log.debug("Pin: %s impostato in OFF" % (pin))
         GPIO.output(pin, GPIO.HIGH)
-        return GPIO.LOW
+        return GPIO.HIGH
 
     def _get_pin_status(self, pin, raw_state):
 

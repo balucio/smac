@@ -29,14 +29,14 @@ class Switch(object):
     _log = None
 
     def __init__(self):
-        self.swc = SwitcherCom()
         setup_logger(self.__class__.__name__, BASE_LOG + 'switch.log')
         self._log = getLogger(self.__class__.__name__)
 
         self._log.info('Inizializzazione switch')
-
         self.time_init = epoch_timestamp()
         self.time_day = second_since_midnight()
+
+        self.swc = SwitcherCom()
 
     def state(self):
 

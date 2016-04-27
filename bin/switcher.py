@@ -10,10 +10,10 @@ from daemon import Daemon
 from database import Database
 from comunicator import Comunicator
 from logging import DEBUG
+from os import getpid
+from sys import exit
 from smac_utils import (
     read_db_config, SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
-
-from os import exit, getpid
 
 
 class Switcher(Daemon):
@@ -23,16 +23,13 @@ class Switcher(Daemon):
     def run(self):
 
         # Init GPIO Board
-        # Modo numerazione pin Broadcom's SoC
-        GPIO.setmode(GPIO.BCM)
         self.log.debug(
-            'Inizializzazione GPIO: revisione'
+            'Inizializzazione GPIO: revisione %s'
             % (GPIO.RPI_REVISION)
         )
 
-        self.pins = self._get_valid_pins(GPIO.RPI_REVISION)
         # Init del ping gipio
-        self.pin = self._get_gpio_pin(self.pins)
+        self.pin = self._get_gpio_pin(self._get_valid_pins(GPIO.RPI_REVISION))
 
         # Registro di reload e uscita
         signal.signal(signal.SIGHUP, self._load_config)
@@ -42,32 +39,41 @@ class Switcher(Daemon):
         comm = Comunicator(
             Comunicator.MODE_SERVER, SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
 
+        # Modo numerazione pin Broadcom's SoC
+        GPIO.setmode(GPIO.BCM)
+        # Init del relè
+        GPIO.setup(self.pin, GPIO.OUT)
+        state = self._set_pin_off(self.pin)
+
         while True:
             # In ascolto sul canale di comunicazione
-            msg = comm.read_message(0)
+            msg = comm.read_message(None)
             cmd = msg[1]
-
-            state = self._get_pin_status()
+            self.log.debug("Ricevuto comando: %s" % (cmd))
 
             if cmd == 'ON':
 
                 if cmd != state:
                     self._set_pin_on(self.pin)
-                    response = 'OK:%s' % self._get_pin_status()
+                response = 'OK:%s' % (cmd)
 
             elif cmd == 'OFF':
 
                 if cmd != state:
                     self._set_pin_off(self.pin)
-                    response = 'OK:%s' % self._get_pin_status()
+                response = 'OK:%s' % (cmd)
 
             elif cmd == 'STATUS':
-                response = 'OK:%s' % self._get_pin_status()
+                response = 'OK:%s' % (self._get_pin_status(self.pin, state))
 
+            elif cmd == 'TIMEOUT':
+                self.log.info("Timeout in lettura")
+                continue
             else:
                 response = 'ERROR'
 
-            comm.send_message(getpid(), response)
+            self.log.debug("Invio risposta: %s" % (response))
+            comm.send_message(getpid(), response, timeout=5)
 
     def _load_config(self, signum, frame):
         self.log.warning(
@@ -81,36 +87,38 @@ class Switcher(Daemon):
             "Ricevuto segnale %s frame %s: uscita"
             % (signum, frame))
         GPIO.cleanup()
-        exit()
+        exit(0)
 
     def _set_pin_on(self, pin):
-        GPIO.setup(pin, GPIO.OUT)
-        GPIO.output(pin, GPIO.HIGH)
+        self.log.debug("Pin: %s impostato in ON" % (pin))
+        GPIO.output(pin, GPIO.LOW)
+        return GPIO.HIGH
 
     def _set_pin_off(self, pin):
+        self.log.debug("Pin: %s impostato in OFF" % (pin))
+        GPIO.output(pin, GPIO.HIGH)
+        return GPIO.LOW
 
-        GPIO.setup(pin, GPIO.OUT)
-        GPIO.output(pin, GPIO.LOW)
+    def _get_pin_status(self, pin, raw_state):
 
-    def _get_pin_status(self, pin):
-        GPIO.setup(self.pin, GPIO.OUT)
-        return GPIO.input(pin)
+        state = 'ON' if raw_state == GPIO.HIGH else 'OFF'
+        self.log.debug("Pin: %s stato %s" % (pin, state))
+        return state
 
     def _get_db_connection(self, dbd):
         return Database(dbd['host'], dbd['user'], dbd['pass'], dbd['schema'])
 
     def _get_gpio_pin(self, pins):
-
         db = self._get_db_connection(read_db_config())
 
         #  Ciclo fino a quando non ottengo un pin del GPIO valido
         while True:
 
-            raw = db.query("SELECT select get_setting('rele_gpio_pin_no')")
+            raw = db.query("SELECT get_setting('rele_gpio_pin_no')")
             self.log.debug('Lettura pin GPIO del relè: %s' % (raw))
 
             if len(raw) == 1:
-                pin = 'GPIO{0:02d}'.format(raw[0])
+                pin = 'GPIO{0:02d}'.format(int(raw[0][0]))
                 if pin in pins:
                     self.log.info('Uso Pin GPIO %s' % pin)
                     break
@@ -123,7 +131,7 @@ class Switcher(Daemon):
 
         return int(pin[-2:])
 
-    def _get_valid_pins(revision):
+    def _get_valid_pins(self, revision):
 
         pins = ['GPIO04', 'GPIO07', 'GPIO08', 'GPIO09', 'GPIO10', 'GPIO11',
                 'GPIO17', 'GPIO18', 'GPIO22', 'GPIO23', 'GPIO24']
@@ -142,7 +150,7 @@ class Switcher(Daemon):
 
 
 SWITCHER_LOG = '/opt/smac/log/switcher.log'
-SWITCHER_PID = '/var/run/actuator/switcher.pid'
+SWITCHER_PID = '/var/run/switcher/switcher.pid'
 
 if __name__ == "__main__":
 
@@ -153,11 +161,11 @@ if __name__ == "__main__":
         help="Uso start|stop|restart")
 
     parser.add_argument(
-        "--pid", required=False, nargs='?', default=SWITCHER_LOG,
+        "--pid", required=False, nargs='?', default=SWITCHER_PID,
         help="PID file del demone")
 
     parser.add_argument(
-        "--log", required=False, nargs='?', default=SWITCHER_PID,
+        "--log", required=False, nargs='?', default=SWITCHER_LOG,
         help="LOG file")
 
     args = parser.parse_args()

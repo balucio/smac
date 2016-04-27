@@ -75,9 +75,9 @@ class Comunicator(object):
             if len(poll.poll(timeout)):
 
                 rawmsg = self._read_line(pipein)
-                print("Messaggio raw: %s" % (rawmsg))
+                #print("Messaggio raw: %s" % (rawmsg))
 
-                match = re.match(r'^\[([^]]+)\]\s?:\s?([\w ]+)', rawmsg)
+                match = re.match(r'^\[([^]]+)\]\s?:\s?([\w\s:]+)', rawmsg)
 
                 if match:
                     msg = (match.group(1), match.group(2))

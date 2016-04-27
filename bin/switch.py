@@ -43,9 +43,9 @@ class Switch(object):
         state = self._send_command(SwitcherCom.cmd_status)
 
         if state == SwitcherCom.state_on:
-            return self.ON
+            return self.ST_ON
         elif state == SwitcherCom.state_off:
-            return self.OFF
+            return self.ST_OFF
         else:
             return self.ST_UNKNOW
 
@@ -68,7 +68,6 @@ class Switch(object):
             self._log.warning(
                 "Errore invio comando %s, ricevuto %s " % (command, resp)
             )
-
             return SwitcherCom.state_unknow
 
         return self.swc.get_response_msg(resp)

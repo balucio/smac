@@ -9,11 +9,12 @@ from daemon import Daemon
 from database import Database
 from switch import Switch
 from logging import INFO
+from decimal import Decimal
 
 
 class Actuator(Daemon):
 
-    SLEEP_TIME = 180            # controllo standard 3 minuti
+    SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
     DEF_LOG_LEVEL = INFO
 
     TEMP_THRESHOLD = 0.5        # Grado soglia di innesco cambiamento stato
@@ -42,8 +43,8 @@ class Actuator(Daemon):
             self.db.end_transaction()
 
             # se pid -1 significa sistema spento imposto una temperatura
-            # fittizia per costringere il sistema a spegnersi
-            trif = -100 if pid == -1 else trif
+            # fittizia (-100) per costringere il sistema a spegnersi
+            trif = Decimal(-100) if pid == -1 else trif
             sensordata = self._get_sensor_data()
 
             if not sensordata:
@@ -144,8 +145,6 @@ class Actuator(Daemon):
                 Switch.ST_ON if reference > temperature else Switch.ST_OFF
             )
 
-            self.log.info('Verifico stato %s del sitema' % (nuovo_stato))
-
         else:
 
             # Nel caso lo stato attuale sia sconosciuto forzo il sistema
@@ -176,10 +175,14 @@ class Actuator(Daemon):
 
                 next_check = self.SLEEP_TIME // 3
                 self.log.error(
-                    'Impossibile commutare il sitema allo stato %s'
+                    'Impossibile commutare il sistema allo stato %s'
                     ' il prossimo controllo sarà eseguito tra %s secondi'
                     % (nuovo_stato, next_check)
                 )
+        else:
+            self.log.info(
+                'Commutazione non necessaria, sistema già in stato %s'
+                % (nuovo_stato))
 
         if res and deltat <= self.TEMP_MAXTHRESHOLD:
 

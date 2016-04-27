@@ -78,8 +78,24 @@ class Daemon:
         pid = str(os.getpid())
         file(self.pidfile, 'w+').write("%s\n" % pid)
 
+    def check_pid(self, pid):
+        """
+        Check For the existence of a unix pid.
+        """
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        else:
+            return True
+
     def delpid(self):
-        os.remove(self.pidfile)
+        try:
+            os.remove(self.pidfile)
+        except OSError:
+            return False
+        else:
+            return True
 
     def start(self):
         """
@@ -94,9 +110,22 @@ class Daemon:
             pid = None
 
         if pid:
-            message = "pidfile %s already exist. Daemon already running?\n"
-            sys.stderr.write(message % self.pidfile)
-            sys.exit(1)
+            if not self.check_pid(pid):
+                sys.stderr.write(
+                    " pidfile %s exist, but process seems dead\n"
+                    % self.pidfile)
+
+                if self.delpid():
+                    sys.stderr.write(" pidfile %s deleted\n" % self.pidfile)
+                else:
+                    sys.stderr.write(
+                        " unable to delete pidfile %s\n" % self.pidfile)
+                    sys.exit(1)
+            else:
+                sys.stderr.write(
+                    " pidfile %s already exist. Daemon already running?\n"
+                    % self.pidfile)
+                sys.exit(1)
 
         # Start the daemon
         self.daemonize()
@@ -128,7 +157,7 @@ class Daemon:
             err = str(err)
             if err.find("No such process") > 0:
                 if os.path.exists(self.pidfile):
-                    os.remove(self.pidfile)
+                    self.delpid()
             else:
                 print str(err)
                 sys.exit(1)

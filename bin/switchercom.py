@@ -31,7 +31,8 @@ class SwitcherCom(object):
         response = None
 
         if self.comm.send_message(os.getpid(), command):
-            response = self.com.read_message()
+            print("Invio comando %s" % command)
+            response = self.comm.read_message()
         else:
             return self.resp_error
 

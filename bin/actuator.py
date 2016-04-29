@@ -68,6 +68,8 @@ class Actuator(Daemon):
 
     def _get_current_schedule(self):
 
+        # La stored function programmazioni() restituisce la programmazione
+        # del programma corrente quando richiamata senza parametri
         schedule = self.db.query(
             "SELECT id_programma, t_rif_val FROM programmazioni()"
             " WHERE current_time > ora ORDER BY ora DESC LIMIT 1")
@@ -149,7 +151,7 @@ class Actuator(Daemon):
 
             # Nel caso lo stato attuale sia sconosciuto forzo il sistema
             # ad avere uno stato consistente
-            if stato_attuale != Switch.ST_UNKNOW:
+            if stato_attuale == Switch.ST_UNKNOW:
                 nuovo_stato = (
                     Switch.ST_ON if reference > temperature else Switch.ST_OFF
                 )

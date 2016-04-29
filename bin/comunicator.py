@@ -7,6 +7,7 @@ import select
 import re
 
 from locale import getpreferredencoding
+from time import sleep
 
 
 class Comunicator(object):
@@ -14,7 +15,7 @@ class Comunicator(object):
     MODE_SERVER = 'SERVER'
     MODE_CLIENT = 'CLIENT'
 
-    hpipein = None
+    WRITE_ATTEMPTS = 3
 
     def __init__(self, mode, pipe_name_in, pipe_name_out):
 
@@ -35,22 +36,29 @@ class Comunicator(object):
 
     def send_message(self, pid, message, timeout=15.0):
 
-        pipeout = self._open_pipe(
-            self.pipe_name_out, os.O_WRONLY)
+        open_sleep = timeout // self.WRITE_ATTEMPTS
+        curr_attempt = 0
+        open_attempts = self.WRITE_ATTEMPTS
+        mode = os.O_WRONLY
 
-        if pipeout is None:
-            return False
+        if timeout is not None:
+            mode |= os.O_NONBLOCK
+
+        # Write non bloccante se c'è un timeout ma devo rispettarlo
+        while curr_attempt <= open_attempts:
+            pipeout = self._open_pipe(self.pipe_name_out, mode)
+
+            if pipeout is not None:
+                break
+            elif timeout is None or curr_attempt == open_attempts:
+                return False
+
+            curr_attempt += 1
+            sleep(open_sleep)
 
         try:
-            poll = select.poll()
-            poll.register(pipeout, select.POLLOUT)
-
-            if len(poll.poll(timeout)):
-                os.write(pipeout, "[%s]: %s\n" % (pid, message))
-                ret = True
-            else:
-                print("Timeout in scrittura messaggio: %s" % (message))
-                ret = False
+            os.write(pipeout, "[%s]: %s\n" % (pid, message))
+            ret = True
         except (OSError, IOError) as e:
             print("Errore scrittura messaggio: %s" % (repr(e)))
             ret = False
@@ -61,8 +69,15 @@ class Comunicator(object):
 
     def read_message(self, timeout=15.0):
 
+        mode = os.O_RDONLY
+
+        # Read non bloccante se è impostato un timeout
+        # Rispetterò il timeout nella poll
+        if timeout is not None:
+            mode |= os.O_NONBLOCK
+
         pipein = self._open_pipe(
-            self.pipe_name_in, os.O_RDONLY | os.O_NONBLOCK)
+            self.pipe_name_in, mode)
 
         if not pipein:
             return (os.getpid(), 'ERROR')

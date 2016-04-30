@@ -7,6 +7,7 @@ class Db {
 	const CURR_MANUAL_SENSOR ='programma_manuale_sensore';
 	const CURR_ANTIFREEZE_TEMP = 'temperatura_anticongelamento';
 	const CURR_MANUAL_TEMP = 'temperatura_manuale';
+	const CURR_GPIO_PIN_RELE = 'rele_gpio_pin_no';
 
 	const STATUS_OK = 0;
 	const STATUS_DUPLICATE = 1;

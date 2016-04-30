@@ -2,7 +2,6 @@
 #-*- coding: utf8 -*-
 
 import os
-import stat
 import select
 import re
 
@@ -15,14 +14,15 @@ class Comunicator(object):
     MODE_SERVER = 'SERVER'
     MODE_CLIENT = 'CLIENT'
 
-    WRITE_ATTEMPTS = 3
+    WRITE_ATTEMPTS = 3.0
 
-    def __init__(self, mode, pipe_name_in, pipe_name_out):
+    def __init__(self, mode, pipe_name_in, pipe_name_out, log):
 
         self.pipe_name_in = pipe_name_in
         self.pipe_name_out = pipe_name_out
 
         self.mode = mode
+        self._log = log
 
         # In modalità client devo scambiare le due pipe
         if mode == self.MODE_SERVER:
@@ -32,11 +32,13 @@ class Comunicator(object):
             self.pipe_name_in = pipe_name_out
             self.pipe_name_out = pipe_name_in
         else:
-            raise ValueError('Modalità %s sconosciuta' % mode)
+            err_msg = 'Modalità %s sconosciuta' % (mode)
+            self._log.error(err_msg)
+            raise ValueError(err_msg)
 
-    def send_message(self, pid, message, timeout=15.0):
+    def send_message(self, pid, message, timeout=None):
 
-        open_sleep = timeout // self.WRITE_ATTEMPTS
+        open_sleep = timeout / self.WRITE_ATTEMPTS
         curr_attempt = 0
         open_attempts = self.WRITE_ATTEMPTS
         mode = os.O_WRONLY
@@ -48,26 +50,37 @@ class Comunicator(object):
         while curr_attempt <= open_attempts:
             pipeout = self._open_pipe(self.pipe_name_out, mode)
 
-            if pipeout is not None:
+            if (
+                pipeout is not None or timeout is None
+                or curr_attempt == open_attempts
+            ):
                 break
-            elif timeout is None or curr_attempt == open_attempts:
-                return False
 
             curr_attempt += 1
             sleep(open_sleep)
 
+        if pipeout is None:
+            self._log.error("Timeout apertura pipe in scrittura")
+            return False
+
         try:
-            os.write(pipeout, "[%s]: %s\n" % (pid, message))
-            ret = True
+            poll = select.poll()
+            poll.register(pipeout, select.POLLOUT)
+            if len(poll.poll(timeout)):
+                os.write(pipeout, "[%s]: %s\n" % (pid, message))
+                ret = True
+            else:
+                self._log.error("Timeout apertura pipe in scrittura")
+                ret = False
         except (OSError, IOError) as e:
-            print("Errore scrittura messaggio: %s" % (repr(e)))
+            self._log.error("Errore scrittura messaggio: %s", repr(e))
             ret = False
         else:
             os.close(pipeout)
 
         return ret
 
-    def read_message(self, timeout=15.0):
+    def read_message(self, timeout=None):
 
         mode = os.O_RDONLY
 
@@ -76,8 +89,7 @@ class Comunicator(object):
         if timeout is not None:
             mode |= os.O_NONBLOCK
 
-        pipein = self._open_pipe(
-            self.pipe_name_in, mode)
+        pipein = self._open_pipe(self.pipe_name_in, mode)
 
         if not pipein:
             return (os.getpid(), 'ERROR')
@@ -85,25 +97,25 @@ class Comunicator(object):
         try:
             msg = None
             poll = select.poll()
-            poll.register(pipein, select.POLLIN | select.POLLPRI)
+            poll.register(pipein, select.POLLIN)
 
             if len(poll.poll(timeout)):
 
                 rawmsg = self._read_line(pipein)
-                #print("Messaggio raw: %s" % (rawmsg))
+                self._log.debug("Messaggio raw: %s", rawmsg)
 
                 match = re.match(r'^\[([^]]+)\]\s?:\s?([\w\s:]+)', rawmsg)
 
                 if match:
                     msg = (match.group(1), match.group(2))
                 else:
-                    print("Formato messaggio errato: %s" % (rawmsg))
+                    self._log.warning("Formato messaggio errato: %s", rawmsg)
                     msg = (os.getpid(), 'ERROR')
             else:
                 msg = (os.getpid(), 'TIMEOUT')
 
         except (OSError, IOError) as e:
-            print("Errore lettura messaggio: %s" % (repr(e)))
+            self._log.warning("Errore lettura messaggio: %s", repr(e))
             msg = (os.getpid(), 'ERROR')
 
         finally:
@@ -113,8 +125,11 @@ class Comunicator(object):
 
     def _create_pipe(self, pipe_name):
 
-        if not os.path.exists(pipe_name):
-            os.mkfifo(pipe_name)
+        try:
+            if not os.path.exists(pipe_name):
+                os.mkfifo(pipe_name)
+        except Exception as e:
+            self._log.error("Errore creazione pipe %s: %s", pipe_name, repr(e))
 
     def _read_line(self, pipe):
 
@@ -140,10 +155,11 @@ class Comunicator(object):
         ph = None
 
         try:
-            if stat.S_ISFIFO(os.stat(name).st_mode):
-                ph = os.open(name, mode)
+            self._create_pipe(name)
+            ph = os.open(name, mode)
         except (OSError, IOError) as e:
-            print("Errore apertura %s: %s" % (name, repr(e)))
+            self._log.debug(
+                "Errore apertura PIPE %s in %s: %s", name, mode, repr(e))
 
         return ph
 

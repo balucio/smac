@@ -18,7 +18,8 @@ class MainSettingsView extends MainView {
 			'antigelo' => $this->model->antifreezeTemp,
 			'manuale' => $this->model->manualTemp,
 			'santigelo' => $this->model->antifreezeSensor,
-			'smanuale' => $this->model->manualSensor
+			'smanuale' => $this->model->manualSensor,
+			'pin_rele' => $this->model->pinRele
 		]);
 
 		return parent::render();

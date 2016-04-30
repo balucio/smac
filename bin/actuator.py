@@ -1,9 +1,9 @@
 #!/usr/bin/python
 #-*- coding: utf8 -*-
 
-import time
 import argparse
 import smac_utils
+import datetime
 
 from daemon import Daemon
 from database import Database
@@ -21,14 +21,20 @@ class Actuator(Daemon):
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
     TIME_THRESHOLD = 7200       # 2 ore
 
+    SENS_DATA_THR = 1800        # soglia di validità dati sensori.
+
     def run(self):
 
         self.db = self._get_db_connection(
             smac_utils.read_db_config()
         )
-        self.sw = Switch()
+        # inizializzo lo swich passando il log attuale
+        self.sw = Switch(self.log)
 
         delay_check = 0
+
+        self.db.set_notification(Database.EVT_ALTER_RELE_PIN)
+        self.db.set_notification(Database.EVT_ALTER_PROGRAM)
 
         while True:
 
@@ -49,22 +55,60 @@ class Actuator(Daemon):
 
             if not sensordata:
                 self.log.error('Impossibile ottenere stato dei sensori')
-                continue
+                delay_check = self.SLEEP_TIME * 2
+                self.sw.off()
 
-            rating = self._get_temp_rating(
-                sensordata['temp'], sensordata['tavg'], sensordata['tfor']
-            )
+            elif not self._is_actual_data(sensordata['lastup'],
+                                          self.TIME_THRESHOLD):
+                self.log.error(
+                    'Dati sensore non aggiornati (%s)', sensordata['lastup'])
+                delay_check = self.SLEEP_TIME
+                self.sw.off()
 
-            # Imposto lo stato del sistema in base ai parametri rilevati
-            delay_check = self._set_system_state(
-                trif, sensordata['temp'], rating
-            )
+            else:
+                self.log.debug(
+                    'Ultimo aggiornamento dati %s', sensordata['lastup'])
+                rating = self._get_temp_rating(
+                    sensordata['temp'], sensordata['tavg'], sensordata['tfor']
+                )
 
-            # attendo
-            time.sleep(delay_check)
+                # Imposto lo stato del sistema in base ai parametri rilevati
+                delay_check = self._set_system_state(
+                    trif, sensordata['temp'], rating
+                )
+
+            # attendo eventi sul db fino a delay_check
+            if self.db.wait_notification(delay_check):
+                self._check_db_events()
+
+            # time.sleep(delay_check)
 
     def _get_db_connection(self, dbd):
         return Database(dbd['host'], dbd['user'], dbd['pass'], dbd['schema'])
+
+    def _check_db_events(self):
+
+        self.log.debug('Verifico notifiche da Database')
+
+        # notify.pid, notify.channel, notify.payload
+        notify = self.db.get_notification()
+
+        while notify:
+
+            self.log.info(
+                'Ricevuta notifica pid %s, canale %s, contenuto: %s',
+                notify.pid, notify.channel, notify.payload
+            )
+
+            if notify.channel == Database.EVT_ALTER_PROGRAM:
+                # risvegliato dal cambio programma
+                # ignoro tutto, perchè in ogni caso rileggo
+                pass
+            elif notify.channel == Database.EVT_ALTER_RELE_PIN:
+                # invio nuove impostazioni allo switcher
+                self.sw.reload(notify.payload)
+
+            notify = self.db.get_notification()
 
     def _get_current_schedule(self):
 
@@ -73,8 +117,16 @@ class Actuator(Daemon):
         schedule = self.db.query(
             "SELECT id_programma, t_rif_val FROM programmazioni()"
             " WHERE current_time > ora ORDER BY ora DESC LIMIT 1")
-        self.log.debug('Lettura programmazione attuale: %s' % (schedule))
+        self.log.debug('Lettura programmazione attuale: %s', schedule)
         return schedule[0] if schedule else []
+
+    def _is_actual_data(self, capture_time, thr):
+
+        delta = datetime.datetime.now() - capture_time
+
+        delta_sec = abs(delta.total_seconds())
+
+        return False if delta_sec > thr else True
 
     def _get_sensor_data(self):
 
@@ -88,21 +140,13 @@ class Actuator(Daemon):
         if rawdata:
             d = rawdata.pop()
             sdata = {
-                'id':     d[0],
-                'name':   d[2],
-                'temp':   d[3],
-                'tmin':   d[4],
-                'tavg':   d[5],
-                'tmax':   d[6],
-                'tfor':   d[7],
-                'humd':   d[8],
-                'hmin':   d[9],
-                'havg':   d[10],
-                'hmax':   d[11],
-                'hfor':   d[12],
-                'lastup':  d[13],
-                'lastfor': d[14]
+                'id':     d[0],  'name':    d[2],  'temp':   d[3],
+                'tmin':   d[4],  'tavg':    d[5],  'tmax':   d[6],
+                'tfor':   d[7],  'humd':    d[8],  'hmin':   d[9],
+                'havg':   d[10], 'hmax':    d[11], 'hfor':   d[12],
+                'lastup': d[13], 'lastfor': d[14]
             }
+
         return sdata
 
     # Rating indice di stabilità della temperatura
@@ -121,9 +165,8 @@ class Actuator(Daemon):
             rating = -1.5 if tavg == t_max else -2.0
 
         self.log.debug(
-            'Ottenuto valore % di rating per temperature:'
-            ' misurata %s, media %s, prevista %',
-            (rating, treal, tavg, tfor))
+            'Rating: %s - T° mis: %s - T° media: %s - T° prevista %s',
+            rating, treal, tavg, tfor)
         return rating
 
     def _set_system_state(self, reference, temperature, rating):
@@ -139,8 +182,8 @@ class Actuator(Daemon):
         if deltat >= self.TEMP_THRESHOLD:
 
             self.log.info(
-                'Superata soglia %s tra Temp rilevata %s e Temp riferimento %s'
-                % (self.TEMP_THRESHOLD, temperature, reference)
+                'T rilevata %.2f - T riferimento %.2f > soglia %s',
+                temperature, reference, self.TEMP_THRESHOLD
             )
 
             nuovo_stato = (
@@ -157,18 +200,16 @@ class Actuator(Daemon):
                 )
 
             self.log.info(
-                'Temperatura rilevata %s entro la soglia riferimento %t'
-                % (temperature, reference)
-            )
+                'Temperatura rilevata %.2f entro soglia %s',
+                temperature, reference)
 
         res = True
 
         if nuovo_stato != stato_attuale:
 
             self.log.info(
-                'Commuto sistema dallo stato %s allo stato %s'
-                % (stato_attuale, nuovo_stato)
-            )
+                'Commuto sistema dallo stato %s allo stato %s',
+                stato_attuale, nuovo_stato)
 
             res = (self.sw.on() if nuovo_stato == Switch.ST_ON
                    else self.sw.off())
@@ -178,13 +219,12 @@ class Actuator(Daemon):
                 next_check = self.SLEEP_TIME // 3
                 self.log.error(
                     'Impossibile commutare il sistema allo stato %s'
-                    ' il prossimo controllo sarà eseguito tra %s secondi'
-                    % (nuovo_stato, next_check)
+                    ' il prossimo controllo sarà eseguito tra %s secondi',
+                    nuovo_stato, next_check
                 )
         else:
             self.log.info(
-                'Commutazione non necessaria, sistema già in stato %s'
-                % (nuovo_stato))
+                'Sistema già in %s - Nessuna commutazione', nuovo_stato)
 
         if res and deltat <= self.TEMP_MAXTHRESHOLD:
 
@@ -199,10 +239,10 @@ class Actuator(Daemon):
                     else (self.SLEEP_TIME // abs(rating)))
 
             self.log.info(
-                "Temperatura rilevata %s entro soglia minima. "
-                "Prossimo intervallo di controllo %s stabilito "
-                " in base all'indice di stabilità %s delle previsioni"
-                % (temperature, next_check, rating))
+                "Temperatura rilevata %.2f entro soglia minima. "
+                "Prossimo intervallo di controllo %s sec stabilito "
+                " in base all'indice di stabilità %s delle previsioni",
+                temperature, next_check, rating)
 
         return next_check
 

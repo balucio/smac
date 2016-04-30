@@ -34,6 +34,11 @@ class Validate {
 		return is_numeric( $num ) && $num >= $min && $num <= $max;
 	}
 
+	public static function IsValidGpioPin( $num ) {
+		return self::IsFloatInRange( $num, 0, 27 )
+			&& self::IsInteger($num);
+	}
+
 	public static function IsValidTimeStamp($ts) {
 
 		return ((string) (int) $ts === $ts)

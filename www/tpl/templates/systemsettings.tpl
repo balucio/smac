@@ -53,6 +53,19 @@
 								</div>
 							</div>
 						</fieldset>
+						<fieldset>
+							<div class="form-group">
+								<label for="pin_rele_gpio" class="col-xs-6 col-sm-5 col-lg-3 control-label">
+									<abbr title="Numero Pin GPIO controllo Relè sul Raspberry">Pin Relè</abbr>
+								</label>
+								<div class="col-xs-6 col-sm-7 col-lg-2">
+									<input name="pin_rele_gpio" id="pin_rele_gpio" type="number"
+										class="form-control" data-parsley-trigger="change"
+									 	pattern="\d?\d" step="1" min="0" max="25" maxlength="2"
+										placeholder="#" value="{{pin_rele}}" required="" />
+								</div>
+							</div>
+						</fieldset>
 						<button type="submit" class="btn btn-primary pull-right" name="action" value="save">Applica</button>
 						<div id="sensor-message" class="alert alert-danger hidden" role="alert"></div>
 					</form>

@@ -35,6 +35,8 @@ class MainSettingsModel {
 				break;
 
 			case 'antifreezeTemp' : $setting_name = Db::CURR_ANTIFREEZE_TEMP;
+
+			case 'pinRele' : $setting_name = Db::CURR_GPIO_PIN_RELE;
 		}
 
 		if ($setting_name != null)
@@ -59,6 +61,9 @@ class MainSettingsModel {
 			case 'antifreezeTemp' :
 				return $this->db->readSetting(Db::CURR_ANTIFREEZE_TEMP, 5);
 
+			case 'pinRele' :
+				return $this->db->readSetting(Db::CURR_GPIO_PIN_RELE, 24);
+
 			default:
 				return null;
 		}
@@ -73,7 +78,9 @@ class MainSettingsModel {
 
 
 	public function _isset($d) {
-		return in_array($d, ['list', 'manualSensor', 'antifreezeSensor', 'manualTemp', 'antifreezeTemp']);
+		return in_array($d, [
+			'list', 'manualSensor', 'antifreezeSensor', 'manualTemp', 'antifreezeTemp', 'pinRele']
+		);
 	}
 
 }

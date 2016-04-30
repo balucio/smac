@@ -3,10 +3,16 @@
 
 import psycopg2
 
+from select import select
+
 
 class Database(object):
 
     WATCHDOG_TIMEOUT = 300
+
+    EVT_ALTER_RELE_PIN = 'rele_gpio_pin_no'  # Evento modifica pin GPIO del rele
+    EVT_ALTER_PROGRAM = 'programma_attuale'  # Evento modifica programma attuale
+    EVT_ALTER_SENSOR = 'sensori'             # Evento modifica dati sensori
 
     _db_connection = None
     _db_cur = None
@@ -40,6 +46,18 @@ class Database(object):
 
     def set_notification(self, notification):
         self._db_cur.execute('LISTEN ' + notification)
+
+    # Polling per messaggi con timeout / bloccante
+    def wait_notification(self, timeout=None):
+
+        # Verifico modifiche alla connessione con il DB
+        pglist = select([self._db_connection], [], [], timeout)
+
+        if pglist != ([], [], []):
+            self.poll_notification()
+            return True
+
+        return False
 
     # il polling sulle notifiche è bloccante su connessioni non asincrone
     def poll_notification(self):

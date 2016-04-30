@@ -105,8 +105,7 @@ class Collector(Daemon):
 
         except Exception as e:
             self.log.error(
-                'Impossibile scrivere le misurazioni a database : %s'
-                % repr(e))
+                'Impossibile scrivere le misurazioni a database : %s', repr(e))
             error = True
 
         return error
@@ -140,8 +139,8 @@ class Collector(Daemon):
         notify = self.db.get_notification()
         while notify:
             self.log.info(
-                'Ricevuta notifica pid %s, canale %s, contenuto: %s'
-                % (notify.pid, notify. channel, notify.payload)
+                'Ricevuta notifica pid %s, canale %s, contenuto: %s',
+                notify.pid, notify. channel, notify.payload
             )
             needs_reload = True
             notify = self.db.get_notification()
@@ -153,16 +152,16 @@ class Collector(Daemon):
         if output[0] != 0:
 
             self.log.error(
-                "Errore nell'esecuzione del driver %s sul sensore %s: %s"
-                % (driver, sid, output[1])
+                "Errore nell'esecuzione del driver %s sul sensore %s: %s",
+                driver, sid, output[1]
             )
 
         elif driver == 'DHT11' or driver == 'DHT22':
 
             (temperatura, umidita) = output[1].split(' ')
             self.log.info(
-                "Sensore %s: temperatura %s, umidità %s"
-                % (sid, temperatura, umidita)
+                "Sensore %s: temperatura %s, umidità %s",
+                sid, temperatura, umidita
             )
             return {
                 'sensor_id': sid,
@@ -172,7 +171,7 @@ class Collector(Daemon):
             }
 
         else:
-            self.log.error("Driver %s sconosciuto" % (driver))
+            self.log.error("Driver %s sconosciuto", driver)
 
         return None
 

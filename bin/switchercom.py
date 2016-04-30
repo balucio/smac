@@ -12,6 +12,7 @@ class SwitcherCom(object):
     cmd_off = 'OFF'
     cmd_on = 'ON'
     cmd_status = 'STATUS'
+    cmd_reload = 'RELOAD'
 
     state_on = 'ON'
     state_off = 'OFF'
@@ -20,18 +21,20 @@ class SwitcherCom(object):
     resp_error = 'ERROR'
     resp_timeout = 'TIMEOUT'
     resp_ok = 'OK'
+    resp_reloaded = 'RELOADED'
 
-    def __init__(self):
+    def __init__(self, log):
+        self._log = log
         self.comm = Comunicator(
-            Comunicator.MODE_CLIENT, SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT
+            Comunicator.MODE_CLIENT, SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT, log
         )
 
     def send_command(self, command):
 
         response = None
 
-        if self.comm.send_message(os.getpid(), command):
-            print("Invio comando %s" % command)
+        if self.comm.send_message(os.getpid(), command, timeout=15):
+            self._log.info("Inviato comando %s", command)
             response = self.comm.read_message()
         else:
             return self.resp_error

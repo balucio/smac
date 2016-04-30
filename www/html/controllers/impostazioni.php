@@ -51,6 +51,11 @@ class ImpostazioniController extends BaseController {
 
 		if (Validate::IsFloatInRange($tm, Validate::MIN_TEMP, Validate::MAX_TEMP ))
 			$this->model->manualTemp = $tm;
+
+		$pr = Request::Attr('pin_rele_gpio', null);
+
+		if (Validate::IsValidGpioPin($pr))
+			$this->model->pinRele = $pr;
 	}
 
 }

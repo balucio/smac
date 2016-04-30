@@ -3,13 +3,10 @@
 
 
 from switchercom import SwitcherCom
-from logging import getLogger
 from smac_utils import (
     second_since_midnight,
     second_to_time,
-    epoch_timestamp,
-    BASE_LOG,
-    setup_logger
+    epoch_timestamp
 )
 
 
@@ -28,15 +25,14 @@ class Switch(object):
 
     _log = None
 
-    def __init__(self):
-        setup_logger(self.__class__.__name__, BASE_LOG + 'switch.log')
-        self._log = getLogger(self.__class__.__name__)
+    def __init__(self, log):
 
-        self._log.info('Inizializzazione switch')
+        self._log = log
+        self._log.debug('Inizializzazione switch')
         self.time_init = epoch_timestamp()
         self.time_day = second_since_midnight()
 
-        self.swc = SwitcherCom()
+        self.swc = SwitcherCom(log)
 
     def state(self):
 
@@ -48,6 +44,12 @@ class Switch(object):
             return self.ST_OFF
         else:
             return self.ST_UNKNOW
+
+    def reload(self, value):
+
+        res = self._send_command(SwitcherCom.cmd_reload)
+
+        return res == SwitcherCom.resp_reloaded
 
     def on(self):
 
@@ -78,30 +80,36 @@ class Switch(object):
         self.time_tot += delta
         self.time_day += delta
 
+        self._log.debug("Aggiorno contatori: stato %s, delta %s"
+                        % (state, delta))
+
+        if state == SwitcherCom.state_on:
+            self.time_on += delta
+        elif state == SwitcherCom.state_off:
+            self.time_off += delta
+        elif state == SwitcherCom.state_unknow:
+            self.time_err += delta
+
         # Log al cambio di giorno
         mid_sec = second_since_midnight()
+
         if self.time_day > mid_sec:
 
-            self.time_day = mid_sec
+            self._log.debug("Riepilogo timer giornaliero")
 
             self._log.info(
-                "Tempo sistema acceso %s"
+                "Sistema Accesso per %s"
                 % (second_to_time(self.time_on))
             )
 
             self._log.info(
-                "Tempo sistema spento %s"
+                "Sistema spento per %s sec"
                 % (second_to_time(self.time_off))
             )
 
             self._log.warning(
-                "Tempo sistema in stato indeterminato %s"
+                "Sistema in stato indeterminato per %s"
                 % (second_to_time(self.time_err))
             )
 
-        if state == SwitcherCom.state_unknow:
-            self.time_err += delta
-        elif state == SwitcherCom.state_on:
-            self.time_on += delta
-        elif state == SwitcherCom.state_off:
-            self.time_err += delta
+            self.time_day = mid_sec

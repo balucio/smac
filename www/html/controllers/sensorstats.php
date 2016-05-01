@@ -37,9 +37,7 @@ class SensorStatsController extends BaseController {
 
 		$int = Request::Attr('interval', null);
 		$int = Validate::IsPositiveInt($int) ? $int : self::DEF_INTERVAL;
-
-		if ($int > self::MAX_INTERVAL)
-			$int = self::MAX_INTERVAL;
+		$int = min($int, self::MAX_INTERVAL);
 
 		$sd = Request::Attr('start_date', null);
 		$ed = Request::Attr('end_date', null);

@@ -58,7 +58,7 @@ class Db {
 	}
 
 	static function TimestampWt( $epoch = null ) {
-		return gmdate('Y-m-d H:i:s', ( $epoch ?: time() ));
+		return date('Y-m-d H:i:s O', ( $epoch ?: time() ));
 	}
 
 	static function Timestamp( $epoch = null ) {

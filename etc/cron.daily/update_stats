@@ -1,2 +1,4 @@
 #!/bin/sh
+su - pi <<EOF
 python /opt/smac/bin/update_stats.py
+EOF

@@ -150,7 +150,7 @@ class Actuator(Daemon):
         return sdata
 
     # Rating indice di stabilità della temperatura
-    # 2 in salita, 1 probaile salita, 0.5 salita incerta
+    # 2 in salita, 1 probabile salita, 0.5 salita incerta
     # -2 in discesa, -1 probabile discesa, -0.5 discesa incerta
     def _get_temp_rating(self, treal, tavg, tfor):
 
@@ -176,21 +176,26 @@ class Actuator(Daemon):
         stato_attuale = self.sw.state()
         nuovo_stato = stato_attuale
 
-        self.log.info('Sistema attualmente in stato %s' % (stato_attuale))
+        self.log.info('Stato Sistema: %s' % (stato_attuale))
 
         # Commuto il sistema in on/off se si supera la soglia minima
         if deltat >= self.TEMP_THRESHOLD:
-
-            self.log.info(
-                'T rilevata %.2f - T riferimento %.2f > soglia %s',
-                temperature, reference, self.TEMP_THRESHOLD
-            )
 
             nuovo_stato = (
                 Switch.ST_ON if reference > temperature else Switch.ST_OFF
             )
 
+            self.log.info(
+                'Rilevazione: T Ril %.2f, T Rif %.2f - SUPERATA Soglia %s',
+                temperature, reference, self.TEMP_THRESHOLD
+            )
+
         else:
+
+            self.log.info(
+                'Rilevazione: T Ril %.2f, T Rif %.2f - ENTRO Soglia %s',
+                temperature, reference, self.TEMP_THRESHOLD
+            )
 
             # Nel caso lo stato attuale sia sconosciuto forzo il sistema
             # ad avere uno stato consistente
@@ -198,17 +203,14 @@ class Actuator(Daemon):
                 nuovo_stato = (
                     Switch.ST_ON if reference > temperature else Switch.ST_OFF
                 )
-
-            self.log.info(
-                'Temperatura rilevata %.2f entro soglia %s',
-                temperature, reference)
+                self.log.info('Stato sconosciuto: Forzo Commutazione')
 
         res = True
 
         if nuovo_stato != stato_attuale:
 
             self.log.info(
-                'Commuto sistema dallo stato %s allo stato %s',
+                'Commutazione: DA %s - A %s',
                 stato_attuale, nuovo_stato)
 
             res = (self.sw.on() if nuovo_stato == Switch.ST_ON
@@ -218,13 +220,13 @@ class Actuator(Daemon):
 
                 next_check = self.SLEEP_TIME // 3
                 self.log.error(
-                    'Impossibile commutare il sistema allo stato %s'
-                    ' il prossimo controllo sarà eseguito tra %s secondi',
+                    'Impossibile commutare il sistema in %s'
+                    ' Prossmo controllo tra %s secondi',
                     nuovo_stato, next_check
                 )
         else:
             self.log.info(
-                'Sistema già in %s - Nessuna commutazione', nuovo_stato)
+                'Sistema in stato %s - Nessuna commutazione', nuovo_stato)
 
         if res and deltat <= self.TEMP_MAXTHRESHOLD:
 
@@ -239,10 +241,9 @@ class Actuator(Daemon):
                     else (self.SLEEP_TIME // abs(rating)))
 
             self.log.info(
-                "Temperatura rilevata %.2f entro soglia minima. "
-                "Prossimo intervallo di controllo %s sec stabilito "
-                " in base all'indice di stabilità %s delle previsioni",
-                temperature, next_check, rating)
+                "T Ril %.2f entro soglia massima %s. Fisso prossimo controllo "
+                "tra %s sec in base IST (indice stabilità temperatura) %s",
+                temperature, self.TEMP_MAXTHRESHOLD, next_check, rating)
 
         return next_check
 

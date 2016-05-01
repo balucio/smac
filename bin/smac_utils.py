@@ -3,6 +3,7 @@
 
 import re
 import logging
+import sys
 
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
@@ -46,13 +47,18 @@ def read_db_config():
 
 def setup_logger(logger_name, log_file, level=logging.INFO):
     l = logging.getLogger(logger_name)
+    # Formatto il log con data e ora
     formatter = logging.Formatter('%(asctime)s : %(message)s')
-    # max 5 giorni di log poi ruota
-    fileHandler = TimedRotatingFileHandler(log_file, when='D', interval=5)
-    fileHandler.setFormatter(formatter)
-    streamHandler = logging.StreamHandler()
-    streamHandler.setFormatter(formatter)
+
+    # In caso di file: max 5 giorni con rotazione
+    if log_file.find('stdout') != -1:
+        handler = logging.StreamHandler(sys.stdout)
+    elif log_file.find('stderr') != -1:
+        handler = logging.StreamHandler(sys.stderr)
+    else:
+        handler = TimedRotatingFileHandler(log_file, when='D', interval=5)
+
+    handler.setFormatter(formatter)
 
     l.setLevel(level)
-    l.addHandler(fileHandler)
-    l.addHandler(streamHandler)
+    l.addHandler(handler)

@@ -38,11 +38,14 @@ class Database(object):
     def get_setting(self, name, default):
 
         try:
-            self.db_cur.execute('SELECT get_setting(%s, %s)', (name, default))
-            result = self.db_cur.fetchall()
+            self._db_cur.execute('SELECT get_setting(%s, %s)', (name, default))
+            result = self._db_cur.fetchall()
             return result[0]
         except:
             return default
+
+    def get_query(self):
+        return self._db_cur.query
 
     def set_notification(self, notification):
         self._db_cur.execute('LISTEN ' + notification)

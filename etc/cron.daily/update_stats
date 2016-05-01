@@ -1,0 +1,2 @@
+#!/bin/sh
+python /opt/smac/bin/update_stats.py

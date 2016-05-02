@@ -45,4 +45,4 @@ class SwitcherCom(object):
         return response[0:2] == self.resp_ok
 
     def get_response_msg(self, response):
-        return response[3:]
+        return response[3:].strip()

@@ -1,6 +1,19 @@
 <div class="col-xs-12 col-md-6">
 	<div class="panel panel-primary">
-		<div class="panel-heading">Stato Sistema</div>
+		<div class="panel-heading">
+			<div class="btn-group pull-right">
+				<div class="btn-group">
+					<a href="#" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+						<span class="glyphicon glyphicon-cog"></span>
+					</a>
+					<ul class="dropdown-menu" role="menu"></ul>
+				</div>
+				<a href="#" class="btn btn-primary disabled">
+					<span id="boiler-status-icon" class="fa fa-refresh"></span>
+				</a>
+			</div>
+			<span class="panel-title">Stato Sistema</span>
+		</div>
 		<div class="panel-body">
 			<div class="col-xs-12 col-md-10">
 				<select id="programma" class="selectpicker form-control" disabled>
@@ -35,7 +48,7 @@
 				</div>
 
 			<div class="clearfix"></div>
-      		<hr class="col-xs-10 col-md-10" style="" />
+			<hr class="col-xs-10 col-md-10" style="" />
 			<div class="col-xs-12 col-md-12" id="programma-giornaliero" style="height:400px;"></div>
 
 		</div>

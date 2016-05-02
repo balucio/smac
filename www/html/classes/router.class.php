@@ -90,6 +90,12 @@ class Router {
 				'generali' => new Route('MainSettings', 'MainSettings', 'Impostazioni'),
 				'sensori' => new Route('Sensor', 'SensorSettings', 'Impostazioni'),
 				'programmi' => new Route('Program', 'ProgramSettings', 'Impostazioni')
+			],
+			'switcher' => [
+				'state'		=> new Route('Switcher', 'Switcher', 'Switcher'),
+				'on'		=> new Route('Switcher', 'Switcher', 'Switcher'),
+				'off'		=> new Route('Switcher', 'Switcher', 'Switcher'),
+				'reload'	=> new Route('Switcher', 'Switcher', 'Switcher')
 			]
 			// Programmi
 		];

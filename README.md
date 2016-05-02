@@ -8,11 +8,52 @@ L'applicativo si propone di implementare un sistema di monitoraggio e di control
 
 A progetto terminato il repository conterrà tutto l'occorrente per poter installare l'applicativo su tale dispositivo:
 
-- Codice PHP (versione supportata 5.5)
-- Database con schema e dati minimali che consentano il funzionamento iniziale dell'applicativo. Verrà supportata la versione 9.x di Postgres che è quella che viene rilasciata con Raspian il sistema operativo dei Raspberry.
+- Codice PHP (versione supportata >= 5.4)
+- Database con schema e dati minimali che consentano il funzionamento iniziale dell'applicativo.
+  Al momento sono supportate esclusivamente le versioni 9.x di Postgresql. La versione 7 di Raspian utilizza Postgresl
+  versione 9.1.20.
 - Configurazione base del webserver Apache (httpd).
 - Demoni, eseguibili e driver per l'interfacciamento e la gestione dell'hardware (sensori e relè)
 - Schemi di collegamento sensori (per le misurazioni) e del Relè (per il controllo della caldaia)
+
+Struttura della directory del progetto
+
+Il programma è progettato per essere installato il /opt/smac. È possibile variare questo percorso
+modificando alcune definizioni usate nel codice PHP e nei vari demoni. Si tenga presense comunque
+che alcuni script e file di configurazioni non potendo usare  definizioni comuni hanno tale percorso
+codificato, pertanto è necessario assicurarsi di modificare tutti i puntamenti cercandoli eseguendo
+un grep nella directory del progetto cercando ad esempio 'opt'.
+
+La directory principale del progetto contiene:
+
+- smac          -> directory principale
+  - apache2     -> directory contentente i file di configurazione del webserver apache2
+    - smac.conf -> contiene la definizione del virtual host per il funzionamento dell'interfaccia
+                   web di Smac. Va copiata o meglio ancora "linkata" in /etc/apache2/conf.d/
+  - bin         -> contiene gli script e librerie (per lo più in python) che consentono di gestire
+                   sensori e la comunicazione tra i processi. Alcuni di questi script verranno
+                   eseguiti come demoni di sistema e si occuperanno della lettura dei dati dei
+                   sensori e della comunicazione con la caldaia pilotando il Relè.
+                   Si consiglia di effettuare l'avvio dei demoni solo dopo aver configurato
+                   correttamente dall'interfaccia Web dell'applicativo i parametri relativi ai numeri
+                   di Pin della GPIO del Rasperry. Infatti sia i sensori di temperatura che il
+                   Relè che pilota la caldaia sono pilotati da uno specifico Pin della GPIO.
+                   Si tenga presente che l'applicazione esegue controlli minimali sulla correttezza
+                   dei numeri di Pin inseriti, pertanto è necessario prestare molta attenzione alla
+                   corretta configurazione di tali valori. L'applicazione usa la numerazione BCM
+                   dell'interfaccia GPIO.
+  - driver      -> contiene i sorgenti per compilare i driver di interfacciamento con i Sensori di
+                   temperatura. Al momento sono supportati i sensori DHT11 e DHT22 di Adafruit.
+                   I driver Adafruit contengono una libreria Python da compilare e installare.
+                   Eseguita l'installazione la directory driver non è più necessaria.
+  - database    -> contiene uno schema base per consentire l'avvio dell'applicativo Web
+  - etc
+    - cron.daily -> contiene un job cron per l'aggiornamento quotidiano delle statistiche
+    - init.d    -> contiene gli script di avvio dei demoni python
+  - log         -> contiene i log generato dall'applicativo web e dai demoni
+  - www         -> contiene la parte applicativa web
+    - tpl       -> contiene i modelli (template) delle pagine web generate dall'applicazione
+    - html      -> l'applicativo web completo inclusi css e librerie javascript.
 
 
 Logicamente l'applicazione è suddivisa nei seguenti blocchi:
@@ -69,17 +110,30 @@ Installazione librerie python per il controllo GPIO
 
     sudo apt-get install python-rpi.gpio
 
+Compilazione dei driver Adafruit Python
+    cd <smac>/drivers/Adafruit_Python_DHT/
+    python setup.py build
+    python setup.py install
 
-Installazione dei binari e configurazione di Apache
+Installazione dei binari e configurazione di Apache:
+
+    - creazione directory base
     mkdir /opt/smac
-    ** copia intera cartella
+    - copia dei file necessari:
+    ** copiare in /opt/smac le seguenti directory da quella del progetto
+       - apache2
+       - bin
+       - ect
+       - www
+
+    - Installazione configurazione apache (accertarsi che il mod_rewrite sia installato)
     ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
     mkdir /opt/smac/log/
-    chown -R www-data /opt/smac/
+    chown -R www-data /opt/smac/www
+    chmod +x /opt/smac/bin/*
 
     # Abilitazione del modrewrite
     a2enmod rewrite
-
 
 Configurazione e importazione del Database
 
@@ -99,11 +153,18 @@ Usare l'utente postgres per importare il database, che contiene la struttura e i
     psql < "/opt/smac/database/postgres_database_schema.sql"
 
 Installazione e configurazione dei demoni
-    dalla directory /etc/init.d dell'applicativo copiare i tre script di init.d
+    effetturare un link da /opt/smac/etc/init.d/ a /etc/init.d dei tre demoni
         - collector
         - actuator
         - switcher
+    ln -s /opt/smac/etc/init.d/<nome_demone> /etc/init.d/<nome_demone>
 
     procedere quindi all'installazione usando:
-    sudo update-rc.d <nome_demone> defaults
+        for daemon in collector, actuator, switcher; do sudo update-rc.d -f $daemon remove; done
+        for daemon in collector, actuator, switcher; do sudo update-rc.d -f $daemon defaults; done
+
+Configurazione dei cron job
+    effetturare l'installazione del cronjob
+    chmod +x /opt/smac/etc/cron.daily/update_stats
+    ln -s /opt/smac/etc/cron.daily/update_stats /etc/cron.daily/update_stats
 

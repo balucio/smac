@@ -206,6 +206,22 @@ $(function () {
 		return new Highcharts.Chart(chartOptions);
 	}
 
+	var getBoilerStatus = function() {
+		$.ajax({
+			url: 'switcher/state',
+			success: function(data) {
+				if (data.hasOwnProperty("result")) {
+					$('#boiler-status-icon').removeClass()
+					$('#boiler-status-icon').addClass(data.classes)
+				}
+			},
+			complete: function() {
+			  // programmo prossima richiesta solo al completamento di questa
+			  setTimeout(getBoilerStatus, 60000);
+			}
+  		});
+	}
+
 	// var pchart = getChart('temperatura');
 
 	$( document ).ready(function() {
@@ -253,6 +269,9 @@ $(function () {
 			function(reqData) {
 				createChart(calculateNewChartSeries(reqData));
 		});
+
+		// Boiler status
+		getBoilerStatus()
 	});
 });
 

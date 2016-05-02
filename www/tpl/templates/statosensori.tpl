@@ -1,6 +1,8 @@
 <div class="col-xs-12 col-md-6">
 	<div class="panel panel-primary">
-		<div class="panel-heading">Stato Sensori</div>
+		<div class="panel-heading">
+			<span class="panel-title">Stato Sensori</span>
+		</div>
 		<div class="panel-body">
 			{% if sensori %}
 			<select id="sensore" class="selectpicker" data-width="100%">

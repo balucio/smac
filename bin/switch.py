@@ -33,10 +33,13 @@ class Switch(object):
         self.time_day = second_since_midnight()
 
         self.swc = SwitcherCom(log)
+        self.actual_state = SwitcherCom.state_unknow
 
     def state(self):
 
         state = self._send_command(SwitcherCom.cmd_status)
+
+        self._update_timers(state)
 
         if state == SwitcherCom.state_on:
             return self.ST_ON
@@ -45,9 +48,14 @@ class Switch(object):
         else:
             return self.ST_UNKNOW
 
-    def reload(self, value):
+    def reload(self, value=None):
 
         res = self._send_command(SwitcherCom.cmd_reload)
+
+        self._update_timers(
+            SwitcherCom.state_off if res == SwitcherCom.resp_reloaded
+            else SwitcherCom.state_unknow
+        )
 
         return res == SwitcherCom.resp_reloaded
 
@@ -76,6 +84,9 @@ class Switch(object):
 
     def _update_timers(self, state):
 
+        if state == self.actual_state:
+            return
+
         delta = epoch_timestamp() - self.time_init
         self.time_tot += delta
         self.time_day += delta
@@ -83,12 +94,14 @@ class Switch(object):
         self._log.debug("Aggiorno contatori: stato %s, delta %s"
                         % (state, delta))
 
-        if state == SwitcherCom.state_on:
+        if self.actual_state == SwitcherCom.state_on:
             self.time_on += delta
-        elif state == SwitcherCom.state_off:
+        elif self.actual_state == SwitcherCom.state_off:
             self.time_off += delta
-        elif state == SwitcherCom.state_unknow:
+        elif self.actual_state == SwitcherCom.state_unknow:
             self.time_err += delta
+
+        self.actual_state = state
 
         # Log al cambio di giorno
         mid_sec = second_since_midnight()

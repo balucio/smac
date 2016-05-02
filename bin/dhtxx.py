@@ -34,7 +34,7 @@ parser.add_argument(
     help="sensor: il tipo di sensore da interrogare, può essere uno tra 11, 22 o 2302")
 
 parser.add_argument(
-    "--pin", required=True, type=int, choices=[4, 17, 18, 22, 23, 24, 25, 27 ],
+    "--pin", required=True, type=int, choices=[4, 17, 18, 22, 23, 24, 25, 27],
     help="pin: il numero di pin GPIO del raspberry dove il sensore è connesso")
 
 parser.add_argument(

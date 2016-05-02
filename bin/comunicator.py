@@ -164,5 +164,10 @@ class Comunicator(object):
         return ph
 
     def __del__(self):
-        os.remove(self.pipe_name_in)
-        os.remove(self.pipe_name_out)
+
+        if self.MODE_SERVER:
+            try:
+                os.remove(self.pipe_name_in)
+                os.remove(self.pipe_name_out)
+            except:
+                pass

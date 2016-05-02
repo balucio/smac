@@ -1,5 +1,20 @@
 <?php
 
+define ('APP_NAME', 'Smac');
+define('APP_DIR', '/opt/smac');
+define('SITE_ROOT_DIR', __DIR__ . DIRECTORY_SEPARATOR);
+define('ROOT_DIR', SITE_ROOT_DIR . '..' . DIRECTORY_SEPARATOR);
+define('LIB_DIR', SITE_ROOT_DIR . 'lib' . DIRECTORY_SEPARATOR);
+
+define('REMOTE_IP', isset($_SERVER['HTTP_CLIENT_IP'])
+    ? $_SERVER['HTTP_CLIENT_IP']
+    :( isset($_SERVER['HTTP_X_FORWARDED_FOR'])
+        ? $_SERVER['HTTP_X_FORWARDED_FOR']
+        : $_SERVER['REMOTE_ADDR']
+    )
+);
+
+
 function AutoloadClass($className) {
     $file = SITE_ROOT_DIR . 'classes' . DIRECTORY_SEPARATOR . strtolower($className) . '.class.php';
     if (is_readable($file))
@@ -49,24 +64,9 @@ function ErrorReporting() {
     ini_set('html_errors', true);
 }
 
-define ('APP_NAME', 'Smac');
-
-define('SITE_ROOT_DIR', __DIR__ . DIRECTORY_SEPARATOR);
-define('ROOT_DIR', SITE_ROOT_DIR . '..' . DIRECTORY_SEPARATOR);
-define('LIB_DIR', SITE_ROOT_DIR . 'lib' . DIRECTORY_SEPARATOR);
-
 LoadLib('Kint');
 Kint::enabled(DEBUG);
 DEBUG && ErrorReporting();
-
-
-define('REMOTE_IP', isset($_SERVER['HTTP_CLIENT_IP'])
-    ? $_SERVER['HTTP_CLIENT_IP']
-    :( isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-        ? $_SERVER['HTTP_X_FORWARDED_FOR']
-        : $_SERVER['REMOTE_ADDR']
-    )
-);
 
 spl_autoload_register('AutoloadClass');
 spl_autoload_register('AutoloadModel');

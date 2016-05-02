@@ -5,8 +5,15 @@ class StatoSistemaView extends BaseView {
 	public function __construct($model) {
 
 		parent::__construct($model);
-		Assets::get()->addJs('/js/rainbow.js');
-		Assets::get()->addJs('/js/statosistema.js');
+		$asset = Assets::get();
+		$asset->addJs('/js/rainbow.js');
+		$asset->addJs('/js/statosistema.js');
+		$asset->addInternalCss('
+			.status { text-shadow: 1px 1px 1px black; }
+			.status.on { color: red; }
+			.status.off { color: lightseagreen; }
+			.status.undefined { color : red; }
+		');
 	}
 
 	public function render() {

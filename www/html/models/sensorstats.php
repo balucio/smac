@@ -63,7 +63,7 @@ class SensorStatsModel {
 		$query = "SELECT EXTRACT(epoch FROM data_ora) * 1000,"
 				. "({$this->physicalQt})::numeric(5,2) FROM "
 				. "report_misurazioni(?::smallint, ?::timestamp, ?::timestamp)";
-
+		// d($query, $this->sensorId, $this->start_date, $this->end_date);
 		$stmt = Db::get()->prepare($query);
 
 		$stmt->bindParam(1, $this->sensorId, PDO::PARAM_INT);

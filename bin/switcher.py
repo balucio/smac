@@ -90,7 +90,7 @@ class Switcher(Daemon):
             elif cmd == 'RELOAD':
                 kill(getpid(), signal.SIGHUP)
                 self.log.warning("RIPARTO")
-                response = 'OK: RELOADED'
+                response = 'OK:RELOADED'
 
             elif cmd == 'TIMEOUT':
                 self.log.info("Timeout in lettura")

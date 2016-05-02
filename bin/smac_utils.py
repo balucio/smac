@@ -45,17 +45,19 @@ def read_db_config():
         return db_set
 
 
-def setup_logger(logger_name, log_file, level=logging.INFO):
+def setup_logger(logger_name, log_file=None, level=logging.INFO):
     l = logging.getLogger(logger_name)
     # Formatto il log con data e ora
     formatter = logging.Formatter('%(asctime)s : %(message)s')
 
-    # In caso di file: max 5 giorni con rotazione
-    if log_file.find('stdout') != -1:
+    if log_file is None:
+        handler = logging.NullHandler()
+    elif log_file.find('stdout') != -1:
         handler = logging.StreamHandler(sys.stdout)
     elif log_file.find('stderr') != -1:
         handler = logging.StreamHandler(sys.stderr)
     else:
+        # In caso di file: max 5 giorni con rotazione
         handler = TimedRotatingFileHandler(log_file, when='D', interval=5)
 
     handler.setFormatter(formatter)

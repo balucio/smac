@@ -1,4 +1,4 @@
-/** Some custom js functions */
+	/** Some custom js functions */
 
 $(function () {
 
@@ -69,28 +69,12 @@ $(function () {
 		// da -8 a +36 passo 2
 		//     0 a 21  passo 2
 		var ctable = [
-			'#0A36AD',
-			'#1514F4',
-			'#1080F6',
-			'#05BFF9',
-			'#00FFFE',
-			'#00F7CA',
-			'#0BD794',
-			'#00AA6C',
-			'#26AA43',
-			'#24C84B',
-			'#00FF52',
-			'#CBFE54',
-			'#FEFE56',
-			'#ECEC8E',
-			'#E4CB75',
-			'#DCAD5A',
-			'#FF5324',
-			'#FF001A',
-			'#C80012',
-			'#AD000E',
-			'#93000A',
-			'#780006'
+			'#0A36AD', '#1514F4', '#1080F6', '#05BFF9',
+			'#00FFFE', '#00F7CA', '#0BD794', '#00AA6C',
+			'#26AA43', '#24C84B', '#00FF52', '#CBFE54',
+			'#FEFE56', '#ECEC8E', '#E4CB75', '#DCAD5A',
+			'#FF5324', '#FF001A', '#C80012', '#AD000E',
+			'#93000A', '#780006'
 		];
 
 		var closestTo = function(v) {
@@ -103,7 +87,6 @@ $(function () {
 
 			return ctable[t];
 		}
-
 
 		var items = temps.length;
 
@@ -211,8 +194,13 @@ $(function () {
 			url: 'switcher/state',
 			success: function(data) {
 				if (data.hasOwnProperty("result")) {
-					$('#boiler-status-icon').removeClass()
-					$('#boiler-status-icon').addClass(data.classes)
+					var bst = $('#boiler-status-icon');
+					if (bst.attr('class') != data.classes) {
+						bst.removeClass()
+						bst.addClass(data.classes)
+						var title = $('#' + data.title).text()
+						bst.parent().attr('title', title).tooltip('fixTitle')
+					}
 				}
 			},
 			complete: function() {
@@ -272,6 +260,7 @@ $(function () {
 
 		// Boiler status
 		getBoilerStatus()
+		$('#boiler-status-icon').parent().tooltip();
 	});
 });
 

@@ -8,7 +8,9 @@ class StatoSistemaView extends BaseView {
 		$asset = Assets::get();
 		$asset->addJs('/js/rainbow.js');
 		$asset->addJs('/js/statosistema.js');
+
 		$asset->addInternalCss('
+			.btn-group.pull-right {margin-top: -0.2em;}
 			.status { text-shadow: 1px 1px 1px black; }
 			.status.on { color: red; }
 			.status.off { color: lightseagreen; }

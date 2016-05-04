@@ -2,17 +2,15 @@
 	<div class="panel panel-primary">
 		<div class="panel-heading">
 			<div class="btn-group pull-right">
-				<div class="btn-group">
-					<a href="#" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-						<span class="glyphicon glyphicon-cog"></span>
-					</a>
-					<ul class="dropdown-menu" role="menu"></ul>
-				</div>
-				<a href="#" class="btn btn-primary disabled">
+				<a href="#" class="btn btn-sm" title="In aggiornamento..."
+						data-toggle="tooltip"  data-container="body" data-placement="left">
 					<span id="boiler-status-icon" class="fa fa-refresh"></span>
 				</a>
 			</div>
 			<span class="panel-title">Stato Sistema</span>
+			<span class="hidden" id="title-status-on">Caldaia accesa</span>
+			<span class="hidden" id="title-status-off">Caldaia spenta</span>
+			<span class="hidden" id="title-status-unknow">Stato caldaia non determinabile</span>
 		</div>
 		<div class="panel-body">
 			<div class="col-xs-12 col-md-10">

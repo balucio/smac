@@ -20,7 +20,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Setup log file
+    # Setup log file su null handler. Lo Swich vuole un
+    # oggetto q log, gliene passo uno fittizio
     setup_logger('switcher_communicator', log_file=None)
     log = getLogger('switcher_communicator')
 

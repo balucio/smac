@@ -77,8 +77,8 @@ class FrontController {
 		if (!empty($action)) {
 			if (method_exists($this->controller, $action))
 				$this->action = $action;
-			else
-				error_log("Controller action '$action' is not defined, fallback to '{$this->action}'.");
+			// else
+				// error_log("Controller action '$action' is not defined, fallback to '{$this->action}'.");
 		}
 
 		return $this;

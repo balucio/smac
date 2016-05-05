@@ -2,15 +2,15 @@
 
 ### BEGIN INIT INFO
 # Provides:          actuator
-# Required-Start:    $remote_fs $syslog
+# Required-Start:    $remote_fs $syslog switcher collector
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Smac Actuator
-# Description:       Smac Actuator verifica lo stato di funzionamento del sistema. In base alle temperature rilevate
-#                    e al programma impostato calcola lo stato in cui il relè di controllo della caldaia si dovrebbe
-#                    trovare, quindi invia il comando di impostazione di stato allo swither tramite la pipe gestita
-#                    dal communicator.
+# Description:       Smac Actuator verifica e imposta lo stato di funzionamento del sistema. In base alle
+#                    temperature rilevate e al programma impostato calcola lo stato in cui deve trovarsi
+#                    il relè di controllo della caldaia. Invia allo switcher tramite named pipe i comandi
+#                    di commutazione.
 ### END INIT INFO
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
@@ -51,21 +51,21 @@ case "$1" in
 
     start|stop)
         do_${1}
-        ;;
+    ;;
 
     restart|reload|force-reload)
         do_stop
         do_start
-        ;;
+    ;;
 
     status)
         status_of_proc -p "$PIDFILE" "$DAEMON_NAME" "$DAEMON" && exit 0 || exit $?
-        ;;
+    ;;
 
     *)
         echo "Usage: /etc/init.d/$DAEMON_NAME {start|stop|restart|status}"
         exit 1
-        ;;
+    ;;
 
 esac
 exit 0

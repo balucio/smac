@@ -364,6 +364,62 @@ END;$$;
 ALTER FUNCTION public.aggiorna_situazione() OWNER TO smac;
 
 --
+-- Name: aggiorna_storico_commutazioni(); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION aggiorna_storico_commutazioni() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	MAX_INTERVAL INTERVAL DEFAULT '10 minutes'::interval;
+	delta INTERVAL;
+	ultima_data_ora TIMESTAMP WITHOUT TIME ZONE;
+	ultimo_stato BOOLEAN;
+BEGIN
+	-- ultima commutazione inserita
+	SELECT data_ora, stato
+	  INTO ultima_data_ora, ultimo_stato
+	  FROM ultima_commutazione
+      ORDER BY data_ora desc
+         LIMIT 1;
+
+	-- Inserisco se la data ora che sto scrivendo è inferiore a quella dell'ultima registrazione
+	IF ultima_data_ora > NEW.data_ora THEN
+		RETURN NEW;
+	END IF;
+
+	delta = date_trunc('seconds', NEW.data_ora - ultima_data_ora);
+
+	IF delta IS NULL THEN
+		-- delta è null se questo è il primo record e inserisco il primo valore
+		INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NEW.data_ora, NEW.stato);	
+		RETURN NEW;
+	END IF;
+
+	UPDATE ultima_commutazione SET stato = NEW.stato, data_ora = NEW.data_ora;
+	
+	IF delta < MAX_INTERVAL THEN
+		-- Inserisco solo se c'è una variazione di stato
+		IF NEW.stato IS DISTINCT FROM ultimo_stato THEN
+			RETURN NEW;
+		ELSE
+			RETURN NULL;
+		END IF;
+	ELSE
+		-- ritengo dopo MAX_INTERVAL di non sapere più lo stato dello switch
+		INSERT INTO storico_commutazioni(data_ora, stato)
+		VALUES (ultima_data_ora + MAX_INTERVAL , NULL::boolean);
+
+		-- a questo punto inserisco la nuova misurazione
+		RETURN NEW;
+	END IF;
+  
+END;$$;
+
+
+ALTER FUNCTION public.aggiorna_storico_commutazioni() OWNER TO smac;
+
+--
 -- Name: aggiorna_tendenza(interval, interval); Type: FUNCTION; Schema: public; Owner: smac
 --
 
@@ -1306,6 +1362,30 @@ CREATE TABLE situazione (
 ALTER TABLE public.situazione OWNER TO smac;
 
 --
+-- Name: storico_commutazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+--
+
+CREATE TABLE storico_commutazioni (
+    data_ora timestamp without time zone DEFAULT now() NOT NULL,
+    stato boolean
+);
+
+
+ALTER TABLE public.storico_commutazioni OWNER TO smac;
+
+--
+-- Name: ultima_commutazione; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+--
+
+CREATE TABLE ultima_commutazione (
+    data_ora timestamp without time zone DEFAULT now() NOT NULL,
+    stato boolean
+);
+
+
+ALTER TABLE public.ultima_commutazione OWNER TO smac;
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: smac
 --
 
@@ -1406,6 +1486,14 @@ ALTER TABLE ONLY situazione
 
 
 --
+-- Name: storico_commutazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: smac; Tablespace: 
+--
+
+ALTER TABLE ONLY storico_commutazioni
+    ADD CONSTRAINT storico_commutazioni_pkey PRIMARY KEY (data_ora);
+
+
+--
 -- Name: un_data_sensore; Type: CONSTRAINT; Schema: public; Owner: smac; Tablespace:
 --
 
@@ -1435,7 +1523,6 @@ CREATE UNIQUE INDEX un_nome_sensore ON sensori USING btree (nome_sensore);
 CREATE TRIGGER aggiornamento_configurazione AFTER UPDATE ON impostazioni FOR EACH ROW EXECUTE PROCEDURE notifica_modifica_configurazione();
 
 
-
 --
 -- Name: aggiornamento_situazione; Type: TRIGGER; Schema: public; Owner: smac
 --
@@ -1448,6 +1535,13 @@ CREATE TRIGGER aggiornamento_situazione AFTER INSERT ON misurazioni FOR EACH ROW
 --
 
 CREATE TRIGGER notifica_variazione_sensori AFTER INSERT OR DELETE OR UPDATE ON sensori FOR EACH STATEMENT EXECUTE PROCEDURE notifica_modifica();
+
+
+--
+-- Name: nuova_commutazione; Type: TRIGGER; Schema: public; Owner: smac
+--
+
+CREATE TRIGGER nuova_commutazione BEFORE INSERT ON storico_commutazioni FOR EACH ROW EXECUTE PROCEDURE aggiorna_storico_commutazioni();
 
 
 --

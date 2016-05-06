@@ -12,7 +12,7 @@ SET client_min_messages = warning;
 -- Name: smac; Type: DATABASE; Schema: -; Owner: smac
 --
 
-CREATE USER smac PASSWORD 'smac'
+CREATE USER smac PASSWORD 'smac';
 CREATE DATABASE smac WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
 
@@ -1201,11 +1201,20 @@ CREATE SEQUENCE driver_sensori_id_driver_seq
 
 ALTER TABLE public.driver_sensori_id_driver_seq OWNER TO smac;
 
+
 --
--- Name: driver_sensori_id_driver_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: smac
+-- Data for Name: driver_sensori; Type: TABLE DATA; Schema: public; Owner: smac
 --
 
-ALTER SEQUENCE driver_sensori_id_driver_seq OWNED BY driver_sensori.id;
+INSERT INTO driver_sensori VALUES (1, 'DHT11', '--sensor=11 --retries=7 --delay_seconds=3');
+INSERT INTO driver_sensori VALUES (2, 'DHT22', '--sensor=22 --retries=7 --delay_seconds=3');
+
+--
+-- Name: driver_sensori_id_driver_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('driver_sensori_id_driver_seq', 2, true);
+
 
 
 --
@@ -1233,6 +1242,22 @@ COMMENT ON COLUMN impostazioni.nome IS 'Nome della voce di impostazione';
 
 COMMENT ON COLUMN impostazioni.valore IS 'Valore della voce di impostazione';
 
+--
+-- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+INSERT INTO impostazioni VALUES ('programma_attuale', '-1');
+INSERT INTO impostazioni VALUES ('programma_spento_nome', 'Spento');
+INSERT INTO impostazioni VALUES ('programma_spento_descrizione', 'Il sistema rimarrà sempre spento, indipendentemente dalle temperature registrate');
+INSERT INTO impostazioni VALUES ('programma_anticongelamento_nome', 'Anticongelamento');
+INSERT INTO impostazioni VALUES ('programma_anticongelamento_descrizione', 'Il sistema si accenderà solo per evitare il congelamento. Cioè quando la temperatura ambientale scenderà al di sotto di quella rilevata da sensore di anticongelamento');
+INSERT INTO impostazioni VALUES ('programma_anticongelamento_sensore', '0');
+INSERT INTO impostazioni VALUES ('programma_manuale_nome', 'Manuale');
+INSERT INTO impostazioni VALUES ('programma_manuale_descrizione', 'Il sistema proverà a mantenere la temperatura impostata manualmente');
+INSERT INTO impostazioni VALUES ('programma_manuale_sensore', '0');
+INSERT INTO impostazioni VALUES ('temperatura_anticongelamento', '5');
+INSERT INTO impostazioni VALUES ('temperatura_manuale', '20');
+INSERT INTO impostazioni VALUES ('rele_gpio_pin_no', '4');
 
 --
 -- Name: misurazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace:

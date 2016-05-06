@@ -25,6 +25,8 @@ class Switcher(Daemon):
 
         super(Switcher, self).__init__(pidfile, stdin, stdout, stderr, logfile)
 
+        self.db = self._get_db_connection(read_db_config())
+
         if invert_state:
 
             self.STATE_ON, self.STATE_OFF = GPIO.LOW, GPIO.HIGH
@@ -163,12 +165,10 @@ class Switcher(Daemon):
 
     def _get_gpio_pin(self, pins):
 
-        db = self._get_db_connection(read_db_config())
-
         #  Ciclo fino a quando non ottengo un pin del GPIO valido
         while True:
 
-            raw = db.query("SELECT get_setting('rele_gpio_pin_no')")
+            raw = self.db.query("SELECT get_setting('rele_gpio_pin_no')")
             self.log.debug('Lettura pin GPIO del relè: %s', raw)
 
             if len(raw) == 1:
@@ -181,7 +181,7 @@ class Switcher(Daemon):
                     #raise ValueError('PIN GPIO % non è valido' % pin)
 
             # Tento rilettura tra due minuti
-            time.sleep(120)
+            time.sleep(240)
 
         return int(pin[-2:])
 

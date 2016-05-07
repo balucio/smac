@@ -8,14 +8,15 @@ import datetime
 from daemon import Daemon
 from database import Database
 from switch import Switch
-from logging import INFO
+from logging import DEBUG
 from decimal import Decimal
+from time import sleep
 
 
 class Actuator(Daemon):
 
     SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
-    DEF_LOG_LEVEL = INFO
+    DEF_LOG_LEVEL = DEBUG
 
     TEMP_THRESHOLD = 0.5        # Grado soglia di innesco cambiamento stato
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
@@ -30,6 +31,12 @@ class Actuator(Daemon):
         )
         # inizializzo lo swich passando il log attuale
         self.sw = Switch(self.log)
+
+        # inizializzo lo switcher inviandogli la configurazione del pi
+        self.log.info('Invio configurazione allo switcher')
+        while not self.sw.set_gpio_pin(self._get_gpio_pin()):
+            self.log.error('Impossible configurare lo switcher')
+            sleep(30)
 
         delay_check = 0
 
@@ -106,9 +113,31 @@ class Actuator(Daemon):
                 pass
             elif notify.channel == Database.EVT_ALTER_RELE_PIN:
                 # invio nuove impostazioni allo switcher
-                self.sw.reload(notify.payload)
+                while True:
+
+                    if self.sw.reload():
+                        sleep(0.5)      # sync con switcher
+                        if self.sw.set_gpio_pin(notify.payload):
+                            break
+                    sleep(10)
 
             notify = self.db.get_notification()
+
+    def _get_gpio_pin(self):
+
+        pin = None
+        while pin is None:
+
+            try:
+                str_pin = self.db.get_setting(Database.DB_SET_PIN_RELE, None)
+                self.log.debug('Valore Database %s', str_pin)
+                pin = int(str_pin)
+                self.log.info('Uso Pin GPIO %s', pin)
+
+            except Exception as e:
+                    self.log.error('Errore lettura pin GPIO Relè', repr(e))
+                    raise
+        return pin
 
     def _get_current_schedule(self):
 
@@ -176,7 +205,7 @@ class Actuator(Daemon):
         stato_attuale = self.sw.state()
         nuovo_stato = stato_attuale
 
-        self.log.info('Stato Sistema: %s' % (stato_attuale))
+        self.log.debug('Stato Sistema: %s' % (stato_attuale))
 
         # Commuto il sistema in on/off se si supera la soglia minima
         if deltat >= self.TEMP_THRESHOLD:
@@ -185,14 +214,14 @@ class Actuator(Daemon):
                 Switch.ST_ON if reference > temperature else Switch.ST_OFF
             )
 
-            self.log.info(
+            self.log.debug(
                 'Rilevazione: T Ril %.2f, T Rif %.2f - SUPERATA Soglia %s',
                 temperature, reference, self.TEMP_THRESHOLD
             )
 
         else:
 
-            self.log.info(
+            self.log.debug(
                 'Rilevazione: T Ril %.2f, T Rif %.2f - ENTRO Soglia %s',
                 temperature, reference, self.TEMP_THRESHOLD
             )
@@ -203,7 +232,7 @@ class Actuator(Daemon):
                 nuovo_stato = (
                     Switch.ST_ON if reference > temperature else Switch.ST_OFF
                 )
-                self.log.info('Stato sconosciuto: Forzo Commutazione')
+                self.log.warning('Stato sconosciuto: Forzo Commutazione')
 
         res = True
 
@@ -225,7 +254,7 @@ class Actuator(Daemon):
                     nuovo_stato, next_check
                 )
         else:
-            self.log.info(
+            self.log.debug(
                 'Sistema in stato %s - Nessuna commutazione', nuovo_stato)
 
         if res and deltat <= self.TEMP_MAXTHRESHOLD:
@@ -240,7 +269,7 @@ class Actuator(Daemon):
                     (self.SLEEP_TIME * rating) if rating > 0
                     else (self.SLEEP_TIME // abs(rating)))
 
-            self.log.info(
+            self.log.debug(
                 "T Ril %.2f entro soglia massima %s. Fisso prossimo controllo "
                 "tra %s sec in base IST (indice stabilità temperatura) %s",
                 temperature, self.TEMP_MAXTHRESHOLD, next_check, rating)

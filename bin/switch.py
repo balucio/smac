@@ -48,14 +48,20 @@ class Switch(object):
         else:
             return self.ST_UNKNOW
 
+    def set_gpio_pin(self, pin):
+
+        res = self._send_command(SwitcherCom.cmd_gpio_pin.format(pin))
+
+        self._update_timers(
+            SwitcherCom.state_off if res == SwitcherCom.reps_configured
+            else SwitcherCom.state_unknow
+        )
+
+        return res == SwitcherCom.reps_configured
+
     def reload(self, value=None):
 
         res = self._send_command(SwitcherCom.cmd_reload)
-
-        self._update_timers(
-            SwitcherCom.state_off if res == SwitcherCom.resp_reloaded
-            else SwitcherCom.state_unknow
-        )
 
         return res == SwitcherCom.resp_reloaded
 

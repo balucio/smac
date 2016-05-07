@@ -13,6 +13,7 @@ class SwitcherCom(object):
     cmd_on = 'ON'
     cmd_status = 'STATUS'
     cmd_reload = 'RELOAD'
+    cmd_gpio_pin = 'GPIO{0:02d}'
 
     state_on = 'ON'
     state_off = 'OFF'
@@ -21,7 +22,8 @@ class SwitcherCom(object):
     resp_error = 'ERROR'
     resp_timeout = 'TIMEOUT'
     resp_ok = 'OK'
-    resp_reloaded = 'RELOADED'
+    resp_reloading = 'RELOADING'
+    reps_configured = 'CONFIGURED'
 
     def __init__(self, log):
         self._log = log

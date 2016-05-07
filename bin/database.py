@@ -10,9 +10,13 @@ class Database(object):
 
     WATCHDOG_TIMEOUT = 300
 
-    EVT_ALTER_RELE_PIN = 'rele_gpio_pin_no'  # Evento modifica pin GPIO del rele
-    EVT_ALTER_PROGRAM = 'programma_attuale'  # Evento modifica programma attuale
-    EVT_ALTER_SENSOR = 'sensori'             # Evento modifica dati sensori
+    # Eventi
+    EVT_ALTER_RELE_PIN = 'rele_gpio_pin_no'  # modifica pin GPIO del rele
+    EVT_ALTER_PROGRAM = 'programma_attuale'  # modifica programma attuale
+    EVT_ALTER_SENSOR = 'sensori'             # modifica dati sensori
+
+    # Impostazioni
+    DB_SET_PIN_RELE = 'rele_gpio_pin_no'
 
     _db_connection = None
     _db_cur = None
@@ -40,7 +44,7 @@ class Database(object):
         try:
             self._db_cur.execute('SELECT get_setting(%s, %s)', (name, default))
             result = self._db_cur.fetchall()
-            return result[0]
+            return result[0][0]
         except:
             return default
 

@@ -8,7 +8,7 @@ import signal
 
 from daemon import Daemon
 from comunicator import Comunicator
-from logging import DEBUG
+from logging import WARNING
 from os import getpid
 from sys import exit
 from smac_utils import (SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
@@ -16,11 +16,11 @@ from smac_utils import (SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
 
 class Switcher(Daemon):
 
-    DEF_LOG_LEVEL = DEBUG
+    DEF_LOG_LEVEL = WARNING
 
     def __init__(
-        self, pidfile, stdin='/dev/null', stdout='/dev/stdout',
-        stderr='/dev/stderr', logfile='/dev/null', invert_state=False
+        self, pidfile, stdin='/dev/null', stdout='/dev/null',
+        stderr='/dev/null', logfile='/dev/null', invert_state=False
     ):
         super(Switcher, self).__init__(pidfile, stdin, stdout, stderr, logfile)
         self.invert_state = invert_state
@@ -55,6 +55,7 @@ class Switcher(Daemon):
 
         state = self.STATE_OFF
         self.reset_state = True
+        self.pin = None
 
         while True:
 
@@ -92,6 +93,7 @@ class Switcher(Daemon):
                 self.log.warning("Ricarico configurazione...")
                 self.reset_state = True
                 response = "OK:RELOADING"
+                GPIO.cleanup()
 
             elif cmd == 'TIMEOUT':
                 self.log.info("Timeout in lettura")
@@ -114,8 +116,10 @@ class Switcher(Daemon):
         self.reset_state = True
 
     def _cleanup(self, signum, frame):
+
         self.log.warning(
             "Ricevuto segnale %s frame %s: uscita", signum, frame)
+        GPIO.setwarnings(False)
         GPIO.cleanup()
         exit(0)
 
@@ -173,6 +177,7 @@ class Switcher(Daemon):
                     self.log.error(
                         'Impossibile inizializzare il pin GPIO %s', repr(e))
             else:
+                self.comm.send_message(getpid(), 'ERROR', timeout=5)
                 self.log.warning('Ignorato messaggio %s', msg)
 
         return pin

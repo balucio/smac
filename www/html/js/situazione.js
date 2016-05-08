@@ -41,23 +41,28 @@ $(function () {
 		// no point request the last hour else request last minute
 		var interval = pntno <= 0 ? (req_interval * 60) : null;
 
-		var data = { sensor : sensor };
+		var post_data = { sensor : sensor };
 
 		if (!interval) {
 
 			var lastPoint = series.data[pntno-1];
-			data.date_start = (lastPoint.x / 1000) + 1
+			post_data.date_start = (lastPoint.x / 1000) + 1
 
 		} else {
 
-			data.interval = interval;
+			post_data.interval = interval;
 		}
 
 		$.post(
 			'sensor/stats/' + type,
-			data,
+			post_data,
 
-			function(points) {
+			function(data) {
+
+				if (!data.hasOwnProperty("points"))
+					return
+
+				var points = data.points;
 
 				// needs to redraw
 				if (points.length != 0) {
@@ -67,6 +72,9 @@ $(function () {
 					else
 						series.addPoint(points, true, true);
 				}
+
+				// Aggiorno data e ora
+				$('#last-update').text(data.updated)
 			}
 		);
 	}

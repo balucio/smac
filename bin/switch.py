@@ -63,7 +63,7 @@ class Switch(object):
 
         res = self._send_command(SwitcherCom.cmd_reload)
 
-        return res == SwitcherCom.resp_reloaded
+        return res == SwitcherCom.resp_reloading
 
     def on(self):
 

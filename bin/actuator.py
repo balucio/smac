@@ -8,7 +8,7 @@ import datetime
 from daemon import Daemon
 from database import Database
 from switch import Switch
-from logging import DEBUG
+from logging import INFO
 from decimal import Decimal
 from time import sleep
 
@@ -16,7 +16,7 @@ from time import sleep
 class Actuator(Daemon):
 
     SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
-    DEF_LOG_LEVEL = DEBUG
+    DEF_LOG_LEVEL = INFO
 
     TEMP_THRESHOLD = 0.5        # Grado soglia di innesco cambiamento stato
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
@@ -34,6 +34,9 @@ class Actuator(Daemon):
 
         # inizializzo lo switcher inviandogli la configurazione del pi
         self.log.info('Invio configurazione allo switcher')
+        # Lo switcher non configurato ignora ogni comando. Tuttavia
+        # nel caso fosse già configurato ignorerebbe il set_gipio_pin
+        self.sw.reload()
         while not self.sw.set_gpio_pin(self._get_gpio_pin()):
             self.log.error('Impossible configurare lo switcher')
             sleep(30)
@@ -87,8 +90,6 @@ class Actuator(Daemon):
             # attendo eventi sul db fino a delay_check
             if self.db.wait_notification(delay_check):
                 self._check_db_events()
-
-            # time.sleep(delay_check)
 
     def _get_db_connection(self, dbd):
         return Database(dbd['host'], dbd['user'], dbd['pass'], dbd['schema'])
@@ -235,6 +236,13 @@ class Actuator(Daemon):
                 self.log.warning('Stato sconosciuto: Forzo Commutazione')
 
         res = True
+
+        # Inserisco stato caldaia a database
+        self.db.query(
+            'INSERT INTO storico_commutazioni(stato) VALUES(%s)',
+            [None if nuovo_stato is Switch.ST_UNKNOW
+             else nuovo_stato == Switch.ST_ON]
+        )
 
         if nuovo_stato != stato_attuale:
 

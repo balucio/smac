@@ -212,56 +212,53 @@ $(function () {
 
 	// var pchart = getChart('temperatura');
 
-	$( document ).ready(function() {
+	$('#modifica-programma').click(function(){
 
-		$('#modifica-programma').click(function(){
+		var obj = $(this);
 
-			var obj = $(this);
+		var lab = obj.data('altlabel');
+		obj.data('altlabel', obj.text());
+		obj.text(lab);
 
-			var lab = obj.data('altlabel');
-			obj.data('altlabel', obj.text());
-			obj.text(lab);
+		obj.toggleClass('btn-primary');
+		obj.toggleClass('btn-warning');
 
-			obj.toggleClass('btn-primary');
-			obj.toggleClass('btn-warning');
+		var programma = $('#programma');
 
-			var programma = $('#programma');
+		programma.prop('disabled', obj.hasClass('btn-primary'));
+		programma.selectpicker('refresh');
 
-			programma.prop('disabled', obj.hasClass('btn-primary'));
-			programma.selectpicker('refresh');
-
-			// Saving actual program
-			if (programma.is(':disabled')) {
-				$.post(
-					'program/savedefault',
-					{ program : programma.val() },
-					function(data) {
-						if (!data.hasOwnProperty("program") || data.program == null)
-							alert("Impossibile salvare il programma");
-				});
-			}
-		});
-
-		$('#programma').change(function() {
-			requestProgramData($(this).val(), isoDay(), function(reqData) {
-				$('#temperature-riferimento').html(reqData.temp_riferimento);
-				$('#temp_riferimento_attuale').html(reqData.temp_rif_att)
-				createChart(calculateNewChartSeries(reqData));
+		// Saving actual program
+		if (programma.is(':disabled')) {
+			$.post(
+				'program/savedefault',
+				{ program : programma.val() },
+				function(data) {
+					if (!data.hasOwnProperty("program") || data.program == null)
+						alert("Impossibile salvare il programma");
 			});
-		});
+		}
+	});
 
-		// Requesting data
-		requestProgramData(
-			$('#programma').val(),
-			isoDay(),
-			function(reqData) {
-				createChart(calculateNewChartSeries(reqData));
+	$('#programma').change(function() {
+		requestProgramData($(this).val(), isoDay(), function(reqData) {
+			$('#temperature-riferimento').html(reqData.temp_riferimento);
+			$('#temp_riferimento_attuale').html(reqData.temp_rif_att)
+			createChart(calculateNewChartSeries(reqData));
 		});
+	});
+
+	// Requesting data
+	requestProgramData(
+		$('#programma').val(),
+		isoDay(),
+		function(reqData) {
+			createChart(calculateNewChartSeries(reqData));
+	});
 
 		// Boiler status
-		getBoilerStatus()
-		$('#boiler-status-icon').parent().tooltip();
-	});
+	getBoilerStatus()
+	$('#boiler-status-icon').parent().tooltip();
 });
 
 

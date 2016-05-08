@@ -30,8 +30,16 @@ class Database(object):
         self.make_connection()
 
     def query(self, query, params=None):
+
         self._db_cur.execute(query, params)
-        return self._db_cur.fetchall()
+
+        # Hack cerco di capire se è una SELECT o INSERT/UPDATE
+        try:
+            res = self._db_cur.fetchall()
+        except:
+            res = self._db_cur.rowcount
+
+        return res
 
     def lock_table(self, table, lock_mode='ROW EXCLUSIVE'):
         self._db_cur.execute('LOCK %s IN %s MODE' % (table, lock_mode))
@@ -43,8 +51,8 @@ class Database(object):
 
         try:
             self._db_cur.execute('SELECT get_setting(%s, %s)', (name, default))
-            result = self._db_cur.fetchall()
-            return result[0][0]
+            result = self._db_cur.fetchone()
+            return result[0]
         except:
             return default
 

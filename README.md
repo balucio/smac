@@ -101,82 +101,124 @@ Per l'accesso dall'esterno, può essere utile usare HTTPS con muutua autenticazi
 #### Note Tecniche
 Una particolarità dell'approccio allo sviluppo di questo applicativo è proprio il modo in cui viene usato il DB, che è considerato parte integrante dell'applicazione stessa e non solo come "mero" contenitore di dati. Il funzionamento stesso dell'applicazione è strettamente legato al DB, che tramite funzioni e trigger si occupa di elaborare i dati. Postgres è stato scelto proprio per la grande flessibilità di manipolazione dei dati in arrivo tramite regole, funzioni e trigger.
 
-
 ## Installazione
 
-La procedura prevede l'installazione di Apache come WebServer, nel caso in cui tutto fosse installato sul Raspberry, si consiglia di usare un altro WebServer più leggero come **Ngnix**
+Durante la fase di installazione si suppone che i sorgenti siano stati scaricati da GitHub e copiati localmente in una directory del Raspberry. Con `<smac>` viene indicata appunto questa directory.
 
-- Installazione dipendenze
+Se, per esempio, i sorgenti del progetto sono stati scaricati nella home dell'utente standard `pi` del Rasperry, (`/home/pi`) sostituire `<smac>` con `/home/pi/smac`.
 
-        sudo apt-get install postgresql apache2 php5
+La procedura prevede l'installazione di un WebServer, del php dei driver pdo per postgresql e dello stesso database direttamente sul Raspberry. È tuttavia possibile separare i vari componenti installando sul Raspberry solo la parte degli eseguibili in Python.
 
-- Installazione librerie python per il controllo GPIO
+Relativamente al webserver è possibile scegliere tra Apache (httpd) ed nginx, vengono infatti fornite le configurazioni di entrambi. Sicuramente **Ngnix** è più parco di risorse rispetto ad **Apache** pertanto sul Raspberry, si consiglia di installre il primo:
+
+##### Creazione della directory del progetto
+
+Tutti i file necessari vengono installati in
+
+        mkdir /opt/smac
+
+##### Installazione e configurazione del Webserver
+Come anticipato vengono fornite le configurazioni di Ngnix e di Apache2. Se l'installazione è eseguita sul Raspberry si consiglia di installare il primo perchè è più leggero:
+
+- **Ngnix**
+
+    installazione webserver, php e librerie:
+
+       sudo apt-get install nginx php5-cli php5-fpm php5-pgsql
+
+    copia file di configurazione di Ngnix dalla directory del progetto:
+
+        copiare dalla directory del progetto in `/opt/smac` la directory `ngnix`
+
+        sudo cp -R <smac>/ngnix /opt/smac
+
+    installazione della configurazione:
+
+        sudo ln -s /opt/smac/ngnix/smac.conf /etc/ngnix/conf.d/smac.conf
+
+- **Apache2**
+
+    installazione webserver, php e librerie:
+
+        sudo apt-get install httpd php5 php5-cli libapache2-mod-php5 php5-pgsql
+
+    copia file di configurazione di Apache dalla directory del progetto:
+
+        sudo cp -R <smac>/apache2 /opt/smac
+
+   installazione della configurazione:
+
+        sudo ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
+
+    abilitazione del modrewrite:
+
+        sudo a2enmod rewrite
+
+- **Passi in Comune**
+La creazione delle directory dei log sono in comune ad per entrambi i WebServer:
+
+    sudo mkdir -p /opt/smac/log/
+
+##### Installazione librerie python per il controllo GPIO
+
+Per il controllo dei pin sul connettore GPIO l'applicativo utilizza la libreria python:
 
         sudo apt-get install python-rpi.gpio
 
-- Compilazione dei driver Adafruit Python
+##### Compilazione dei driver Adafruit Python
+Per la lettura dei valori rilevati dai sensori di temperatura **DHT11** e **DHT22** viene utilizza la libreria di Adafruit_Python_DHT:
 
         cd <smac>/drivers/Adafruit_Python_DHT/
         python setup.py build
         python setup.py install
-   la directory _Adafruit_Python_DHT_ può essere eliminata dopo l'installazione e la compilazione e l'installazione dei driver.
 
-- Installazione dei binari e configurazione di Apache:
+##### Installazione degli eseguibili python e dell'applicativo Web in php
 
-    - creazione directory base
-    
-            mkdir /opt/smac
-    - copia dei file necessari:
-    
-       copiare in `/opt/smac` le seguenti directory da quella del progetto
-       
-            apache2
-            bin
-            ect
-            www
+Copiare in `/opt/smac` le seguenti directory da quella del progetto:
 
-- Installazione configurazione apache (accertarsi che il mod_rewrite sia installato)
+    bin, ect, www
 
-        ln -s /opt/smac/apache2/smac.conf /etc/apache2/conf.d/smac.conf
-        mkdir /opt/smac/log/
-        chown -R www-data /opt/smac/www
-        chmod +x /opt/smac/bin/*
+Assicurarsi che tutti i file nella directory `bin` siano eseguibili e che i file della directory `www` appartengano all'utente del webserver generalmente `www-data`
+    sudo chmod -R +x /bin
+    sudo chown -R www-data /opt/smac/www
+    sudo chown -R www-data /opt/smac/log
 
-   Abilitazione del modrewrite
-   
-        a2enmod rewrite
+Installare i demoni ''SysVinit'': **collector**, **actuator**, **switcher**,  collegando semplicemente collegare gli script di gestione dalla directory `/opt/smac/etc/init.d/` in `/etc/init.d` e quindi abilitarli usando il comando `update-rc.d`:
 
-- Configurazione e importazione del Database
+        for daemon in collector actuator switcher; do
+          sudo ln -s /opt/smac/etc/init.d/$daemon /etc/init.d/$daemon
+          sudo update-rc.d -f $daemon remove;
+          sudo update-rc.d -f $daemon defaults;
+          sudo update-rc.d -f $daemon enable;
+        done
 
-   Abilitare l'utente smac per la connessione locale con password su "Linux Socket" (localhost) modificando il file pg_hba.conf. Nell'installazione standard tale file dovrebbe trovarsi in /etc/postgresql/9.1/main
+##### Installazione, configurazione e importazione del Database
 
-    Usare l'editor `vi`:
-    
-        vi /etc/postgresql/9.1/main/pg_hba.conf
+Installare il database server Postgresql
+
+    sudo apt-get install postgresql
+
+Abilitare l'utente `smac` per la connessione locale con password su "Linux Socket" (localhost) modificando il file pg_hba.conf. Nell'installazione standard tale file dovrebbe trovarsi in `/etc/postgresql/9.1/main`
+Usado l'editor `vi`:
+
+        sudo vi /etc/postgresql/9.1/main/pg_hba.conf
 
     Aggiungere la seguente riga
 
         # TYPE  DATABASE        USER            METHOD
         local   smac            smac            password
 
-   Usare l'utente postgres per importare il database, che contiene la struttura e i dati minimali per consentire il funzionamento dell'applicativo.
+Riaviare il database:
+
+        sudo /etc/init.d/postgresql restart
+
+Usare l'utente _postgresq_ per connettersi al database ed eseguire l'importazione dei dati.
 
         su postgresq
         psql < "/opt/smac/database/postgres_database_schema.sql"
 
-- Installazione e configurazione dei demoni
-    usando il comando `ln` collegare i demoni **collector**, **actuator**, **switcher** da /opt/smac/etc/init.d/ in /etc/init.d
-
-        ln -s /opt/smac/etc/init.d/<nome_demone> /etc/init.d/<nome_demone>
-
-    procedere quindi all'installazione usando:
-    
-        for daemon in collector, actuator, switcher; do sudo update-rc.d -f $daemon remove; done
-        for daemon in collector, actuator, switcher; do sudo update-rc.d -f $daemon defaults; done
-
-- Configurazione dei cron job
-    Installare un cronjob che ha il compito di aggiornare la situazione giornaliera sul database:
+##### Configurazione cron
+Uno script si occupa di generare le statistiche giornaliere relative alle misurazioni registrate dai sensori. È necessario che tale script venga pianificato giornalmente come job di cron affinchè le statiche vengano generate correttamente:
 
         chmod +x /opt/smac/etc/cron.daily/update_stats
         ln -s /opt/smac/etc/cron.daily/update_stats /etc/cron.daily/update_stats
-

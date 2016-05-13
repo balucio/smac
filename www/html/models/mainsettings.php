@@ -7,6 +7,14 @@ class MainSettingsModel {
 		$db = null
 	;
 
+	private static $s =[
+		'manualSensor' => [ Db::CURR_MANUAL_SENSOR, 0 ],
+		'antifreezeSensor' => [ Db::CURR_ANTIFREEZE_SENSOR, 0 ],
+		'manualTemp' => [ Db::CURR_MANUAL_TEMP, 20 ],
+		'antifreezeTemp' => [ Db::CURR_ANTIFREEZE_TEMP, 5 ],
+		'pinRele' => [ Db::CURR_GPIO_PIN_RELE, 24 ]
+	];
+
 	public function __construct() {
 
 		$this->db = Db::get();
@@ -21,52 +29,19 @@ class MainSettingsModel {
 
 	public function __set($d, $v) {
 
-		$setting_name = null;
 
-		switch ($d) {
-
-			case 'manualSensor' : $setting_name = Db::CURR_MANUAL_SENSOR;
-				break;
-
-			case 'antifreezeSensor' : $setting_name = Db::CURR_ANTIFREEZE_SENSOR;
-				break;
-
-			case 'manualTemp' : $setting_name = Db::CURR_MANUAL_TEMP;
-				break;
-
-			case 'antifreezeTemp' : $setting_name = Db::CURR_ANTIFREEZE_TEMP;
-
-			case 'pinRele' : $setting_name = Db::CURR_GPIO_PIN_RELE;
-		}
-
-		if ($setting_name != null)
-			$this->db->saveSetting($setting_name, $v);
+		if (isset(self::$s[$d]))
+			$this->db->saveSetting(self::$s[$d][0], $v);
 	}
 
 	public function __get($d) {
+		if ($d == 'list')
+			return $this->getList();
 
-		switch ($d) {
-			case 'list' :
-				return $this->getList();
+		if (isset(self::$s[$d]))
+			return $this->db->readSetting(self::$s[$d][0], self::$s[$d][1]);
 
-			case 'manualSensor' :
-				return $this->db->readSetting(Db::CURR_MANUAL_SENSOR, 0);
-
-			case 'antifreezeSensor' :
-				return $this->db->readSetting(Db::CURR_ANTIFREEZE_SENSOR, 0);
-
-			case 'manualTemp' :
-				return $this->db->readSetting(Db::CURR_MANUAL_TEMP, 20);
-
-			case 'antifreezeTemp' :
-				return $this->db->readSetting(Db::CURR_ANTIFREEZE_TEMP, 5);
-
-			case 'pinRele' :
-				return $this->db->readSetting(Db::CURR_GPIO_PIN_RELE, 24);
-
-			default:
-				return null;
-		}
+		return null;
 	}
 
 	private function getList() {

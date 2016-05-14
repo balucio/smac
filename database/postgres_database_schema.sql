@@ -1255,6 +1255,8 @@ INSERT INTO impostazioni VALUES ('programma_anticongelamento_sensore', '0');
 INSERT INTO impostazioni VALUES ('programma_manuale_nome', 'Manuale');
 INSERT INTO impostazioni VALUES ('programma_manuale_descrizione', 'Il sistema proverà a mantenere la temperatura impostata manualmente');
 INSERT INTO impostazioni VALUES ('programma_manuale_sensore', '0');
+INSERT INTO impostazioni VALUES ('sensore_media_nome', 'Media');
+INSERT INTO impostazioni VALUES ('sensore_media_descrizione', 'Sensore virtuale che rappresenta il valor medio delle grandezze misurate dai sensori che ne contribuiscono al calcolo');
 INSERT INTO impostazioni VALUES ('temperatura_anticongelamento', '5');
 INSERT INTO impostazioni VALUES ('temperatura_manuale', '20');
 INSERT INTO impostazioni VALUES ('rele_gpio_pin_no', '4');

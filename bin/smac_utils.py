@@ -36,7 +36,7 @@ def read_db_config():
 
         fd = open(DBCONFIG, "r")
         data = fd.read()
-        rx = re.compile(r'const[^\w]+(\w+)[^=]+[^\w]+(\w+)', re.MULTILINE)
+        rx = re.compile(r'const[^\w]+(\w+)[^=]+[^\w]+([\w\._]+)', re.MULTILINE)
         raw_set = [m.groups() for m in rx.finditer(data)]
         db_set = {}
         for s in raw_set:

@@ -4,35 +4,35 @@ class SwitcherView extends BaseView {
 
 	public function render() {
 
-		if (is_string($this->model->result))
+		$stato = isset($this->model->result['stato'])
+			? $this->model->result['stato']
+			: null;
+		$data_ora = isset($this->model->result['data_ora'])
+			? $this->model->result['data_ora']
+			: 'now';
 
-			switch ($this->model->result) {
-				case 'ON':
-					$classes = 'fa fa-fire status on';
-					$title = 'title-status-on';
-					break;
-				case 'OFF':
-					$classes = 'fa fa-fire status off';
-					$title = 'title-status-off';
-					break;
-				default:
-					$classes = 'fa fa-exclamation-circle status undefined';
-					$title = 'title-status-unknow';
-			}
+		$dec = new Decorator();
+        $updated = $dec->decorateDateTime($data_ora);
 
-		else if (is_bool($this->model->result)) {
-			$classes = $this->model->result ? 'success' : 'danger';
-			$title = ''; // TODO
-		}
-		else {
-			$classes = 'fa fa-exclamation-triangle status undefined';
-			$title = 'title-op-error'; // TODO
+		switch ($stato) {
+			case True:
+				$classes = 'fa fa-fire status on';
+				$title = 'title-status-on';
+				break;
+			case False:
+				$classes = 'fa fa-fire status off';
+				$title = 'title-status-off';
+				break;
+			default:
+				$classes = 'fa fa-exclamation-circle status undefined';
+				$title = 'title-status-unknow';
 		}
 
 		$result = (object)[
-			'result' => $this->model->result,
+			'result' => $stato,
 			'classes' => $classes,
-			'title' => $title
+			'title' => $title,
+			'updated' => $updated
 		];
 		return json_encode($result, JSON_NUMERIC_CHECK);
 	}

@@ -38,13 +38,15 @@ class Comunicator(object):
 
     def send_message(self, pid, message, timeout=None):
 
-        open_sleep = timeout / self.WRITE_ATTEMPTS
         curr_attempt = 0
         open_attempts = self.WRITE_ATTEMPTS
         mode = os.O_WRONLY
 
         if timeout is not None:
             mode |= os.O_NONBLOCK
+            open_sleep = timeout / self.WRITE_ATTEMPTS
+        else:
+            open_sleep = 0.1
 
         # Write non bloccante se c'è un timeout ma devo rispettarlo
         while curr_attempt <= open_attempts:
@@ -125,11 +127,13 @@ class Comunicator(object):
 
     def _create_pipe(self, pipe_name):
 
+        self._log.debug("Creo pipe %s", pipe_name)
         try:
             if not os.path.exists(pipe_name):
                 os.mkfifo(pipe_name)
         except Exception as e:
             self._log.error("Errore creazione pipe %s: %s", pipe_name, repr(e))
+            raise
 
     def _read_line(self, pipe):
 
@@ -155,7 +159,7 @@ class Comunicator(object):
         ph = None
 
         try:
-            self._create_pipe(name)
+            # self._create_pipe(name)
             ph = os.open(name, mode)
         except (OSError, IOError) as e:
             self._log.debug(

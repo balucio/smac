@@ -78,10 +78,10 @@ class Programma implements JsonSerializable {
 			}
 
 			$this->dettaglio[$i][] = $dp;
-
 			// Calcolo temperatura attuale.
-			if ($nd == $dp->giorno && $dt <= $dp->intervallo)
+			if ($nd == $dp->giorno && $dp->intervallo <= $dt) {
 				$this->rif_temp_attuale = $dp->t_rif_valore;
+			}
 		}
 	}
 
@@ -101,7 +101,6 @@ class Programma implements JsonSerializable {
 	public function __isset($v) { return property_exists($this, $v); }
 
 	public function __get($v) { return $this->$v; }
-
 
 	private function parseTemps($t) {
 

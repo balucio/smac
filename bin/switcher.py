@@ -7,27 +7,32 @@ import RPi.GPIO as GPIO
 import signal
 
 from daemon import Daemon
-from database import Database
 from comunicator import Comunicator
-from logging import DEBUG
-from os import (getpid, kill)
+from logging import WARNING
+from os import getpid
 from sys import exit
-from smac_utils import (
-    read_db_config, SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
+from smac_utils import (SWITCHER_PIPE_IN, SWITCHER_PIPE_OUT)
 
 
 class Switcher(Daemon):
 
-    DEF_LOG_LEVEL = DEBUG
+    DEF_LOG_LEVEL = WARNING
 
-    def __init__(self, pidfile, stdin='/dev/null', stdout='/dev/null',
-                 stderr='/dev/null', logfile='/dev/null', invert_state=False):
-
+    def __init__(
+        self, pidfile, stdin='/dev/null', stdout='/dev/null',
+        stderr='/dev/null', logfile='/dev/null', invert_state=False
+    ):
         super(Switcher, self).__init__(pidfile, stdin, stdout, stderr, logfile)
+        self.invert_state = invert_state
 
-        self.db = self._get_db_connection(read_db_config())
+    def run(self):
 
-        if invert_state:
+        # Configuro le pipe di comunicazione
+        self.comm = Comunicator(
+            Comunicator.MODE_SERVER, SWITCHER_PIPE_IN,
+            SWITCHER_PIPE_OUT, self.log)
+
+        if self.invert_state:
 
             self.STATE_ON, self.STATE_OFF = GPIO.LOW, GPIO.HIGH
             self.log.debug(
@@ -40,8 +45,6 @@ class Switcher(Daemon):
                 'Stato ON -> GPIO.HIGH (%s), Stato OFF -> GPIO.LOW (%s)',
                 GPIO.HIGH, GPIO.LOW)
 
-    def run(self):
-
         # Init GPIO Board
         self.log.debug(
             'Inizializzazione GPIO: revisione %s', GPIO.RPI_REVISION)
@@ -50,23 +53,20 @@ class Switcher(Daemon):
         signal.signal(signal.SIGHUP, self._load_config)
         signal.signal(signal.SIGTERM, self._cleanup)
 
-        # Configuro le pipe di comunicazione
-        comm = Comunicator(
-            Comunicator.MODE_SERVER, SWITCHER_PIPE_IN,
-            SWITCHER_PIPE_OUT, self.log)
-
+        state = self.STATE_OFF
         self.reset_state = True
+        self.pin = None
 
         while True:
 
-            # Inizializzo la prima volta e al cambio configurazione
             if self.reset_state:
-                self.pin = self._init_gpio_state(self.STATE_OFF)
+                # In attesa di configurazione pin GPIO
+                self.pin = self._wait_for_gpio_pin()
                 state = self.STATE_OFF
                 self.reset_state = False
 
-            # In ascolto sul canale di comunicazione
-            msg = comm.read_message(None)
+            # Attendo un nuovo comando
+            msg = self.comm.read_message(None)
             cmd = msg[1]
             self.log.debug("Ricevuto comando: %s", cmd)
 
@@ -90,20 +90,22 @@ class Switcher(Daemon):
                 response = 'OK:%s' % (self._get_pin_status(self.pin, state))
 
             elif cmd == 'RELOAD':
-                kill(getpid(), signal.SIGHUP)
-                self.log.warning("RIPARTO")
-                response = 'OK:RELOADED'
+                self.log.warning("Ricarico configurazione...")
+                self.reset_state = True
+                response = "OK:RELOADING"
+                GPIO.cleanup()
 
             elif cmd == 'TIMEOUT':
                 self.log.info("Timeout in lettura")
                 continue
+
             else:
                 response = 'ERROR'
 
             self.log.debug("Invio risposta: %s", response)
-            # Aspetto che l'actuator si metta in read sulla pipe
+            # Attendo qualche istante per sincronizzare l'actuator
             time.sleep(0.5)
-            comm.send_message(getpid(), response, timeout=15)
+            self.comm.send_message(getpid(), response, timeout=15)
 
     def _load_config(self, signum, frame):
         self.log.warning(
@@ -113,21 +115,11 @@ class Switcher(Daemon):
         GPIO.cleanup()
         self.reset_state = True
 
-    def _init_gpio_state(self, state):
-        # Modo numerazione pin: Broadcom's SoC
-        GPIO.setmode(GPIO.BCM)
-
-        # Init del ping gipio
-        pin = self._get_gpio_pin(self._get_valid_pins(GPIO.RPI_REVISION))
-
-        # Init del relè default off
-        GPIO.setup(pin, GPIO.OUT, initial=state)
-
-        return pin
-
     def _cleanup(self, signum, frame):
+
         self.log.warning(
             "Ricevuto segnale %s frame %s: uscita", signum, frame)
+        GPIO.setwarnings(False)
         GPIO.cleanup()
         exit(0)
 
@@ -160,48 +152,35 @@ class Switcher(Daemon):
         self.log.debug("Pin: %s stato %s", pin, state)
         return state
 
-    def _get_db_connection(self, dbd):
-        return Database(dbd['host'], dbd['user'], dbd['pass'], dbd['schema'])
+    def _wait_for_gpio_pin(self):
 
-    def _get_gpio_pin(self, pins):
+        pin = None
 
-        #  Ciclo fino a quando non ottengo un pin del GPIO valido
-        while True:
+        self.log.info("Attendo configurazione pin GPIO")
 
-            raw = self.db.query("SELECT get_setting('rele_gpio_pin_no')")
-            self.log.debug('Lettura pin GPIO del relè: %s', raw)
+        while pin is None:
+            msg = self.comm.read_message(None)
+            gpio = msg[1]
 
-            if len(raw) == 1:
-                pin = 'GPIO{0:02d}'.format(int(raw[0][0]))
-                if pin in pins:
-                    self.log.info('Uso Pin GPIO %s', pin)
-                    break
-                else:
-                    self.log.error('Pin GPIO %s impostato non è valido', pin)
-                    #raise ValueError('PIN GPIO % non è valido' % pin)
+            if 'GPIO' in gpio:
+                try:
+                    pin = int(gpio[-2:])
+                    # Modo numerazione pin: Broadcom's SoC
+                    GPIO.setmode(GPIO.BCM)
+                    # Init del relè default off
+                    GPIO.setup(pin, GPIO.OUT, initial=self.STATE_OFF)
+                    self.log.info('Configuro GPIO %s per Relè', pin)
+                    self.comm.send_message(getpid(), 'OK:CONFIGURED')
 
-            # Tento rilettura tra due minuti
-            time.sleep(240)
+                except Exception as e:
+                    pin = None
+                    self.log.error(
+                        'Impossibile inizializzare il pin GPIO %s', repr(e))
+            else:
+                self.comm.send_message(getpid(), 'ERROR', timeout=5)
+                self.log.warning('Ignorato messaggio %s', msg)
 
-        return int(pin[-2:])
-
-    def _get_valid_pins(self, revision):
-
-        pins = ['GPIO04', 'GPIO07', 'GPIO08', 'GPIO09', 'GPIO10', 'GPIO11',
-                'GPIO17', 'GPIO18', 'GPIO22', 'GPIO23', 'GPIO24']
-
-        if revision == 1:
-            pins.extend(['GPIO21'])
-
-        elif revision >= 2:
-            pins.extend(['GPIO27'])
-
-            if revision > 2:
-                pins.extend(['GPIO05', 'GPIO06', 'GPIO12',
-                             'GPIO13', 'GPIO16', 'GPIO19',
-                             'GPIO20', 'GPIO21', 'GPIO26'])
-        return pins
-
+        return pin
 
 SWITCHER_LOG = '/opt/smac/log/switcher.log'
 SWITCHER_PID = '/var/run/switcher/switcher.pid'

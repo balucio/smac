@@ -1369,6 +1369,23 @@ ALTER TABLE public.sensori_id_sensore_seq OWNER TO smac;
 
 ALTER SEQUENCE sensori_id_sensore_seq OWNED BY sensori.id_sensore;
 
+--
+-- Data for Name: sensori; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+INSERT INTO sensori(
+	id_sensore, nome_sensore, descrizione, posizione, abilitato, 
+	incluso_in_media, id_driver, ultimo_aggiornamento, parametri)
+VALUES	( 1, 'Tinello', 'Sensore Tinello' , null, true,  
+	true, 1, '2016-05-12 00:01:30.3256'::timestamp, '--pin=40'),
+	(2, 'Corridoio', 'Sensore nel corridio', null, true,
+	true, 1, '2016-05-12 00:01:30.3256'::timestamp, '--pin=22');
+
+--
+-- Name: sensori_id_sensore_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('sensori_id_sensore_seq', 2, true);
 
 --
 -- Name: situazione; Type: TABLE; Schema: public; Owner: smac; Tablespace:
@@ -1533,6 +1550,12 @@ ALTER TABLE ONLY misurazioni
 ALTER TABLE ONLY programmi
     ADD CONSTRAINT un_nome_programma UNIQUE (nome_programma);
 
+
+--
+-- Name: data_ora_misurazione_asc; Type: INDEX; Schema: public; Owner: smac; Tablespace:
+--
+
+CREATE INDEX data_ora_misurazione_asc ON misurazioni USING btree (data_ora);
 
 --
 -- Name: un_nome_sensore; Type: INDEX; Schema: public; Owner: smac; Tablespace:

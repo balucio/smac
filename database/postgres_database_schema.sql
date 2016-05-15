@@ -43,6 +43,19 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
+-- Name: eventi_commutazione; Type: TYPE; Schema: public; Owner: smac
+--
+
+CREATE TYPE eventi_commutazione AS (
+  inizio timestamp without time zone,
+  durata interval,
+  stato boolean
+);
+
+
+ALTER TYPE public.eventi_commutazione OWNER TO smac;
+
+--
 -- Name: parametri_sensore; Type: TYPE; Schema: public; Owner: smac
 --
 
@@ -87,9 +100,9 @@ ALTER TYPE public.report_programma OWNER TO smac;
 CREATE TYPE report_sensore AS (
 	data_ora timestamp without time zone,
 	id_sensore smallint,
-	nome_sesore character varying,
-	temperatura numeric(9,4),
-	umidita numeric(9,4)
+	nome_sensore character varying,
+	temperatura numeric,
+	umidita numeric
 );
 
 
@@ -931,10 +944,7 @@ ALTER FUNCTION public.notifica_modifica() OWNER TO smac;
 CREATE FUNCTION notifica_modifica_configurazione() RETURNS trigger
     LANGUAGE plpgsql COST 10
     AS $$BEGIN
-
-  IF OLD.valore <> NEW.valore THEN
-    PERFORM pg_notify(new.nome,  new.valore);
-  END IF;
+  PERFORM pg_notify(OLD.nome,  new.valore);
   return new;
 END;$$;
 
@@ -1078,19 +1088,79 @@ END$$;
 ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWNER TO smac;
 
 --
+-- Name: report_commutazioni(timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT '2016-05-15 00:00:00'::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  start_date timestamp without time zone;
+BEGIN
+  IF data_inizio IS NULL THEN
+    data_inizio = 'today'::timestamp without time zone;
+  END IF;
+
+  IF data_fine IS NULL THEN
+    data_fine = NOW();
+  END IF;
+
+  -- Trovo la data precedente più vicina a data_inizio
+  SELECT data_ora INTO start_date 
+    FROM storico_commutazioni
+   WHERE data_ora <= data_inizio
+      ORDER BY data_ora DESC
+         LIMIT 1;
+
+  IF start_date IS NULL THEN
+    start_date = data_inizio;
+  END IF;
+
+  RAISE NOTICE 'PARAM % %, CALC %', data_inizio, data_fine, start_date;
+
+  RETURN QUERY
+    SELECT data_ora,
+           LEAD(data_ora,1, 'NOW') OVER (order by data_ora) - data_ora,
+           stato
+      FROM (
+      SELECT row_number() over() riga,
+        GREATEST (data_ora, data_inizio) data_ora,
+             stato
+        FROM (
+        SELECT LAG(stato) OVER (ORDER BY data_ora) stato_precedente,
+               data_ora,
+               stato
+          FROM (
+          SELECT *
+            FROM storico_commutazioni
+          UNION SELECT *
+            FROM ultima_commutazione
+               ) storico_completo
+         WHERE data_ora BETWEEN start_date AND data_fine
+            ORDER BY data_ora
+       
+        ) storico WHERE stato_precedente IS DISTINCT FROM stato
+     ) storico;
+END;$$;
+
+
+ALTER FUNCTION public.report_commutazioni(data_inizio timestamp without time zone, data_fine timestamp without time zone) OWNER TO smac;
+
+--
 -- Name: report_misurazioni(smallint, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
 CREATE FUNCTION report_misurazioni(pid_sensore smallint, data_ora_inizio timestamp without time zone DEFAULT (now() - '01:00:00'::interval), data_ora_fine timestamp without time zone DEFAULT now()) RETURNS SETOF report_sensore
     LANGUAGE plpgsql
     AS $$DECLARE
+   nome_sensore_media VARCHAR;
 BEGIN
     -- se null o 0 si tratta della media
     IF pid_sensore IS NULL OR pid_sensore = 0  THEN
         RETURN QUERY
             SELECT date_trunc('minute', misurazioni.data_ora) as tr_data_ora,
                    0::smallint,
-                   'Media'::varchar,
+		   get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar,
                    AVG(misurazioni.temperatura)::numeric(9,4),
                    AVG(misurazioni.umidita)::numeric(9,4)
               FROM misurazioni
@@ -1119,6 +1189,48 @@ END;$$;
 
 
 ALTER FUNCTION public.report_misurazioni(pid_sensore smallint, data_ora_inizio timestamp without time zone, data_ora_fine timestamp without time zone) OWNER TO smac;
+
+--
+-- Name: report_sensori(timestamp without time zone, timestamp without time zone, integer); Type: FUNCTION; Schema: public; Owner: smac
+--
+
+CREATE FUNCTION report_sensori(data_ora_inizio timestamp without time zone DEFAULT '2016-05-14 00:00:00'::timestamp without time zone, data_ora_fine timestamp without time zone DEFAULT now(), precisione integer DEFAULT 100) RETURNS SETOF report_sensore
+    LANGUAGE plpgsql
+    AS $$DECLARE
+  min_data_ora timestamp without time zone;
+  max_data_ora timestamp without time zone;
+  delta_sec bigint;
+BEGIN
+  SELECT min(data_ora), max(data_ora)
+    INTO min_data_ora, max_data_ora 
+    FROM misurazioni 
+   WHERE data_ora BETWEEN data_ora_inizio 
+     AND data_ora_fine;
+
+  delta_sec = date_part('epoch', max_data_ora - min_data_ora)::bigint / precisione;
+  IF delta_sec = 0 THEN
+    RETURN;
+  END IF;
+
+        RETURN QUERY
+            SELECT MIN(misurazioni.data_ora) as data_ora,
+                   misurazioni.id_sensore,
+                   sensori.nome_sensore,
+                   AVG(misurazioni.temperatura)::numeric(9,4) temperatura,
+                   AVG(misurazioni.umidita)::numeric(9,4) umidita
+              FROM misurazioni
+        INNER JOIN sensori
+                ON (sensori.id_sensore = misurazioni.id_sensore)
+             WHERE misurazioni.data_ora BETWEEN data_ora_inizio AND data_ora_fine
+          GROUP BY misurazioni.id_sensore,
+                   sensori.nome_sensore,
+                   date_trunc('seconds', (misurazioni.data_ora - min_data_ora)::interval(0) / delta_sec)
+          ORDER BY misurazioni.id_sensore, data_ora;
+
+END;$$;
+
+
+ALTER FUNCTION public.report_sensori(data_ora_inizio timestamp without time zone, data_ora_fine timestamp without time zone, precisione integer) OWNER TO smac;
 
 --
 -- Name: set_setting(character varying, text); Type: FUNCTION; Schema: public; Owner: smac
@@ -1175,19 +1287,6 @@ CREATE TABLE dettaglio_programma (
 ALTER TABLE public.dettaglio_programma OWNER TO smac;
 
 --
--- Name: driver_sensori; Type: TABLE; Schema: public; Owner: smac; Tablespace:
---
-
-CREATE TABLE driver_sensori (
-    id smallint NOT NULL,
-    nome character varying(16),
-    parametri character varying(64)
-);
-
-
-ALTER TABLE public.driver_sensori OWNER TO smac;
-
---
 -- Name: driver_sensori_id_driver_seq; Type: SEQUENCE; Schema: public; Owner: smac
 --
 
@@ -1201,21 +1300,18 @@ CREATE SEQUENCE driver_sensori_id_driver_seq
 
 ALTER TABLE public.driver_sensori_id_driver_seq OWNER TO smac;
 
-
 --
--- Data for Name: driver_sensori; Type: TABLE DATA; Schema: public; Owner: smac
---
-
-INSERT INTO driver_sensori VALUES (1, 'DHT11', '--sensor=11 --retries=7 --delay_seconds=3');
-INSERT INTO driver_sensori VALUES (2, 'DHT22', '--sensor=22 --retries=7 --delay_seconds=3');
-
---
--- Name: driver_sensori_id_driver_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+-- Name: driver_sensori; Type: TABLE; Schema: public; Owner: smac; Tablespace:
 --
 
-SELECT pg_catalog.setval('driver_sensori_id_driver_seq', 2, true);
+CREATE TABLE driver_sensori (
+    id smallint DEFAULT nextval('driver_sensori_id_driver_seq'::regclass) NOT NULL,
+    nome character varying(16),
+    parametri character varying(64)
+);
 
 
+ALTER TABLE public.driver_sensori OWNER TO smac;
 
 --
 -- Name: impostazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace:
@@ -1242,24 +1338,6 @@ COMMENT ON COLUMN impostazioni.nome IS 'Nome della voce di impostazione';
 
 COMMENT ON COLUMN impostazioni.valore IS 'Valore della voce di impostazione';
 
---
--- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: smac
---
-
-INSERT INTO impostazioni VALUES ('programma_attuale', '-1');
-INSERT INTO impostazioni VALUES ('programma_spento_nome', 'Spento');
-INSERT INTO impostazioni VALUES ('programma_spento_descrizione', 'Il sistema rimarrà sempre spento, indipendentemente dalle temperature registrate');
-INSERT INTO impostazioni VALUES ('programma_anticongelamento_nome', 'Anticongelamento');
-INSERT INTO impostazioni VALUES ('programma_anticongelamento_descrizione', 'Il sistema si accenderà solo per evitare il congelamento. Cioè quando la temperatura ambientale scenderà al di sotto di quella rilevata da sensore di anticongelamento');
-INSERT INTO impostazioni VALUES ('programma_anticongelamento_sensore', '0');
-INSERT INTO impostazioni VALUES ('programma_manuale_nome', 'Manuale');
-INSERT INTO impostazioni VALUES ('programma_manuale_descrizione', 'Il sistema proverà a mantenere la temperatura impostata manualmente');
-INSERT INTO impostazioni VALUES ('programma_manuale_sensore', '0');
-INSERT INTO impostazioni VALUES ('sensore_media_nome', 'Media');
-INSERT INTO impostazioni VALUES ('sensore_media_descrizione', 'Sensore virtuale che rappresenta il valor medio delle grandezze misurate dai sensori che ne contribuiscono al calcolo');
-INSERT INTO impostazioni VALUES ('temperatura_anticongelamento', '5');
-INSERT INTO impostazioni VALUES ('temperatura_manuale', '20');
-INSERT INTO impostazioni VALUES ('rele_gpio_pin_no', '4');
 
 --
 -- Name: misurazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace:
@@ -1371,23 +1449,6 @@ ALTER TABLE public.sensori_id_sensore_seq OWNER TO smac;
 
 ALTER SEQUENCE sensori_id_sensore_seq OWNED BY sensori.id_sensore;
 
---
--- Data for Name: sensori; Type: TABLE DATA; Schema: public; Owner: smac
---
-
-INSERT INTO sensori(
-	id_sensore, nome_sensore, descrizione, posizione, abilitato, 
-	incluso_in_media, id_driver, ultimo_aggiornamento, parametri)
-VALUES	( 1, 'Tinello', 'Sensore Tinello' , null, true,  
-	true, 1, '2016-05-12 00:01:30.3256'::timestamp, '--pin=40'),
-	(2, 'Corridoio', 'Sensore nel corridio', null, true,
-	true, 1, '2016-05-12 00:01:30.3256'::timestamp, '--pin=22');
-
---
--- Name: sensori_id_sensore_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
---
-
-SELECT pg_catalog.setval('sensori_id_sensore_seq', 2, true);
 
 --
 -- Name: situazione; Type: TABLE; Schema: public; Owner: smac; Tablespace:
@@ -1404,6 +1465,17 @@ CREATE TABLE situazione (
 
 
 ALTER TABLE public.situazione OWNER TO smac;
+
+--
+-- Name: start_date; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+--
+
+CREATE TABLE start_date (
+    data_ora timestamp without time zone
+);
+
+
+ALTER TABLE public.start_date OWNER TO smac;
 
 --
 -- Name: storico_commutazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
@@ -1430,13 +1502,6 @@ CREATE TABLE ultima_commutazione (
 ALTER TABLE public.ultima_commutazione OWNER TO smac;
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: smac
---
-
-ALTER TABLE ONLY driver_sensori ALTER COLUMN id SET DEFAULT nextval('driver_sensori_id_driver_seq'::regclass);
-
-
---
 -- Name: id_misurazione; Type: DEFAULT; Schema: public; Owner: smac
 --
 
@@ -1456,6 +1521,135 @@ ALTER TABLE ONLY programmi ALTER COLUMN id_programma SET DEFAULT nextval('progra
 
 ALTER TABLE ONLY sensori ALTER COLUMN id_sensore SET DEFAULT nextval('sensori_id_sensore_seq'::regclass);
 
+--
+-- Data for Name: dettaglio_programma; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+COPY dettaglio_programma (id_programma, giorno, ora, t_riferimento) FROM stdin;
+1	1	00:00:00	0
+1	1	05:00:00	2
+1	1	06:00:00	3
+1	1	07:00:00	4
+1	1	17:00:00	3
+1	1	18:00:00	4
+1	3	00:00:00	1
+1	3	05:00:00	2
+1	3	06:00:00	3
+1	3	07:00:00	4
+1	3	17:00:00	3
+1	3	18:00:00	4
+1	4	00:00:00	1
+1	4	05:00:00	2
+1	4	06:00:00	3
+1	4	07:00:00	4
+1	4	17:00:00	3
+1	4	18:00:00	4
+1	5	00:00:00	1
+1	5	05:00:00	2
+1	5	06:00:00	3
+1	5	07:00:00	4
+1	5	17:00:00	3
+1	5	18:00:00	4
+1	6	00:00:00	1
+1	6	06:00:00	3
+1	6	20:30:00	1
+1	7	00:00:00	1
+1	7	06:00:00	3
+1	7	20:30:00	1
+1	1	21:00:00	1
+1	2	00:00:00	1
+1	2	05:00:00	2
+1	2	06:00:00	3
+1	2	07:00:00	4
+1	2	17:00:00	3
+1	2	18:00:00	4
+1	2	21:00:00	1
+1	3	21:00:00	1
+1	4	21:00:00	1
+1	5	21:00:00	1
+1	1	07:45:00	1
+1	3	07:45:00	1
+1	4	07:45:00	1
+1	5	07:45:00	1
+1	2	07:45:00	1
+\.
+
+
+--
+-- Data for Name: driver_sensori; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+COPY driver_sensori (id, nome, parametri) FROM stdin;
+1	DHT11	--sensor=11 --retries=7 --delay_seconds=3
+2	DHT22	--sensor=22 --retries=7 --delay_seconds=3
+\.
+
+
+--
+-- Name: driver_sensori_id_driver_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('driver_sensori_id_driver_seq', 2, true);
+
+
+--
+-- Data for Name: impostazioni; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+COPY impostazioni (nome, valore) FROM stdin;
+programma_spento_nome	Spento
+programma_spento_descrizione	Il sistema rimarrà sempre spento, indipendentemente dalle temperature registrate
+programma_anticongelamento_nome	Anticongelamento
+programma_anticongelamento_descrizione	Il sistema si accenderà solo per evitare il congelamento. Cioè quando la temperatura ambientale scenderà al di sotto di quella rilevata da sensore di anticongelamento
+programma_manuale_nome	Manuale
+programma_manuale_descrizione	Il sistema proverà a mantenere la temperatura impostata manualmente
+programma_anticongelamento_sensore	0
+temperatura_anticongelamento	5
+programma_manuale_sensore	0
+temperatura_manuale	22
+rele_gpio_pin_no	24
+	0
+programma_attuale	1
+\.
+
+--
+-- Name: misurazioni_id_misurazione_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('misurazioni_id_misurazione_seq', 1, true);
+
+
+--
+-- Name: programma_id_programma_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('programma_id_programma_seq', 1, true);
+
+
+--
+-- Data for Name: programmi; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+COPY programmi (id_programma, nome_programma, descrizione_programma, temperature_rif, sensore_rif) FROM stdin;
+1	Settimana standard	Programma per una settimana standard, con fine settimana non lavorativo. Mantiene caldo solo in orari necessari, usando la media dei sensori come riferimento	{18.0000,19.0000,20.0000,21.0000}	0
+\.
+
+
+--
+-- Data for Name: sensori; Type: TABLE DATA; Schema: public; Owner: smac
+--
+
+COPY sensori (id_sensore, nome_sensore, descrizione, posizione, abilitato, incluso_in_media, id_driver, ultimo_aggiornamento, parametri) FROM stdin;
+2	Corridoio	Sensore nel corridio	\N	t	t	1	2016-05-15 16:01:02.954186	--pin=22
+1	Tinello	Sensore Tinello	\N	t	t	1	2016-05-15 16:01:02.954186	--pin=4
+\.
+
+
+--
+-- Name: sensori_id_sensore_seq; Type: SEQUENCE SET; Schema: public; Owner: smac
+--
+
+SELECT pg_catalog.setval('sensori_id_sensore_seq', 2, true);
 
 --
 -- Name: dati_giornalieri_pkey; Type: CONSTRAINT; Schema: public; Owner: smac; Tablespace:
@@ -1559,6 +1753,7 @@ ALTER TABLE ONLY programmi
 
 CREATE INDEX data_ora_misurazione_asc ON misurazioni USING btree (data_ora);
 
+
 --
 -- Name: un_nome_sensore; Type: INDEX; Schema: public; Owner: smac; Tablespace:
 --
@@ -1570,7 +1765,7 @@ CREATE UNIQUE INDEX un_nome_sensore ON sensori USING btree (nome_sensore);
 -- Name: aggiornamento_configurazione; Type: TRIGGER; Schema: public; Owner: smac
 --
 
-CREATE TRIGGER aggiornamento_configurazione AFTER UPDATE ON impostazioni FOR EACH ROW EXECUTE PROCEDURE notifica_modifica_configurazione();
+CREATE TRIGGER aggiornamento_configurazione AFTER UPDATE ON impostazioni FOR EACH ROW WHEN ((old.valore <> new.valore)) EXECUTE PROCEDURE notifica_modifica_configurazione();
 
 
 --

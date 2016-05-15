@@ -1120,7 +1120,7 @@ BEGIN
 
   RETURN QUERY
     SELECT data_ora,
-           LEAD(data_ora,1, 'NOW') OVER (order by data_ora) - data_ora,
+		       date_trunc('MINUTE', LEAD(data_ora,1, 'NOW') OVER (order by data_ora) - data_ora),
            stato
       FROM (
       SELECT row_number() over() riga,

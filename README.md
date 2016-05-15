@@ -96,7 +96,7 @@ I componenti software più importanti che si preoccupano di gestire l'hardware s
 
 #### Sicurezza
 L'applicativo in sè non prevede alcun meccanismo di autenticazione/autorizzazione - non ritengo che per applicativi di questo tipo siano necessari.
-Per l'accesso dall'esterno, può essere utile usare HTTPS con muutua autenticazione. Questo limita l'utilizzo dell'applicazione ai soli dispositivi che hanno certificati client validi.
+Per l'accesso dall'esterno, può essere utile usare HTTPS con mutua autenticazione. Questo limita l'utilizzo dell'applicazione ai soli dispositivi che hanno certificati client validi.
 
 #### Note Tecniche
 Una particolarità dell'approccio allo sviluppo di questo applicativo è proprio il modo in cui viene usato il DB, che è considerato parte integrante dell'applicazione stessa e non solo come "mero" contenitore di dati. Il funzionamento stesso dell'applicazione è strettamente legato al DB, che tramite funzioni e trigger si occupa di elaborare i dati. Postgres è stato scelto proprio per la grande flessibilità di manipolazione dei dati in arrivo tramite regole, funzioni e trigger.
@@ -214,8 +214,8 @@ Riaviare il database:
 
 Usare l'utente _postgresq_ per connettersi al database ed eseguire l'importazione dei dati.
 
-        su postgresq
-        psql < "/opt/smac/database/postgres_database_schema.sql"
+        su - postgresq
+        psql < "<smac>/postgres_database_schema.sql"
 
 ##### Configurazione cron
 Uno script si occupa di generare le statistiche giornaliere relative alle misurazioni registrate dai sensori. È necessario che tale script venga pianificato giornalmente come job di cron affinchè le statiche vengano generate correttamente:

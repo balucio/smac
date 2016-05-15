@@ -67,7 +67,7 @@ class Router {
 				'view' => new Route('Situazione', 'Situazione', 'Situazione')
 			],
 			'statistiche' => [
-				'view' => new Route('Stats', 'Stats', 'Stats'),
+				'view' => new Route('Statistiche', 'Statistiche', 'Statistiche'),
 				'report' => new Route('Report', 'SensorStats', 'SensorStats'),
 			],
 			'sensor' => [

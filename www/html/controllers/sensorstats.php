@@ -4,8 +4,6 @@ class SensorStatsController extends BaseController {
 
 	const
 
-		// Soglia aggiornamento statistiche odierne
-		THR_STATS_UPDATE = 3600,
 		// Intevallo predefinito tra date (1 ora)
 		DEF_INTERVAL = 3600,
 		// Intervallo minimo tra date (5 min)
@@ -24,16 +22,6 @@ class SensorStatsController extends BaseController {
 
 		parent::__construct($model, $init);
 		$this->setDefaultAction('temperatura');
-
-		$lu = isset($_SESSION['today_stats_last_update'])
-			? $_SESSION['today_stats_last_update'] : 0;
-
-		if (time() - $lu > self::THR_STATS_UPDATE
-			&& method_exists($this->model, 'update_today_stats')
-		) {
-				$this->model->update_today_stats();
-				$_SESSION['today_stats_last_update'] = time();
-		}
 	}
 
 	public function temperatura() {
@@ -98,7 +86,7 @@ class SensorStatsController extends BaseController {
 			$this->model->setEndDate( Db::TimestampWt( $ed ) );
 
 		} else if ( $vsd ) {
-d($sd, $int);
+
 			$this->model->setStartDate( Db::TimestampWt( $sd ) );
 			$this->model->setEndDate( Db::TimestampWt( $sd + $int ) );
 

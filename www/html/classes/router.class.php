@@ -57,7 +57,7 @@ class Router {
 		list($m, $s) = explode('.', strtolower("{$r}."), 2);
 		$s = rtrim($s, ".");
 
-		return [ $m, $s ];
+	return [ $m, $s ];
 	}
 
 	private static function initTable() {
@@ -65,6 +65,10 @@ class Router {
 			// Pagina situazione sistema
 			'situazione' => [
 				'view' => new Route('Situazione', 'Situazione', 'Situazione')
+			],
+			'statistiche' => [
+				'view' => new Route('Stats', 'Stats', 'Stats'),
+				'report' => new Route('Report', 'SensorStats', 'SensorStats'),
 			],
 			'sensor' => [
 				'view' => new Route('SensorData', 'SensorData', 'SensorData'),

@@ -6,10 +6,16 @@ class SensorStatsController extends BaseController {
 
 		// Soglia aggiornamento statistiche odierne
 		THR_STATS_UPDATE = 3600,
-		// Secondi in un ora
+		// Intevallo predefinito tra date (1 ora)
 		DEF_INTERVAL = 3600,
-		// Tre mesi
+		// Intervallo minimo tra date (5 min)
+		MIN_INTERVAL = 300,
+		// Intevallo Massimo tra date
 		MAX_INTERVAL = 8035200,
+		// Default punti da processare
+		DEF_POINT_NUM = 100,
+		// Minimo punti da processare
+		MIN_POINT_NUM = 30,
 		// Numero massimo di punti da processare
 		MAX_POINT_NUM = 300
 	;
@@ -51,17 +57,19 @@ class SensorStatsController extends BaseController {
 		}
 
 		$points = Request::Attr('points_number', null);
+		$points = Validate::IsPositiveInt($points)
+			? min(max($points, self::MIN_POINT_NUM), self::MAX_POINT_NUM)
+			: self::DEF_POINT_NUM
+		;
 
-		if (!is_null($points) 
-			&& Validate::IsPositiveInt($points)
-			&& $points <= self::MAX_POINT_NUM
-
-		)
+		if ($this->model instanceof ReportModel) {
 			$this->model->setNumberOfPoint($points);
+		}
 
 		$int = Request::Attr('interval', null);
-		$int = Validate::IsPositiveInt($int) ? $int : self::DEF_INTERVAL;
-		$int = min($int, self::MAX_INTERVAL);
+		$int = Validate::IsPositiveInt($int)
+			? min(max($int, self::MIN_INTERVAL), self::MAX_INTERVAL)
+			: self::DEF_INTERVAL;
 
 		$sd = Request::Attr('start_date', null);
 		$ed = Request::Attr('end_date', null);
@@ -79,14 +87,18 @@ class SensorStatsController extends BaseController {
 				$sd = $ed - $int;
 			}
 
-			if ( $ed - $sd > self::MAX_INTERVAL )
-				$sd = $ed - self::MAX_INTERVAL;
+			// Verifica intervallo date solo per SensorStats
+			if ($this->model instanceof SensorStatsModel) {
+				if ( $ed - $sd > self::MAX_INTERVAL ) {
+					$sd = $ed - self::MAX_INTERVAL;
+				}
+			}
 
 			$this->model->setStartDate( Db::TimestampWt( $sd ) );
 			$this->model->setEndDate( Db::TimestampWt( $ed ) );
 
 		} else if ( $vsd ) {
-
+d($sd, $int);
 			$this->model->setStartDate( Db::TimestampWt( $sd ) );
 			$this->model->setEndDate( Db::TimestampWt( $sd + $int ) );
 

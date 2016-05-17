@@ -1091,7 +1091,7 @@ ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWN
 -- Name: report_commutazioni(timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT '2016-05-15 00:00:00'::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
+CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT null::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
     LANGUAGE plpgsql
     AS $$
 DECLARE

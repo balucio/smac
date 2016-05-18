@@ -13,41 +13,43 @@
 			<span class="hidden" id="title-status-unknow">Stato caldaia non disponibile</span>
 		</div>
 		<div class="panel-body">
-			<div class="col-xs-12 col-md-10">
-				<select id="programma" class="selectpicker form-control" disabled>
+			<div class="row">
+				<div class="col-xs-6 col-md-10">
+					<select id="programma" class="selectpicker form-control" disabled>
 
-					{% set divider = constant('ProgramListModel::ID_ANTIFREEZE') %}
+						{% set divider = constant('ProgramListModel::ID_ANTIFREEZE') %}
 
-					{% for p in programmi %}
+						{% for p in programmi %}
 
-						{% if divider < p.id_programma %}
+							{% if divider < p.id_programma %}
 
-							<option data-divider="true"></option>
-							{% set divider = constant('ProgramListModel::ID_MANUAL') %}
+								<option data-divider="true"></option>
+								{% set divider = constant('ProgramListModel::ID_MANUAL') %}
 
-						{% endif %}
+							{% endif %}
 
-						<option title="{{p.nome_programma}}" value="{{p.id_programma}}" {{p.selected}}>
-							{{p.nome_programma}}
-						</option>
+							<option title="{{p.nome_programma}}" value="{{p.id_programma}}" {{p.selected}}>
+								{{p.nome_programma}}
+							</option>
 
-					{% endfor %}
+						{% endfor %}
 
-				</select>
+					</select>
+				</div>
+				<div class="col-xs-6 col-md-2">
+					<button id="modifica-programma" type="button" data-altlabel="Applica" class="btn btn-primary btn-block">Modifica</button>
+				</div>
 			</div>
-			<div class="col-xs-12 col-md-2">
-				<button id="modifica-programma" type="button" data-altlabel="Applica" class="btn btn-primary btn-block">Modifica</button>
-			</div>
-			<br/>
-			<div class="clearfix"></div>
-			<h4 class="text-center"><span class="wi wi-thermometer" aria-hidden="true"> </span> Temperature di riferimento</h4>
+			<div class="row">
+				<h4 class="text-center"><span class="wi wi-thermometer" aria-hidden="true"> </span> Temperature di riferimento</h4>
 				<div id="temperature-riferimento">
 					{% include "tempriferimento.tpl" %}
 				</div>
-
-			<div class="clearfix"></div>
-			<hr class="col-xs-10 col-md-10" style="" />
-			<div class="col-xs-12 col-md-12" id="programma-giornaliero" style="height:400px;"></div>
+			</div>
+			<div class="row">
+				<hr class="col-xs-10 col-md-10" style="" />
+				<div class="col-xs-12 col-md-12" id="programma-giornaliero" style="height:400px;"></div>
+			</div>
 
 		</div>
 		<div class="panel-footer text-center">

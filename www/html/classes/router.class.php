@@ -61,6 +61,7 @@ class Router {
 	}
 
 	private static function initTable() {
+		// Model, View, Controller
 		return [
 			// Pagina situazione sistema
 			'situazione' => [
@@ -68,12 +69,12 @@ class Router {
 			],
 			'statistiche' => [
 				'view' => new Route('Statistiche', 'Statistiche', 'Statistiche'),
-				'report' => new Route('Report', 'SensorStats', 'SensorStats'),
 			],
 			'sensor' => [
 				'view' => new Route('SensorData', 'SensorData', 'SensorData'),
 				'getdata' => new Route('SensorData', 'SensorDetails', 'SensorData'),
 				'stats' => new Route('SensorStats', 'SensorStats', 'SensorStats'),
+				'report' => new Route('SensorStats', 'SensorStats', 'SensorReport'),
 				'getdriverlist' => new Route('DriverList', 'SensorDriverList', 'SensorDriverList'),
 				'createorupdate' => new Route('SensorData', 'SensorOpResult', 'SensorData'),
 				'delete' => new Route('SensorData', 'SensorOpResult', 'SensorData')

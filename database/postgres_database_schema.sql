@@ -47,9 +47,9 @@ SET search_path = public, pg_catalog;
 --
 
 CREATE TYPE eventi_commutazione AS (
-  inizio timestamp without time zone,
-  durata interval,
-  stato boolean
+	inizio timestamp without time zone,
+	durata interval,
+	stato boolean
 );
 
 
@@ -944,8 +944,8 @@ ALTER FUNCTION public.notifica_modifica() OWNER TO smac;
 CREATE FUNCTION notifica_modifica_configurazione() RETURNS trigger
     LANGUAGE plpgsql COST 10
     AS $$BEGIN
-  PERFORM pg_notify(OLD.nome,  new.valore);
-  return new;
+	PERFORM pg_notify(OLD.nome,  new.valore);
+	return new;
 END;$$;
 
 
@@ -1091,56 +1091,47 @@ ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWN
 -- Name: report_commutazioni(timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT null::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
+CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT ((now() - '24:00:00'::interval))::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
     LANGUAGE plpgsql
     AS $$
 DECLARE
-  start_date timestamp without time zone;
+	start_date timestamp without time zone;
 BEGIN
-  IF data_inizio IS NULL THEN
-    data_inizio = 'today'::timestamp without time zone;
-  END IF;
 
-  IF data_fine IS NULL THEN
-    data_fine = NOW();
-  END IF;
-
-  -- Trovo la data precedente più vicina a data_inizio
-  SELECT data_ora INTO start_date 
-    FROM storico_commutazioni
-   WHERE data_ora <= data_inizio
+	-- Trovo la data precedente più vicina a data_inizio
+	SELECT data_ora INTO start_date 
+	  FROM storico_commutazioni
+	 WHERE data_ora <= data_inizio
       ORDER BY data_ora DESC
          LIMIT 1;
 
-  IF start_date IS NULL THEN
-    start_date = data_inizio;
-  END IF;
+	IF start_date IS NULL THEN
+		start_date = data_inizio;
+	END IF;
 
-  RAISE NOTICE 'PARAM % %, CALC %', data_inizio, data_fine, start_date;
-
-  RETURN QUERY
-    SELECT data_ora,
-		       date_trunc('MINUTE', LEAD(data_ora,1, 'NOW') OVER (order by data_ora) - data_ora),
-           stato
-      FROM (
-      SELECT row_number() over() riga,
-        GREATEST (data_ora, data_inizio) data_ora,
-             stato
-        FROM (
-        SELECT LAG(stato) OVER (ORDER BY data_ora) stato_precedente,
-               data_ora,
-               stato
-          FROM (
-          SELECT *
-            FROM storico_commutazioni
-          UNION SELECT *
-            FROM ultima_commutazione
-               ) storico_completo
-         WHERE data_ora BETWEEN start_date AND data_fine
-            ORDER BY data_ora
-       
-        ) storico WHERE stato_precedente IS DISTINCT FROM stato
-     ) storico;
+	RETURN QUERY
+		SELECT data_ora,
+		       date_trunc('MINUTE', LEAD(data_ora, 1, 'NOW') OVER (order by data_ora) - data_ora),
+		       stato
+		  FROM (
+			SELECT row_number() over() riga,
+				GREATEST (data_ora, data_inizio) data_ora,
+			       stato
+			  FROM (
+				SELECT LAG(stato) OVER (ORDER BY data_ora) stato_precedente,
+				       data_ora,
+				       stato
+				  FROM (
+					SELECT *
+					  FROM storico_commutazioni
+				  UNION SELECT *
+					  FROM ultima_commutazione
+				       ) storico_completo
+				 WHERE data_ora BETWEEN start_date AND data_fine
+			      ORDER BY data_ora
+			 
+			  ) storico WHERE stato_precedente IS DISTINCT FROM stato
+		 ) storico;
 END;$$;
 
 
@@ -1160,7 +1151,7 @@ BEGIN
         RETURN QUERY
             SELECT date_trunc('minute', misurazioni.data_ora) as tr_data_ora,
                    0::smallint,
-		   get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar,
+                   get_setting('sensore_media_nome'::varchar(64),'Media'::text)::Varchar,
                    AVG(misurazioni.temperatura)::numeric(9,4),
                    AVG(misurazioni.umidita)::numeric(9,4)
               FROM misurazioni
@@ -1194,18 +1185,19 @@ ALTER FUNCTION public.report_misurazioni(pid_sensore smallint, data_ora_inizio t
 -- Name: report_sensori(timestamp without time zone, timestamp without time zone, integer); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION report_sensori(data_ora_inizio timestamp without time zone DEFAULT '2016-05-14 00:00:00'::timestamp without time zone, data_ora_fine timestamp without time zone DEFAULT now(), precisione integer DEFAULT 100) RETURNS SETOF report_sensore
+CREATE FUNCTION report_sensori(data_ora_inizio timestamp without time zone DEFAULT ((now() - '24:00:00'::interval))::timestamp without time zone, data_ora_fine timestamp without time zone DEFAULT now(), precisione integer DEFAULT 100) RETURNS SETOF report_sensore
     LANGUAGE plpgsql
     AS $$DECLARE
-  min_data_ora timestamp without time zone;
-  max_data_ora timestamp without time zone;
-  delta_sec bigint;
+	min_data_ora timestamp without time zone;
+	max_data_ora timestamp without time zone;
+	delta_sec bigint;
 BEGIN
-  SELECT min(data_ora), max(data_ora)
-    INTO min_data_ora, max_data_ora 
-    FROM misurazioni 
-   WHERE data_ora BETWEEN data_ora_inizio 
-     AND data_ora_fine;
+
+	SELECT min(data_ora), max(data_ora)
+	  INTO min_data_ora, max_data_ora 
+	  FROM misurazioni
+	 WHERE data_ora BETWEEN data_ora_inizio
+	   AND data_ora_fine;
 
   delta_sec = date_part('epoch', max_data_ora - min_data_ora)::bigint / precisione;
   IF delta_sec = 0 THEN

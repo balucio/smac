@@ -46,11 +46,8 @@
 					{% include "tempriferimento.tpl" %}
 				</div>
 			</div>
-			<div class="row">
-				<hr class="col-xs-10 col-md-10" style="" />
-				<div class="col-xs-12 col-md-12" id="programma-giornaliero" style="height:400px;"></div>
+			<div class="col-xs-12 col-md-12" id="programma-giornaliero" style="height:400px;">
 			</div>
-
 		</div>
 		<div class="panel-footer text-center">
 			<small class="text-muted pull-right">

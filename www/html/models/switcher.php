@@ -29,4 +29,14 @@ class SwitcherModel {
 	public function reload() {
 
 	}
+
+	public function report_commutazioni($start, $end) {
+
+		$this->result = Db::get()->getResultSet(
+			"SELECT date_trunc('minutes', inizio) inizio,"
+			     ." extract(EPOCH FROM durata) durata, stato"
+			." FROM report_commutazioni(:start, :end)",
+			[':start' => $start, ':end' => $end]
+		);
+	}
 }

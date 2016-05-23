@@ -14,16 +14,13 @@ class SwitcherView extends BaseView {
 		$dec = new Decorator();
         $updated = $dec->decorateDateTime($data_ora);
 
-		switch ($stato) {
-			case True:
+		if ($stato === true) {
 				$classes = 'fa fa-fire status on';
 				$title = 'title-status-on';
-				break;
-			case False:
+		} else if ($stato === false) {
 				$classes = 'fa fa-fire status off';
 				$title = 'title-status-off';
-				break;
-			default:
+		} else {
 				$classes = 'fa fa-exclamation-circle status undefined';
 				$title = 'title-status-unknow';
 		}

@@ -30,7 +30,7 @@ class SwitcherModel {
 
 	}
 
-	public function report_commutazioni($start, $end) {
+	public function report_commutazioni($start = null, $end = null) {
 
 		$this->result = Db::get()->getResultSet(
 			"SELECT date_trunc('minutes', inizio) inizio,"

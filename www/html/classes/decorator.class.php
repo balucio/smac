@@ -47,6 +47,12 @@ class Decorator {
 			: 'ND';
 	}
 
+	public function decorateInterval($sec) {
+
+
+		return sprintf("%02d%s%02d%s%02d", floor($sec/3600), ':', ($sec/60)%60, ':', $sec%60);
+	}
+
 	public function decorateTime($t) {
 
 		return isset($t) ? substr($t, 0, 5) : 'ND';

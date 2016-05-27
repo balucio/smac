@@ -6,22 +6,6 @@
 			<th>Durata</th>
 		</tr>
 	</thead>
-	<tfoot class="table">
-		<tr>
-			<th rowspan="3">Totali</th>
-			<td>Acceso</td>
-			<td>{{commutazioni.totale.acceso}}</td>
-		</tr>
-		<tr>
-			<td>Spento</td>
-			<td>{{commutazioni.totale.spento}}</td>
-		</tr>
-		<tr>
-			<td>Indeterminato</td>
-			<td>{{commutazioni.totale.indeterminato}}</td>
-		</tr>
-	</tr>
-  </tfoot>
 	<tbody>
 		{% for c in commutazioni.elenco %}
 		<tr>
@@ -30,5 +14,23 @@
 			<th>{{c.durata}}</th>
 		</tr>
 		{% endfor %}
+	</tbody>
+</table>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th colspan="3">Totali</th>
+		</tr>
+		<tr>
+			<th>Acceso</th><th>Spento</th><th>Indeterminato</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>{{commutazioni.totale.acceso|Interval}}</td>
+			<td>{{commutazioni.totale.spento|Interval}}</td>
+			<td>{{commutazioni.totale.indeterminato|Interval}}</td>
+		</tr>
 	</tbody>
 </table>

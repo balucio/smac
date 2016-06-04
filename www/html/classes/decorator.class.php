@@ -23,7 +23,6 @@ class Decorator {
 		return '<span class="'. $class . '">' . $n . '</span>';
 	}
 
-
 	public function decorateShortDay($d) {
 
 		return strftime('%a', strtotime("Sunday + $d days"));
@@ -46,6 +45,12 @@ class Decorator {
 		return isset($dt)
 			? strtolower( strftime( '%c', strtotime($dt)))
 			: 'ND';
+	}
+
+	public function decorateInterval($sec) {
+
+
+		return sprintf("%02d%s%02d%s%02d", floor($sec/3600), ':', ($sec/60)%60, ':', $sec%60);
 	}
 
 	public function decorateTime($t) {

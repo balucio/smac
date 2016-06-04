@@ -1,9 +1,12 @@
-	</main><!-- End primary page content -->
-	<div class="clearfix"></div>
-	<footer role="contentinfo" style="text-align: center;">
-		<small>Copyright &copy; <span>2013-{{ "now"|date('y') }}</span> by Saul Bertuccio</small>
-	</footer>
+	
+	</main><!-- main end -->
 
+		<div class="clearfix"></div>
+	<div class="container"
+		<footer role="contentinfo" style="text-align: center;">
+			<small>Copyright &copy; <span>2015-{{ "now"|date('y') }}</span> by Saul Bertuccio</small>
+		</footer>
+	</div>
 	<!-- Javascrip link placing at end of the page in order to not interrupt rendering -->
 	{% for link in js|default(null) %}
 		<script src="{{link}}"></script>

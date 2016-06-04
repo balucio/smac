@@ -10,11 +10,13 @@ A progetto terminato il repository conterrà tutto l'occorrente per poter instal
 
 - Codice PHP (versione supportata >= 5.4)
 - Database con schema e dati minimali che consentano il funzionamento iniziale dell'applicativo.
-  Al momento sono supportate esclusivamente le versioni 9.x di Postgresql. La versione 7 di Raspian utilizza Postgresl
-  versione 9.1.20.
+  Al momento sono supportate esclusivamente le versioni 9.x di Postgresql. La versione 7 di Raspian utilizza Postgresl versione 9.1.20.
 - Configurazione base del webserver Apache (httpd).
 - Demoni, eseguibili e driver per l'interfacciamento e la gestione dell'hardware (sensori e relè)
 - Schemi di collegamento sensori (per le misurazioni) e del Relè (per il controllo della caldaia)
+
+Da alcuni test eseguiti il Raspberry 2 è in grado di gestire tranquillamente il webserver (quindi l'applicativo web), i demoni di controllo e il database (Postgres). Con modifiche minime sono tuttavia possibili configurazioni miste, per esempio: un server esterno per servire le pagine PHP e il database, e utilizzare il raspberry solo per i demoni di controllo sensori. L'unico requisito è che sia il rasbperry che il server che ospita l'applicativo web riescano a raggiungere il Database.
+Queste possiblità rendono più semplice un eventuale porting su Arduino.
 
 ### Struttura della directory del progetto
 
@@ -22,11 +24,11 @@ Il programma è progettato per essere installato il `/opt/smac`. È possibile va
 
 La directory principale del progetto contiene:
 
-- smac          -> directory principale
-  - apache2     -> directory contentente i file di configurazione del webserver apache2
-    - smac.conf -> contiene la definizione del virtual host per il funzionamento dell'interfaccia
+- smac: directory principale
+  - apache2: contiene i file di configurazione del webserver apache2
+    - smac.conf: contiene la definizione del virtual host per il funzionamento dell'interfaccia
                    web di Smac. Va copiata o meglio ancora "linkata" in /etc/apache2/conf.d/
-  - bin         -> contiene gli script e librerie (per lo più in python) che consentono di gestire
+  - bin:         contiene gli script e librerie (per lo più in python) che consentono di gestire
                    sensori e la comunicazione tra i processi. Alcuni di questi script verranno
                    eseguiti come demoni di sistema e si occuperanno della lettura dei dati dei
                    sensori e della comunicazione con la caldaia pilotando il Relè.
@@ -38,18 +40,18 @@ La directory principale del progetto contiene:
                    dei numeri di Pin inseriti, pertanto è necessario prestare molta attenzione alla
                    corretta configurazione di tali valori. L'applicazione usa la numerazione BCM
                    dell'interfaccia GPIO.
-  - driver      -> contiene i sorgenti per compilare i driver di interfacciamento con i Sensori di
+  - driver:     contiene i sorgenti per compilare i driver di interfacciamento con i Sensori di
                    temperatura. Al momento sono supportati i sensori DHT11 e DHT22 di Adafruit.
                    I driver Adafruit contengono una libreria Python da compilare e installare.
                    Eseguita l'installazione la directory driver non è più necessaria.
-  - database    -> contiene uno schema base per consentire l'avvio dell'applicativo Web
+  - database: contiene uno schema base per consentire l'avvio dell'applicativo Web
   - etc
-    - cron.daily -> contiene un job cron per l'aggiornamento quotidiano delle statistiche
-    - init.d    -> contiene gli script di avvio dei demoni python
-  - log         -> contiene i log generato dall'applicativo web e dai demoni
-  - www         -> contiene la parte applicativa web
-    - tpl       -> contiene i modelli (template) delle pagine web generate dall'applicazione
-    - html      -> l'applicativo web completo inclusi css e librerie javascript.
+      - cron.daily: contiene un job cron per l'aggiornamento quotidiano delle statistiche
+      - init.d:        contiene gli script di avvio dei demoni python
+  - log:             contiene i log generato dall'applicativo web e dai demoni
+  - www:          contiene la parte applicativa web
+      - tpl:           contiene i modelli (template) delle pagine web generate dall'applicazione
+      - html:        l'applicativo web completo inclusi css e librerie javascript.
 
 ### Struttura logica dell'applicazione
 
@@ -203,7 +205,7 @@ Usado l'editor `vi`:
 
         sudo vi /etc/postgresql/9.1/main/pg_hba.conf
 
-    Aggiungere la seguente riga
+   Aggiungere la seguente riga:
 
         # TYPE  DATABASE        USER            METHOD
         local   smac            smac            password

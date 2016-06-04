@@ -33,8 +33,6 @@
 				</div>
 			</h3>
 			<div class="clearfix"></div>
-			<hr class="col-xs-10 col-md-10" style="" />
-
 			<div class="col-xs-12 col-md-12" id="andamento-temperatura" style="height:225px;"></div>
 			<div class="col-xs-12 col-md-12" id="andamento-umidita" style="height:225px;"></div>
 			{% else %}

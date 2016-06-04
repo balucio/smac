@@ -4,6 +4,12 @@ class StatisticheModel {
 
 	public function __construct() { }
 
+	public function getCommutazioni() {
+		$m = new SwitcherModel();
+		$m->report_commutazioni();
+		return $m->result;
+	}
+
 
 	/* Aggiorna i dati della giornata odierna */
 	public function update_today_stats() {

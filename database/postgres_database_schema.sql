@@ -226,14 +226,14 @@ CREATE FUNCTION aggiorna_dati_giornalieri(sensore smallint, giorno date DEFAULT 
     syrep_min timestamp;
     syrep_max timestamp;
 
-    l_id_synop_temp_min numeric(9,4);
-    l_id_synop_temp_max numeric(9,4);
+    l_id_synop_temp_min bigint;
+    l_id_synop_temp_max bigint;
 
-    l_id_syrep_temp_min numeric(9,4);
-    l_id_syrep_temp_max numeric(9,4);
+    l_id_syrep_temp_min bigint;
+    l_id_syrep_temp_max bigint;
 
-    l_id_umidita_min numeric(9,4);
-    l_id_umidita_max numeric(9,4);
+    l_id_umidita_min bigint;
+    l_id_umidita_max bigint;
 
 BEGIN
 

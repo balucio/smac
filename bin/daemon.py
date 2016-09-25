@@ -21,8 +21,8 @@ class Daemon(object):
                  stderr='/dev/null', logfile='/dev/null'):
 
         self.stdin = stdin
-        self.stdout = stdout
-        self.stderr = stderr
+        self.stdout = logfile
+        self.stderr = logfile
         self.pidfile = pidfile
 
         # Setup log file

@@ -9,13 +9,13 @@ from daemon import Daemon
 from database import Database
 from datetime import datetime
 from smac_utils import read_db_config
-from logging import INFO
+from logging import INFO,DEBUG
 
 
 class Collector(Daemon):
 
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = INFO
+    DEF_LOG_LEVEL = DEBUG
 
     DRIVERS_BASE_PATH = '/opt/smac/bin/'
 
@@ -53,16 +53,18 @@ class Collector(Daemon):
                 driver = driver.upper()
 
                 if driver in self.DRIVERS_COMMANDS:
-                    exec_data = self._driver_exec(
-                        self.DRIVERS_COMMANDS[driver], param)
 
-                    measuredata = self._decode_driver_result(
-                        sid, driver, exec_data)
+                    try:
+                        exec_data = self._driver_exec(self.DRIVERS_COMMANDS[driver], param)
+                        measuredata = self._decode_driver_result(sid, driver, exec_data)
 
-                    if measuredata is not None:
-                        detections.append(measuredata)
+                    except Exception as e:
+                       self.log.error(
+                           "Impossibile decodificare l'output del driver: %s", repr(e))
+		       measuredata = none
 
-            err = False
+                if measuredata is not None:
+                    detections.append(measuredata)
 
             if len(detections):
                 err = self._write_sensor_data(detections)

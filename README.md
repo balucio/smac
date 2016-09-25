@@ -174,6 +174,9 @@ Per la lettura dei valori rilevati dai sensori di temperatura **DHT11** e **DHT2
         python setup.py build
         python setup.py install
 
+NOTA: Ho eseguito vari test sperimentali sui sensori DHTxx. Il sensore DHT22 è più preciso e stabile rispetto al DHT11. Entrambi comunque sono abbastanza sensibili alla distanza e se non viene usata correttamente una resistenza di "pull-up" di valore adeguato tra i pin dati e alimentazione, tendono a riportare risultati di temperatura/umidità completamente errati o fuori scala. Relatiavmente al sensore DHT11 ho notato che se si eseguono tre letture per ogni campionamento, i valori riportati sono più stabili e meno suscettibili ai predetti errori. Proprio per questo nel tempo ho modificato lo script python dhtxx.py in modo da effettuare tre letture ad intervalli di due (2) secondi ad ogni invocazione. Inoltre per migliorare l'affidabilità, vengono automaticamente scartati i valori fuori scala (esempio umidità > 100%) e ai valori ottenuti viene applicato il test Q o di Dixon per scartare eventuali valori che hanno una probabilità abbastanza alta di essere errati.
+
+
 ##### Installazione degli eseguibili python e dell'applicativo Web in php
 
 Copiare in `/opt/smac` le seguenti directory da quella del progetto:

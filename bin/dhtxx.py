@@ -6,13 +6,16 @@ import time
 import argparse
 import Adafruit_DHT
 
-def dixon_value(data):
+from pprint import pprint
+
+def dixon_reduce(data):
  
     data.sort()
+    pprint(data)
     denom = data[2] - data[0]
     
-    dixon1 = (data[1] - data[0]) / denom
-    dixon2 = (data[2] - data[1]) / denom
+    dixon1 = (data[1] - data[0]) / denom if denom > 0 else 0
+    dixon2 = (data[2] - data[1]) / denom if denom > 0 else 0
 
     if dixon1 < dixon2:
         del data[0]
@@ -65,59 +68,53 @@ args = parser.parse_args()
 
 # h = umidità, t = temperatura
 
-THR_H = 5 # soglia errore umidità
-THR_T = 2 # soglia errore temperatura
+MIN_H = 0
+MAX_H = 100
+
+MIN_T = -20
+MAX_T = 60
+
+READ_ERR_MAX = 5
+
 THR_DIXON = 0.
 
-# Numero massimo di letture 
+# Numero di letture
 READINGS=3
 
-# prima lettura dati
-h, t = Adafruit_DHT.read_retry(args.sensor, args.pin,
-                               args.retries,
-                               args.delay_seconds)
-
-if h is None or t is None:
-    raise SystemError("Impossibile leggere dati dal sensore")
-
-temperature = t
-humidity = h
-i = 1
+i = 0
+read_errors = 0
 
 reads_h = []
 reads_t = []
 
+# Sperimentalmente ho notato che si ottengono risultati migliori facendo eseguire al sensore
+# almeno tre misurasioni
 while i < READINGS:
-
-    # pausa prima di rileggere il sensore
-    time.sleep(1)
 
     h, t = Adafruit_DHT.read_retry(args.sensor, args.pin,
                                    args.retries,
                                    args.delay_seconds)
-    if h is None or t is None:
-        break
-   
+
+    # in caso di letture errate aumento la pausa tra le letture
+    if h is None or t is None or h < MIN_T or h > MAX_H or t < MIN_T or t > MAX_T:
+	read_errors += 1
+	if read_errors > READ_ERR_MAX:
+	    raise SystemError("Superato il limite massimo di letture errate")
+        time.sleep(5 + read_errors)
+        continue
+
     # salvo le letture
     reads_h += [h]
     reads_t += [t]
 
-    # sommo per la media
-    temperature += t     
-    humidity += h       
     i+=1
-  
-    # Esco se l'errore assoluto rispetto alla media è minore delle tolleranze
-    if abs( h - ( humidity / i ) ) <= THR_H and abs( ( t - temperature / i ) ) <= THR_T:
-       break
 
-# Usando il test di Dixon elimino il valore che probabilmente è meno corretto
-# calcolandone la media
-if i > 2:
-    humdity = dixon_value(reads_h)
-    temperature = dixon_value(reads_t)
-else:
-    humidity /= i
-    temperature /= i
+    # pausa per la prossima lettura
+    time.sleep(3)
+
+# In caso di più di due misurazioni provo ad applicare il test di dixon per eliminare il valore
+# probabilmente meno corretto 
+humidity = dixon_reduce(reads_h)
+temperature = dixon_reduce(reads_t)
 
 print "{:f} {:f}".format(temperature, humidity)

@@ -6,12 +6,9 @@ import time
 import argparse
 import Adafruit_DHT
 
-from pprint import pprint
-
 def dixon_reduce(data):
  
     data.sort()
-    pprint(data)
     denom = data[2] - data[0]
     
     dixon1 = (data[1] - data[0]) / denom if denom > 0 else 0

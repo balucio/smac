@@ -26,10 +26,13 @@ $(function () {
 
 	}
 
-	var sheduleDraw = function (series, sensor, type) {
+	var scheduleDraw = function (series, type) {
+
+		// Fix: L'oggetto grafico non viene mai aggiornato e i parametri dell'evento non cambiano mai
+		var sensor = $('#sensore').val()
 
 		getStats(series, sensor, type );
-		setTimeout( function(){ sheduleDraw(series, sensor, type); }, req_interval * 1000 );
+		setTimeout( function(){ scheduleDraw(series, type); }, req_interval * 1000 );
 
 	}
 
@@ -101,7 +104,7 @@ $(function () {
 				events: {
 					load : function () {
 						var series = this.series[0];
-						sheduleDraw(series, $('#sensore').val(), type );
+						scheduleDraw(series, type );
 					}
 				}
 			},

@@ -148,7 +148,7 @@ $(function () {
 			var points = tdata.data;
 			var lastValue = 0;
 
-			// parse shedule timing object
+			// parse schedule timing object
 			for (var h = 0; h < schedule.length; h++) {
 
 				var cS = schedule[h];

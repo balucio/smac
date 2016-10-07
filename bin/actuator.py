@@ -8,7 +8,7 @@ import datetime
 from daemon import Daemon
 from database import Database
 from switch import Switch
-from logging import INFO
+from logging import INFO, DEBUG
 from decimal import Decimal
 from time import sleep
 
@@ -16,7 +16,7 @@ from time import sleep
 class Actuator(Daemon):
 
     SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
-    DEF_LOG_LEVEL = INFO
+    DEF_LOG_LEVEL = DEBUG
 
     TEMP_THRESHOLD = 0.5        # Grado soglia di innesco cambiamento stato
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
@@ -107,18 +107,27 @@ class Actuator(Daemon):
                 'Ricevuta notifica pid %s, canale %s, contenuto: %s',
                 notify.pid, notify.channel, notify.payload
             )
+            # Payload è una stringa converto in intero
+            try:
+                gpiopin = int(notify.payload)
+            except ValueError:
+                self.log.error('Il PIN GPIO ricevuto non è valido')
+                gpiopin = None
 
             if notify.channel == Database.EVT_ALTER_PROGRAM:
                 # risvegliato dal cambio programma
                 # ignoro tutto, perchè in ogni caso rileggo
                 pass
-            elif notify.channel == Database.EVT_ALTER_RELE_PIN:
+            elif (
+                gpiopin is not None
+                and notify.channel == Database.EVT_ALTER_RELE_PIN
+            ):
                 # invio nuove impostazioni allo switcher
                 while True:
 
                     if self.sw.reload():
                         sleep(0.5)      # sync con switcher
-                        if self.sw.set_gpio_pin(notify.payload):
+                        if self.sw.set_gpio_pin(gpiopin):
                             break
                     sleep(10)
 

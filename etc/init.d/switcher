@@ -28,7 +28,7 @@ PIDFILE=/var/run/$DAEMON_NAME/$DAEMON_NAME.pid
 LOGFILE=/opt/smac/log/$DAEMON_NAME.log
 
 # Add any command line options for your daemon here
-DAEMON_OPTS="--pid $PIDFILE --log $LOGFILE"
+DAEMON_OPTS="--invert-state --pid $PIDFILE --log $LOGFILE"
 
 . /lib/lsb/init-functions
 

@@ -8,7 +8,7 @@ import datetime
 from daemon import Daemon
 from database import Database
 from switch import Switch
-from logging import INFO, DEBUG
+from logging import INFO, DEBUG, CRITICAL
 from decimal import Decimal
 from time import sleep
 
@@ -16,9 +16,9 @@ from time import sleep
 class Actuator(Daemon):
 
     SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
-    DEF_LOG_LEVEL = DEBUG
+    DEF_LOG_LEVEL = CRITICAL    # DEBUG
 
-    TEMP_THRESHOLD = 0.5        # Grado soglia di innesco cambiamento stato
+    TEMP_THRESHOLD = 0.22        # Grado soglia di innesco cambiamento stato
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
     TIME_THRESHOLD = 7200       # 2 ore
 

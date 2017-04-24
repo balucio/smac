@@ -9,13 +9,13 @@ from daemon import Daemon
 from database import Database
 from datetime import datetime
 from smac_utils import read_db_config
-from logging import INFO,DEBUG
+from logging import INFO,DEBUG,CRITICAL
 
 
 class Collector(Daemon):
 
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = DEBUG
+    DEF_LOG_LEVEL = CRITICAL #DEBUG
 
     DRIVERS_BASE_PATH = '/opt/smac/bin/'
 

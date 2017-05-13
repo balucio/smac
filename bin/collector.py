@@ -61,7 +61,7 @@ class Collector(Daemon):
                     except Exception as e:
                        self.log.error(
                            "Impossibile decodificare l'output del driver: %s", repr(e))
-		       measuredata = none
+                       measuredata = none
 
                 if measuredata is not None:
                     detections.append(measuredata)

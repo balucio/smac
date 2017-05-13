@@ -96,6 +96,8 @@ I componenti software più importanti che si preoccupano di gestire l'hardware s
 
    La gestione della named pipe è delegata all'oggetto (switcher_command). Questo in effetti crea due named pipe, una è usata per inviare comandi allo **switcher** l'atra per riceverne messaggi.-
 
+- **Remote Collector**: si tratta di un demone opzionale, aggiunto con l'ultimo aggiornamento. Permette di ricevere e scaricare dati da sensori connessi alla rete (generalmente Wifi). Implementato per gestire la comunicazione con sensori di temperatura che usano l'ESP-01S, e che trasmettono i loro dati periodicamente tramite rete Wifi. Remote Collector apre una socket TCP server su porta 8080 (predefinita) e permette ai sensori di scaricare i dati in una coda. Successivamente tali dati possono esser e inviati al "Collector" affinchè siano salvati sul database.
+
 #### Sicurezza
 L'applicativo in sè non prevede alcun meccanismo di autenticazione/autorizzazione - non ritengo che per applicativi di questo tipo siano necessari.
 Per l'accesso dall'esterno, può essere utile usare HTTPS con mutua autenticazione. Questo limita l'utilizzo dell'applicazione ai soli dispositivi che hanno certificati client validi.

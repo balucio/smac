@@ -25,6 +25,11 @@ class Daemon(object):
         self.stderr = logfile
         self.pidfile = pidfile
 
+        # Creating pid dir if not exists
+        pid_dir = os.path.dirname(self.pidfile)
+        if not os.path.exists(pid_dir):
+            os.makedirs(pid_dir)
+
         # Setup log file
         setup_logger(self.__class__.__name__, logfile, self.DEF_LOG_LEVEL)
         self.log = getLogger(self.__class__.__name__)

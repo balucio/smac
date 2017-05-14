@@ -21,6 +21,8 @@ class RemoteCollector(Daemon):
 
     SLEEP_TIME = 60
     DEF_LOG_LEVEL = CRITICAL #DEBUG
+    BUFFER_SIZE = 1024
+    MAX_SEND_SAMPLE = 30
 
     def start(self, bind_address, bind_port ):
         """ Avvio il demone """
@@ -64,23 +66,22 @@ class RemoteCollector(Daemon):
         while True:
             #wait to accept a connection - blocking call
             conn, addr = self.sk.accept()
-            self.log.info('Connessio client {} : {}'.format(addr[0], addr[1]))
+            self.log.info('Connessione con client {} : {}'.format(addr[0], addr[1]))
             # avvio il thread che servirà il client passando la connessione e le code
-            c_handle = threading.Thread(self.serveClient, (conn, sensors_data, ))
+            c_handle = threading.Thread(target=self.serveClient, args=(conn, sensors_data, ))
             c_handle.start()
-            self.sk.close()
 
-    def datetime_handler(d):
+    def datetime_handler(self, d):
         """ Gestisce la serializzazione json delle date """
         if isinstance(d, datetime):
             return d.isoformat()
         raise TypeError("Errore: data non corretta.")
 
-    def serveClient(conn, sensors_data):
+    def serveClient(self, conn, sensors_data):
         """ Gestisce le connessioni in ingresso """
 
         # reading data from client
-        raw_data = conn.recv(1024)
+        raw_data = conn.recv(RemoteCollector.BUFFER_SIZE)
         if raw_data:
             self.lock.acquire()
             try:
@@ -107,8 +108,10 @@ class RemoteCollector(Daemon):
 
                 elif oper == 'acquisizione_dati' :
                     samples = [];
-                    while not q.empty():
+                    sent = 0
+                    while sent <= RemoteCollector.MAX_SEND_SAMPLE and not q.empty():
                         samples.append(q.get())
+                        sent+=1
 
                     conn.send(json.dumps(samples, default=self.datetime_handler))
 
@@ -119,12 +122,10 @@ class RemoteCollector(Daemon):
                 self.log.error('Errore: parametro {} non presente'.format(str(e)))
                 conn.send('KO')
             finally:
-                lock.release()
+                self.lock.release()
                 self.log.debug('Rilascio il lock')
-                conn.send('KO')
-
-        # chiudo la connessione con il client
-        conn.close()
+                # chiudo la connessione con il client
+                conn.close()
 
 ##############################
 # Inizio programma principale
@@ -132,8 +133,8 @@ class RemoteCollector(Daemon):
 BIND_ADDRESS = '' # se vuoto tutti gli ip
 BIND_PORT = 8080 # Porta non privilegiata sulla quale mettersi in ascolto
 
-DAEMON_LOG = '/opt/smac/log/sensor_collector.log'
-DAEMON_PID = '/var/run/sensor_collector/sensor_collector.pid'
+DAEMON_LOG = '/opt/smac/log/remote_collector.log'
+DAEMON_PID = '/var/run/remote_collector/remote_collector.pid'
 
 if __name__ == "__main__":
 

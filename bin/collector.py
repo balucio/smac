@@ -4,6 +4,7 @@
 import time
 import subprocess
 import argparse
+import json
 
 from daemon import Daemon
 from database import Database
@@ -15,13 +16,14 @@ from logging import INFO,DEBUG,CRITICAL
 class Collector(Daemon):
 
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = CRITICAL #DEBUG
+    DEF_LOG_LEVEL = DEBUG #DEBUG
 
     DRIVERS_BASE_PATH = '/opt/smac/bin/'
 
     DRIVERS_COMMANDS = {
         'DHT11': 'dhtxx.py',
-        'DHT22': 'dhtxx.py'
+        'DHT22': 'dhtxx.py',
+        'SESPS': 'sesps.py'
     }
 
     def run(self):
@@ -61,10 +63,13 @@ class Collector(Daemon):
                     except Exception as e:
                        self.log.error(
                            "Impossibile decodificare l'output del driver: %s", repr(e))
-                       measuredata = none
+                       measuredata = None
 
                 if measuredata is not None:
-                    detections.append(measuredata)
+                    if isinstance(measuredata, dict):
+                        detections.append(measuredata)
+                    else:
+                        detections.extend(measuredata)
 
             if len(detections):
                 err = self._write_sensor_data(detections)
@@ -172,6 +177,18 @@ class Collector(Daemon):
                 'umidita': umidita
             }
 
+        elif driver == 'SESPS' :
+            rsamples = json.loads(output[1])
+            self.log.info("Sensore %s: %s", sid, output[1])
+            samples = []
+            for sample in rsamples:
+                samples.append({
+                    'sensor_id': sid,
+                    'date_time': sample['date_time'],
+                    'temperatura': sample['temperatura'],
+                    'umidita': sample['umidita']
+                })
+            return samples
         else:
             self.log.error("Driver %s sconosciuto", driver)
 

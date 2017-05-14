@@ -7,7 +7,6 @@
 '''
 
 import argparse
-import Queue
 import json
 import socket
 import sys
@@ -15,6 +14,7 @@ import threading
 
 from daemon import Daemon
 from datetime import datetime
+from collections import deque
 from logging import INFO,DEBUG,CRITICAL
 
 class RemoteCollector(Daemon):
@@ -89,13 +89,16 @@ class RemoteCollector(Daemon):
                 data = json.loads(raw_data)
                 sensor = data['sensore']
                 oper = data['operazione']
+                # se non esiste ancora creo un coda
                 if sensor not in sensors_data:
-                    sensors_data[sensor] = Queue.Queue()
+                    sensors_data[sensor] = deque(maxlen=500)
 
                 q = sensors_data[sensor]
 
                 if oper == 'invio_dati':
-                    q.put({
+                    if len(q) >= q.maxlen:
+                        self.log.error('Coda sensori piena, il vecchi valori verranno sovrascritti.')
+                    q.append({
                         'sensor_name': sensor,
                         'valido' : data['valido'],
                         'date_time': datetime.today(),
@@ -109,8 +112,8 @@ class RemoteCollector(Daemon):
                 elif oper == 'acquisizione_dati' :
                     samples = [];
                     sent = 0
-                    while sent <= RemoteCollector.MAX_SEND_SAMPLE and not q.empty():
-                        samples.append(q.get())
+                    while sent <= RemoteCollector.MAX_SEND_SAMPLE and not q:
+                        samples.append(q.pop())
                         sent+=1
 
                     conn.send(json.dumps(samples, default=self.datetime_handler))

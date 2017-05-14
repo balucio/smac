@@ -15,12 +15,12 @@ import threading
 from daemon import Daemon
 from datetime import datetime
 from collections import deque
-from logging import INFO,DEBUG,CRITICAL
+from logging import INFO,DEBUG,CRITICAL,WARNING
 
 class RemoteCollector(Daemon):
 
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = CRITICAL #DEBUG
+    DEF_LOG_LEVEL = WARNING #CRITICAL WARNING INFO
     BUFFER_SIZE = 1024
     MAX_SEND_SAMPLE = 30
 
@@ -83,19 +83,22 @@ class RemoteCollector(Daemon):
         # reading data from client
         raw_data = conn.recv(RemoteCollector.BUFFER_SIZE)
         if raw_data:
+            self.log.debug('Acquisisco il lock')
             self.lock.acquire()
             try:
-                self.log.debug('Acquisisco il lock')
+                self.log.debug('Dati ricevuti: {}'.format(raw_data))
                 data = json.loads(raw_data)
                 sensor = data['sensore']
                 oper = data['operazione']
                 # se non esiste ancora creo un coda
                 if sensor not in sensors_data:
                     sensors_data[sensor] = deque(maxlen=500)
+                    self.log.debug('Creo nuova coda per il sensore {}'.format(sensor))
 
                 q = sensors_data[sensor]
 
                 if oper == 'invio_dati':
+                    self.log.debug('Ricevo e accodo i dati del sensore {}'.format(sensor))
                     if len(q) >= q.maxlen:
                         self.log.error('Coda sensori piena, il vecchi valori verranno sovrascritti.')
                     q.append({
@@ -110,11 +113,13 @@ class RemoteCollector(Daemon):
                     conn.send('OK')
 
                 elif oper == 'acquisizione_dati' :
+                    self.log.debug('Restituisco i dati del sensore {}'.format(sensor))
                     samples = [];
                     sent = 0
-                    while sent <= RemoteCollector.MAX_SEND_SAMPLE and not q:
+                    while sent <= RemoteCollector.MAX_SEND_SAMPLE and q:
                         samples.append(q.pop())
                         sent+=1
+                        self.log.debug('Rimuovo dalla coda i dati {}'.format(samples[-1]))
 
                     conn.send(json.dumps(samples, default=self.datetime_handler))
 

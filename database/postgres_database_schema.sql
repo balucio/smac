@@ -405,12 +405,12 @@ BEGIN
 
 	IF delta IS NULL THEN
 		-- delta è null se questo è il primo record e inserisco il primo valore
-		INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NEW.data_ora, NEW.stato);	
+		INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NEW.data_ora, NEW.stato);
 		RETURN NEW;
 	END IF;
 
 	UPDATE ultima_commutazione SET stato = NEW.stato, data_ora = NEW.data_ora;
-	
+
 	IF delta < MAX_INTERVAL THEN
 		-- Inserisco solo se c'è una variazione di stato
 		IF NEW.stato IS DISTINCT FROM ultimo_stato THEN
@@ -426,7 +426,7 @@ BEGIN
 		-- a questo punto inserisco la nuova misurazione
 		RETURN NEW;
 	END IF;
-  
+
 END;$$;
 
 
@@ -451,17 +451,24 @@ BEGIN
                       WHERE ultimo_aggiornamento IS NULL
                          OR ultimo_aggiornamento <= (NOW() - previsione)
         LOOP
+           BEGIN
+               SELECT previsione_mq(l_sensore, 'temperatura', campione, previsione) INTO previsione_temperatura;
+               SELECT previsione_mq(l_sensore, 'umidita', campione, previsione) INTO previsione_umidita;
 
-            SELECT previsione_mq(l_sensore, 'temperatura', campione, previsione) INTO previsione_temperatura;
-            SELECT previsione_mq(l_sensore, 'umidita', campione, previsione) INTO previsione_umidita;
+               UPDATE situazione
+                    SET tendenza_temperatura = previsione_temperatura,
+                        tendenza_umidita =  previsione_umidita
+               WHERE id_sensore = l_sensore;
 
-            UPDATE situazione
-               SET tendenza_temperatura = previsione_temperatura,
-                   tendenza_umidita =  previsione_umidita
-             WHERE id_sensore = l_sensore;
-
-	    UPDATE sensori SET ultimo_aggiornamento = NOW() WHERE id_sensore = l_sensore;
-    END LOOP;
+               UPDATE sensori SET ultimo_aggiornamento = NOW() WHERE id_sensore = l_sensore;
+               -- gestisco un eventuale divisione per zero in previsione_mq
+           EXCEPTION
+               WHEN division_by_zero THEN
+                  RAISE NOTICE 'Probabile divsione per zero in previsione_mq';
+                  -- continuo con il sensore successivo
+                  NULL;
+          END;
+	     	END LOOP;
 END;$$;
 
 
@@ -1099,7 +1106,7 @@ DECLARE
 BEGIN
 
 	-- Trovo la data precedente più vicina a data_inizio
-	SELECT data_ora INTO start_date 
+	SELECT data_ora INTO start_date
 	  FROM storico_commutazioni
 	 WHERE data_ora <= data_inizio
       ORDER BY data_ora DESC
@@ -1129,7 +1136,7 @@ BEGIN
 				       ) storico_completo
 				 WHERE data_ora BETWEEN start_date AND data_fine
 			      ORDER BY data_ora
-			 
+
 			  ) storico WHERE stato_precedente IS DISTINCT FROM stato
 		 ) storico;
 END;$$;
@@ -1194,7 +1201,7 @@ CREATE FUNCTION report_sensori(data_ora_inizio timestamp without time zone DEFAU
 BEGIN
 
 	SELECT min(data_ora), max(data_ora)
-	  INTO min_data_ora, max_data_ora 
+	  INTO min_data_ora, max_data_ora
 	  FROM misurazioni
 	 WHERE data_ora BETWEEN data_ora_inizio
 	   AND data_ora_fine;
@@ -1459,7 +1466,7 @@ CREATE TABLE situazione (
 ALTER TABLE public.situazione OWNER TO smac;
 
 --
--- Name: start_date; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+-- Name: start_date; Type: TABLE; Schema: public; Owner: smac; Tablespace:
 --
 
 CREATE TABLE start_date (
@@ -1470,7 +1477,7 @@ CREATE TABLE start_date (
 ALTER TABLE public.start_date OWNER TO smac;
 
 --
--- Name: storico_commutazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+-- Name: storico_commutazioni; Type: TABLE; Schema: public; Owner: smac; Tablespace:
 --
 
 CREATE TABLE storico_commutazioni (
@@ -1482,7 +1489,7 @@ CREATE TABLE storico_commutazioni (
 ALTER TABLE public.storico_commutazioni OWNER TO smac;
 
 --
--- Name: ultima_commutazione; Type: TABLE; Schema: public; Owner: smac; Tablespace: 
+-- Name: ultima_commutazione; Type: TABLE; Schema: public; Owner: smac; Tablespace:
 --
 
 CREATE TABLE ultima_commutazione (
@@ -1574,6 +1581,7 @@ COPY dettaglio_programma (id_programma, giorno, ora, t_riferimento) FROM stdin;
 COPY driver_sensori (id, nome, parametri) FROM stdin;
 1	DHT11	--sensor=11 --retries=7 --delay_seconds=3
 2	DHT22	--sensor=22 --retries=7 --delay_seconds=3
+3	SESPS	--server=127.0.0.1
 \.
 
 
@@ -1716,7 +1724,7 @@ ALTER TABLE ONLY situazione
 
 
 --
--- Name: storico_commutazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: smac; Tablespace: 
+-- Name: storico_commutazioni_pkey; Type: CONSTRAINT; Schema: public; Owner: smac; Tablespace:
 --
 
 ALTER TABLE ONLY storico_commutazioni
@@ -1874,4 +1882,3 @@ GRANT ALL ON SCHEMA public TO PUBLIC;
 --
 -- PostgreSQL database dump complete
 --
-

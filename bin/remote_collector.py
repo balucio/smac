@@ -20,7 +20,7 @@ from logging import INFO,DEBUG,CRITICAL,WARNING
 class RemoteCollector(Daemon):
 
     SLEEP_TIME = 60
-    DEF_LOG_LEVEL = WARNING #CRITICAL WARNING INFO
+    DEF_LOG_LEVEL = INFO #CRITICAL WARNING INFO
     BUFFER_SIZE = 1024
     MAX_SEND_SAMPLE = 30
 
@@ -92,7 +92,7 @@ class RemoteCollector(Daemon):
                 oper = data['operazione']
                 # se non esiste ancora creo un coda
                 if sensor not in sensors_data:
-                    sensors_data[sensor] = deque(maxlen=500)
+                    sensors_data[sensor] = deque(maxlen=1000)
                     self.log.debug('Creo nuova coda per il sensore {}'.format(sensor))
 
                 q = sensors_data[sensor]
@@ -101,6 +101,11 @@ class RemoteCollector(Daemon):
                     self.log.debug('Ricevo e accodo i dati del sensore {}'.format(sensor))
                     if len(q) >= q.maxlen:
                         self.log.error('Coda sensori piena, il vecchi valori verranno sovrascritti.')
+
+                    with open("/tmp/tensioni.log", "a") as tensioni:
+                        tensioni.write( datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' ' + data['tensione'] + '\n')
+
+                    self.log.debug('TENSIONE {}'.format(data['tensione']))
                     q.append({
                         'sensor_name': sensor,
                         'valido' : data['valido'],

@@ -182,12 +182,13 @@ class Collector(Daemon):
             self.log.info("Sensore %s: %s", sid, output[1])
             samples = []
             for sample in rsamples:
-                samples.append({
-                    'sensor_id': sid,
-                    'date_time': sample['date_time'],
-                    'temperatura': sample['temperatura'],
-                    'umidita': sample['umidita']
-                })
+                if sample['valido'] == 'true':
+                    samples.append({
+                        'sensor_id': sid,
+                        'date_time': sample['date_time'],
+                        'temperatura': sample['temperatura'],
+                        'umidita': sample['umidita']
+                    })
             return samples
         else:
             self.log.error("Driver %s sconosciuto", driver)

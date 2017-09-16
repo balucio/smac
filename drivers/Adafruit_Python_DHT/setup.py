@@ -1,5 +1,11 @@
-from ez_setup import use_setuptools
-use_setuptools()
+try:
+    # Try using ez_setup to install setuptools if not already installed.
+    from ez_setup import use_setuptools
+    use_setuptools()
+except ImportError:
+    # Ignore import error and assume Python 3 which already has setuptools.
+    pass
+
 from setuptools import setup, find_packages, Extension
 import sys
 
@@ -46,6 +52,11 @@ if platform == platform_detect.RASPBERRY_PI:
                                     ["source/_Raspberry_Pi_2_Driver.c", "source/common_dht_read.c", "source/Raspberry_Pi_2/pi_2_dht_read.c", "source/Raspberry_Pi_2/pi_2_mmio.c"],
                                     libraries=['rt'],
                                     extra_compile_args=['-std=gnu99']))
+    elif pi_version == 3:
+        extensions.append(Extension("Adafruit_DHT.Raspberry_Pi_2_Driver",
+                                    ["source/_Raspberry_Pi_2_Driver.c", "source/common_dht_read.c", "source/Raspberry_Pi_2/pi_2_dht_read.c", "source/Raspberry_Pi_2/pi_2_mmio.c"],
+                                    libraries=['rt'],
+                                    extra_compile_args=['-std=gnu99']))
     else:
         raise RuntimeError('Detected Pi version that has no appropriate driver available.')
 elif platform == platform_detect.BEAGLEBONE_BLACK:
@@ -72,7 +83,7 @@ classifiers = ['Development Status :: 4 - Beta',
 
 # Call setuptools setup function to install package.
 setup(name              = 'Adafruit_DHT',
-      version           = '1.3.0',
+      version           = '1.3.2',
       author            = 'Tony DiCola',
       author_email      = 'tdicola@adafruit.com',
       description       = 'Library to get readings from the DHT11, DHT22, and AM2302 humidity and temperature sensors on a Raspberry Pi or Beaglebone Black.',

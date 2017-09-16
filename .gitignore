@@ -4,3 +4,4 @@ lib*.so.*
 *~
 gpio/gpio
 *.pyc
+*/dist/

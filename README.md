@@ -163,21 +163,23 @@ La creazione delle directory dei log sono in comune ad per entrambi i WebServer:
 
     sudo mkdir -p /opt/smac/log/
 
-##### Installazione librerie python per il controllo GPIO
+##### Installazione librerie python per database e GPIO
 
-Per il controllo dei pin sul connettore GPIO l'applicativo utilizza la libreria python:
+I demoni in python usano la libreria psycopg2 per interfacciarsi con il database Postgresql.
+Per il controllo dei pin è usata invece la libreria python-rpi.gpio che dovrebbe risultare già installata sul Raspberry.
 
-        sudo apt-get install python-rpi.gpio
+        sudo apt-get install python-rpi.gpio apt-get python-psycopg2
 
-##### Compilazione dei driver Adafruit Python
-Per la lettura dei valori rilevati dai sensori di temperatura **DHT11** e **DHT22** viene utilizza la libreria di Adafruit_Python_DHT:
+##### Compilazione dei driver Adafruit Python.
+Per la lettura dei valori rilevati dai sensori di temperatura **DHT11** e **DHT22** viene utilizza la libreria di Adafruit_Python_DHT. Questa libreria va prima compilata. La compilazione necessita degli strumenti di sviluppo e il pacchetto Python-Dev, che vanno prima installati:
+
+        sudo apt-get install build-essential python-dev
 
         cd <smac>/drivers/Adafruit_Python_DHT/
         python setup.py build
         python setup.py install
 
-NOTA: Ho eseguito vari test sperimentali sui sensori DHTxx. Il sensore DHT22 è più preciso e stabile rispetto al DHT11. Entrambi comunque sono abbastanza sensibili alla distanza e se non viene usata correttamente una resistenza di "pull-up" di valore adeguato tra i pin dati e alimentazione, tendono a riportare risultati di temperatura/umidità completamente errati o fuori scala. Relatiavmente al sensore DHT11 ho notato che se si eseguono tre letture per ogni campionamento, i valori riportati sono più stabili e meno suscettibili ai predetti errori. Proprio per questo nel tempo ho modificato lo script python dhtxx.py in modo da effettuare tre letture ad intervalli di due (2) secondi ad ogni invocazione. Inoltre per migliorare l'affidabilità, vengono automaticamente scartati i valori fuori scala (esempio umidità > 100%) e ai valori ottenuti viene applicato il test Q o di Dixon per scartare eventuali valori che hanno una probabilità abbastanza alta di essere errati.
-
+NOTA: Ho eseguito vari test sperimentali sui sensori DHTxx. Il DHT22 sembra più preciso ma un po' meno stabile nelle letture rispetto al DHT11. Entrambi comunque sono abbastanza sensibili alla distanza e se non viene usata correttamente una resistenza di "pull-up" di valore adeguato tra i pin dati e alimentazione, tendono a riportare risultati di temperatura/umidità completamente errati o fuori scala. Per miglioare le misurazioni i driver effettuano tre letture per ogni campionamento, a intervalli di due (2) secondi. Alle misurazioni viene applicati il test Q o di Dixon per scartare eventuali valori con probabilità molto elevata di essere sbagliati.
 
 ##### Installazione degli eseguibili python e dell'applicativo Web in php
 

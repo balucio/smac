@@ -380,55 +380,66 @@ ALTER FUNCTION public.aggiorna_situazione() OWNER TO smac;
 -- Name: aggiorna_storico_commutazioni(); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION aggiorna_storico_commutazioni() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
+CREATE FUNCTION public.aggiorna_storico_commutazioni()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+AS $BODY$
+
 DECLARE
-	MAX_INTERVAL INTERVAL DEFAULT '10 minutes'::interval;
-	delta INTERVAL;
-	ultima_data_ora TIMESTAMP WITHOUT TIME ZONE;
-	ultimo_stato BOOLEAN;
+    -- l'actuator può fallire 6 tentativi (con un delay 300), prima che lo stato caldaia
+    -- venga impostato a sconosciuto
+  MAX_INTERVAL INTERVAL DEFAULT '60 minutes'::interval;
+  delta INTERVAL;
+  ultima_data_ora TIMESTAMP WITHOUT TIME ZONE;
+  ultimo_stato BOOLEAN;
 BEGIN
-	-- ultima commutazione inserita
-	SELECT data_ora, stato
-	  INTO ultima_data_ora, ultimo_stato
-	  FROM ultima_commutazione
-      ORDER BY data_ora desc
-         LIMIT 1;
+  -- ultima commutazione inserita
+  SELECT data_ora, stato
+    INTO ultima_data_ora, ultimo_stato
+    FROM ultima_commutazione
+  ORDER BY data_ora desc LIMIT 1;
 
-	-- Inserisco se la data ora che sto scrivendo è inferiore a quella dell'ultima registrazione
-	IF ultima_data_ora > NEW.data_ora THEN
-		RETURN NEW;
-	END IF;
+  -- Inserisco se la data ora che sto scrivendo è inferiore a quella dell'ultima registrazione
+    -- Per debug in teroria non dovrebbe mai accadere
+  IF ultima_data_ora > NEW.data_ora THEN
+    RETURN NEW;
+  END IF;
 
-	delta = date_trunc('seconds', NEW.data_ora - ultima_data_ora);
+  delta = date_trunc('seconds', NEW.data_ora - ultima_data_ora);
 
-	IF delta IS NULL THEN
-		-- delta è null se questo è il primo record e inserisco il primo valore
-		INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NEW.data_ora, NEW.stato);
-		RETURN NEW;
-	END IF;
+  IF delta IS NULL THEN
+    -- delta è null se questo è il primo record e inserisco il primo valore
+    INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NOW(), NEW.stato);
+    RETURN NEW;
+  END IF;
 
-	UPDATE ultima_commutazione SET stato = NEW.stato, data_ora = NEW.data_ora;
+   -- mantengo aggiornato il tempo di ultima commutazione e lo stato con i nuovi dati
+  UPDATE ultima_commutazione SET stato = NEW.stato, data_ora = NOW();
+  
+   -- se non c'è un cambiamento di stato non è necessario aggiornare
+   IF NEW.stato IS NOT DISTINCT FROM ultimo_stato THEN
+      RETURN NULL;
+   END IF;
 
-	IF delta < MAX_INTERVAL THEN
-		-- Inserisco solo se c'è una variazione di stato
-		IF NEW.stato IS DISTINCT FROM ultimo_stato THEN
-			RETURN NEW;
-		ELSE
-			RETURN NULL;
-		END IF;
-	ELSE
-		-- ritengo dopo MAX_INTERVAL di non sapere più lo stato dello switch
-		INSERT INTO storico_commutazioni(data_ora, stato)
-		VALUES (ultima_data_ora + MAX_INTERVAL , NULL::boolean);
+   -- se è passato MAX_INTERVAL dall'aggiornamento e lo stato è cambiato
+   -- assumo di non sapere più lo stato della caldaia.
+  IF delta > MAX_INTERVAL THEN
 
-		-- a questo punto inserisco la nuova misurazione
-		RETURN NEW;
-	END IF;
+      -- Suppongo che l'actuator non aggiorni più lo stato da un tempo pari all'ulimo 
+      -- aggiornamento più la metà di MAX_INTERVAL
+    INSERT INTO storico_commutazioni(data_ora, stato)
+         VALUES (ultima_data_ora + (MAX_INTERVAL / 2) , NULL::boolean);
 
-END;$$;
+    -- a questo punto inserisco la nuova misurazione
+    RETURN NEW;
+  END IF;
 
+  -- Nessun inserimento altrimenti
+  RETURN NULL;
+  
+END;
+
+$BODY$;
 
 ALTER FUNCTION public.aggiorna_storico_commutazioni() OWNER TO smac;
 

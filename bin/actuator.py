@@ -8,17 +8,17 @@ import datetime
 from daemon import Daemon
 from database import Database
 from switch import Switch
-from logging import INFO, DEBUG, CRITICAL
+from logging import INFO, DEBUG, CRITICAL, WARNING
 from decimal import Decimal
 from time import sleep
 
 
 class Actuator(Daemon):
 
-    SLEEP_TIME = 180            # controllo standard 180 sec, 3 minuti
-    DEF_LOG_LEVEL = CRITICAL    # DEBUG
+    SLEEP_TIME = 300        # polling verifica stato sensori e switcher
+    DEF_LOG_LEVEL = CRITICAL   # DEBUG
 
-    TEMP_THRESHOLD = 0.22        # Grado soglia di innesco cambiamento stato
+    TEMP_THRESHOLD = 0.10        # Grado soglia di innesco cambiamento stato
     TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
     TIME_THRESHOLD = 7200       # 2 ore
 
@@ -247,6 +247,7 @@ class Actuator(Daemon):
         res = True
 
         # Inserisco stato caldaia a database
+        self.log.info( 'Aggiorno stato storico commutazioni a %s', nuovo_stato)
         self.db.query(
             'INSERT INTO storico_commutazioni(stato) VALUES(%s)',
             [None if nuovo_stato is Switch.ST_UNKNOW
@@ -255,7 +256,7 @@ class Actuator(Daemon):
 
         if nuovo_stato != stato_attuale:
 
-            self.log.info(
+            self.log.warning(
                 'Commutazione: DA %s - A %s',
                 stato_attuale, nuovo_stato)
 

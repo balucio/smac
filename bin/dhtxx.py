@@ -71,12 +71,12 @@ MAX_H = 100
 MIN_T = -20
 MAX_T = 60
 
-READ_ERR_MAX = 5
+READ_ERR_MAX = 2
 
 THR_DIXON = 0.
 
 # Numero di letture
-READINGS=3
+READINGS=1
 
 i = 0
 read_errors = 0
@@ -84,8 +84,8 @@ read_errors = 0
 reads_h = []
 reads_t = []
 
-# Sperimentalmente ho notato che si ottengono risultati migliori facendo eseguire al sensore
-# almeno tre misurasioni
+# Si dovrebbero ottenere risultati migliori facendo eseguire al sensore
+# almeno tre misurasioni e applicando la riduzione Dixon ai risultati
 while i < READINGS:
 
     h, t = Adafruit_DHT.read_retry(args.sensor, args.pin,
@@ -97,7 +97,7 @@ while i < READINGS:
 	read_errors += 1
 	if read_errors > READ_ERR_MAX:
 	    raise SystemError("Superato il limite massimo di letture errate")
-        time.sleep(5 + read_errors)
+        time.sleep(read_errors)
         continue
 
     # salvo le letture
@@ -109,9 +109,13 @@ while i < READINGS:
     # pausa per la prossima lettura
     time.sleep(3)
 
-# In caso di più di due misurazioni provo ad applicare il test di dixon per eliminare il valore
-# probabilmente meno corretto 
-humidity = dixon_reduce(reads_h)
-temperature = dixon_reduce(reads_t)
+# In caso di tre misurazioni viene applicato il test di dixon per
+# eliminare il valore probabilmente meno corretto
+if READINGS == 3:
+    humidity = dixon_reduce(reads_h)
+    temperature = dixon_reduce(reads_t)
+else:
+    humidity = reads_h[0]
+    temperature = reads_t[0]
 
 print "{:f} {:f}".format(temperature, humidity)

@@ -385,58 +385,64 @@ CREATE FUNCTION public.aggiorna_storico_commutazioni()
     LANGUAGE 'plpgsql'
 AS $BODY$
 
-DECLARE
-    -- l'actuator può fallire 6 tentativi (con un delay 300), prima che lo stato caldaia
-    -- venga impostato a sconosciuto
-  MAX_INTERVAL INTERVAL DEFAULT '60 minutes'::interval;
-  delta INTERVAL;
-  ultima_data_ora TIMESTAMP WITHOUT TIME ZONE;
-  ultimo_stato BOOLEAN;
-BEGIN
-  -- ultima commutazione inserita
-  SELECT data_ora, stato
-    INTO ultima_data_ora, ultimo_stato
-    FROM ultima_commutazione
-  ORDER BY data_ora desc LIMIT 1;
+    -- data ultima commutazione
+      SELECT data_ora INTO ultima_data_ora
+        FROM ultima_commutazione
+    ORDER BY data_ora desc
+       LIMIT 1;
 
-  -- Inserisco se la data ora che sto scrivendo è inferiore a quella dell'ultima registrazione
-    -- Per debug in teroria non dovrebbe mai accadere
-  IF ultima_data_ora > NEW.data_ora THEN
-    RETURN NEW;
-  END IF;
+    -- ultimo stato conosciuto
+      SELECT data_ora, stato INTO data_ora_ultimo_stato, ultimo_stato
+        FROM storico_commutazioni
+    ORDER BY data_ora desc
+       LIMIT 1;
 
-  delta = date_trunc('seconds', NEW.data_ora - ultima_data_ora);
+    -- Se la data ora che sto scrivendo è inferiore a quella dell'ultima registrazione
+    -- Lascio che venga inserita la nuova riga ed esco, in teroria non dovrebbe mai accadere
+    IF ultima_data_ora > NEW.data_ora THEN
+       RAISE NOTICE 'Ultima data ora maggiore della nuova, aggiorno solo storico commutazioni';
+       RETURN NEW;
+    END IF;
 
-  IF delta IS NULL THEN
-    -- delta è null se questo è il primo record e inserisco il primo valore
-    INSERT INTO ultima_commutazione(data_ora, stato) VALUES(NOW(), NEW.stato);
-    RETURN NEW;
-  END IF;
+    -- Aggiorno l'ultima commutazione con il nuovo valore
+    IF ultima_data_ora IS NOT NULL THEN
+        RAISE NOTICE 'Aggiorno record nella tabella ultima commutazione';
+        UPDATE ultima_commutazione
+           SET data_ora = NEW.data_ora, stato = NEW.stato;
+    ELSE
+        RAISE NOTICE 'Creo primo record nella tabella ultima commutazione';
+        INSERT INTO ultima_commutazione(data_ora, stato)
+             VALUES (NEW.data_ora, NEW.stato);   
+    END IF;
+    -- Se la tabella storico è vuota inserisco il record ed esco
+    IF data_ora_ultimo_stato IS NULL THEN
+        RAISE NOTICE 'Creo primo record nello storico commutazioni';
+        RETURN NEW;
+    END IF;
 
-   -- mantengo aggiornato il tempo di ultima commutazione e lo stato con i nuovi dati
-  UPDATE ultima_commutazione SET stato = NEW.stato, data_ora = NOW();
-  
-   -- se non c'è un cambiamento di stato non è necessario aggiornare
-   IF NEW.stato IS NOT DISTINCT FROM ultimo_stato THEN
-      RETURN NULL;
+    -- Verifichiamo adesso da quanto non arrivano gli aggiornamenti
+    delta = date_trunc('seconds', NEW.data_ora - COALESCE (ultima_data_ora, data_ora_ultimo_stato));
+    RAISE NOTICE 'Delta oggiornamento %', delta;
+
+    -- se è passato MAX_INTERVAL dall'aggiornamento e l'ultimo stato era conosciuto
+    -- presumo che l'actuator non aggiorni più lo stato della caldaia da un tempo
+    -- pari all'ultimo aggiornamento ricevuto più la metà di MAX_INTERVAL
+    IF delta > MAX_INTERVAL AND ultimo_stato IS NOT NULL THEN
+        RAISE NOTICE 'Nessun aggiornamento da più di %, aggiorno con perdita di stato', MAX_INTERVAL;
+        INSERT INTO storico_commutazioni(data_ora, stato)
+	     VALUES (ultima_data_ora + (MAX_INTERVAL / 2) , NULL::boolean);
+	ultimo_stato := NULL::boolean;
    END IF;
 
-   -- se è passato MAX_INTERVAL dall'aggiornamento e lo stato è cambiato
-   -- assumo di non sapere più lo stato della caldaia.
-  IF delta > MAX_INTERVAL THEN
-
-      -- Suppongo che l'actuator non aggiorni più lo stato da un tempo pari all'ulimo 
-      -- aggiornamento più la metà di MAX_INTERVAL
-    INSERT INTO storico_commutazioni(data_ora, stato)
-         VALUES (ultima_data_ora + (MAX_INTERVAL / 2) , NULL::boolean);
-
-    -- a questo punto inserisco la nuova misurazione
-    RETURN NEW;
-  END IF;
-
-  -- Nessun inserimento altrimenti
-  RETURN NULL;
-  
+    -- Lo storico viene aggiornato solo in caso di cambiamenti
+    IF NEW.stato IS DISTINCT FROM ultimo_stato THEN
+      RETURN NEW;
+    ELSE
+      RAISE NOTICE 'Nessuna variazione di stato, lo storico non verrà aggiornato';
+    END IF;
+   
+   RETURN NULL;
+		 
 END;
 
 $BODY$;

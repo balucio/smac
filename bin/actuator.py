@@ -15,14 +15,15 @@ from time import sleep
 
 class Actuator(Daemon):
 
-    SLEEP_TIME = 300        # polling verifica stato sensori e switcher
-    DEF_LOG_LEVEL = CRITICAL   # DEBUG
+    SLEEP_TIME = 180         # controllo standard 180 sec, 3 minuti
+    DEF_LOG_LEVEL = DEBUG    # Livello messaggi di log
 
-    TEMP_THRESHOLD = 0.10        # Grado soglia di innesco cambiamento stato
-    TEMP_MAXTHRESHOLD = 1.0     # Soglia massima variazione sleep per rating
-    TIME_THRESHOLD = 7200       # 2 ore
+    TEMP_THRESHOLD = 0       # Grado soglia di innesco cambiamento stato
+    TEMP_MAXTHRESHOLD = 1.0  # Soglia massima variazione sleep per rating
+ 
+    MIN_STAY_ON = 600        # Tempo minimo stato ON
 
-    SENS_DATA_THR = 1800        # soglia di validità dati sensori.
+    SENS_DATA_THR = 1800     # Intervallo di validità dati sensori
 
     def run(self):
 
@@ -43,6 +44,9 @@ class Actuator(Daemon):
 
         delay_check = 0
 
+        # Data in cui il sistema è andato in ON
+        self.last_on_datetime = datetime.datetime.min
+
         self.db.set_notification(Database.EVT_ALTER_RELE_PIN)
         self.db.set_notification(Database.EVT_ALTER_PROGRAM)
 
@@ -59,8 +63,8 @@ class Actuator(Daemon):
             self.db.end_transaction()
 
             # se pid -1 significa sistema spento imposto una temperatura
-            # fittizia (-100) per costringere il sistema a spegnersi
-            trif = Decimal(-100) if pid == -1 else trif
+            # fittizia per costringere il sistema a spegnersi
+            trif = Decimal(-200) if pid == -1 else trif
             sensordata = self._get_sensor_data()
 
             if not sensordata:
@@ -69,10 +73,11 @@ class Actuator(Daemon):
                 self.sw.off()
 
             elif not self._is_actual_data(sensordata['lastup'],
-                                          self.TIME_THRESHOLD):
+                                          self.SENS_DATA_THR ):
                 self.log.error(
                     'Dati sensore non aggiornati (%s)', sensordata['lastup'])
                 delay_check = self.SLEEP_TIME
+                # Se i dati dei sensori non sono aggiornati metto a off 
                 self.sw.off()
 
             else:
@@ -215,10 +220,23 @@ class Actuator(Daemon):
         stato_attuale = self.sw.state()
         nuovo_stato = stato_attuale
 
+        delta_on = (datetime.datetime.now() - self.last_on_datetime).total_seconds()
+
         self.log.debug('Stato Sistema: %s' % (stato_attuale))
 
-        # Commuto il sistema in on/off se si supera la soglia minima
-        if deltat >= self.TEMP_THRESHOLD:
+        # Se il sistema è in ON deve rimanerci per almeno MIN_STAY_ON
+        # indipendentemente dalla temperatura
+        if stato_attuale == Switch.ST_ON and delta_on < self.MIN_STAY_ON:
+
+                self.log.info('Forzo il sistema a rimanere in ON per altri %s secondi' % (
+                    self.MIN_STAY_ON - delta_on.total_seconds()))
+
+                # HACK: Modifico deltat per evitare la modifica di next_check
+                deltat = self.TEMP_MAXTHRESHOLD + 1
+                next_check = min(next_check, delta_on.total_seconds())
+
+        # Commuto il sistema in on/off se si supera la soglia
+        elif deltat >= self.TEMP_THRESHOLD:
 
             nuovo_stato = (
                 Switch.ST_ON if reference > temperature else Switch.ST_OFF
@@ -271,6 +289,9 @@ class Actuator(Daemon):
                     ' Prossmo controllo tra %s secondi',
                     nuovo_stato, next_check
                 )
+            elif nuovo_stato == Switch.ST_ON:
+                # Il sistema dovrà rimanere in ON per MIN_STAY_ON secondi
+                self.on_status_time = datetime.datetime.now()
         else:
             self.log.debug(
                 'Sistema in stato %s - Nessuna commutazione', nuovo_stato)

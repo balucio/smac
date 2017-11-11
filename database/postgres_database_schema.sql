@@ -1115,51 +1115,55 @@ ALTER FUNCTION public.programmazioni(progr_id integer, prog_giorno smallint) OWN
 -- Name: report_commutazioni(timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac
 --
 
-CREATE FUNCTION report_commutazioni(data_inizio timestamp without time zone DEFAULT ((now() - '24:00:00'::interval))::timestamp without time zone, data_fine timestamp without time zone DEFAULT now()) RETURNS SETOF eventi_commutazione
-    LANGUAGE plpgsql
-    AS $$
+CREATE OR REPLACE FUNCTION report_commutazioni(
+    data_inizio timestamp without time zone DEFAULT ((now() - '24:00:00'::interval))::timestamp without time zone,
+    data_fine timestamp without time zone DEFAULT now())
+  RETURNS SETOF eventi_commutazione AS
+$BODY$
 DECLARE
-	start_date timestamp without time zone;
+ start_date timestamp without time zone;
 BEGIN
 
-	-- Trovo la data precedente più vicina a data_inizio
-	SELECT data_ora INTO start_date
-	  FROM storico_commutazioni
-	 WHERE data_ora <= data_inizio
+ -- Trovo la data precedente più vicina a data_inizio
+ SELECT data_ora INTO start_date 
+   FROM storico_commutazioni
+  WHERE data_ora <= data_inizio
       ORDER BY data_ora DESC
          LIMIT 1;
 
-	IF start_date IS NULL THEN
-		start_date = data_inizio;
-	END IF;
+ IF start_date IS NULL THEN
+  start_date = data_inizio;
+ END IF;
 
-	RETURN QUERY
-		SELECT data_ora,
-		       date_trunc('MINUTE', LEAD(data_ora, 1, 'NOW') OVER (order by data_ora) - data_ora),
-		       stato
-		  FROM (
-			SELECT row_number() over() riga,
-				GREATEST (data_ora, data_inizio) data_ora,
-			       stato
-			  FROM (
-				SELECT LAG(stato) OVER (ORDER BY data_ora) stato_precedente,
-				       data_ora,
-				       stato
-				  FROM (
-					SELECT *
-					  FROM storico_commutazioni
-				  UNION SELECT *
-					  FROM ultima_commutazione
-				       ) storico_completo
-				 WHERE data_ora BETWEEN start_date AND data_fine
-			      ORDER BY data_ora
+ RETURN QUERY
+  SELECT data_ora,
+         date_trunc('MINUTE', LEAD(data_ora, 1, data_fine) OVER (order by data_ora) - data_ora),
+         stato
+    FROM (
+   SELECT row_number() over() riga,
+    GREATEST (data_ora, data_inizio) data_ora,
+          stato
+     FROM (
+    SELECT LAG(stato) OVER (ORDER BY data_ora) stato_precedente,
+           data_ora,
+           stato
+      FROM (
+     SELECT *
+       FROM storico_commutazioni
+      UNION SELECT *
+       FROM ultima_commutazione
+           ) storico_completo
+     WHERE data_ora BETWEEN start_date AND data_fine
+         ORDER BY data_ora
 
-			  ) storico WHERE stato_precedente IS DISTINCT FROM stato
-		 ) storico;
-END;$$;
-
-
-ALTER FUNCTION public.report_commutazioni(data_inizio timestamp without time zone, data_fine timestamp without time zone) OWNER TO smac;
+     ) storico WHERE stato_precedente IS DISTINCT FROM stato
+   ) storico;
+END;$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION report_commutazioni(timestamp without time zone, timestamp without time zone)
+  OWNER TO smac;
 
 --
 -- Name: report_misurazioni(smallint, timestamp without time zone, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: smac

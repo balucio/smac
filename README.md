@@ -6,26 +6,26 @@ Il progetto è ancora via fase di sviluppo pertanto alcune caratteristiche potre
 
 Questo progetto si propone di implementare un sistema di monitoraggio e di controllo di un impianto di riscaldamento con caldaia usando un dispositivo Rasperry. Sono forniti gli schemi per Raspberry, dai quali possono essere facilmente ricavati quelli per Arduino.
 
-A progetto terminato il repository conterrà tutto l'occorrente per poter installare l'applicativo direttamente sul dispositivo Rasperry.
+Il repository  dovrebbe contenere tutto il necessario per installare l'applicativo direttamente sul dispositivo Rasperry.
 
 - Codice PHP (versione supportata >= 5.4)
 - Database con schema e dati minimali che consentano il funzionamento iniziale dell'applicativo.
   Al momento sono supportate esclusivamente le versioni 9.x di Postgresql. La versione 7 di Raspian utilizza Postgresl versione 9.1.20.
-- Configurazione base del webserver Apache (httpd).
+- Configurazione base del webserver Ngnix o in alternativa Apache.
 - Demoni, eseguibili e driver per l'interfacciamento e la gestione dell'hardware (sensori e relè)
 - Schemi di collegamento sensori (per le misurazioni) e del Relè (per il controllo della caldaia)
 
-Da alcuni test eseguiti il Raspberry 2 è in grado di gestire tranquillamente il webserver (quindi l'applicativo web), i demoni di controllo e il database (Postgres). Con modifiche minime sono tuttavia possibili configurazioni miste, per esempio: un server esterno per servire le pagine PHP e il database, e utilizzare il raspberry solo per i demoni di controllo sensori. L'unico requisito è che sia il rasbperry che il server che ospita l'applicativo web riescano a raggiungere il Database.
-Queste possiblità rendono più semplice un eventuale porting su Arduino.
+Da alcuni test eseguiti il Raspberry 2 è in grado di gestire tranquillamente il webserver (quindi l'applicativo web), i demoni di controllo e il database (Postgres). Con modifiche minime sono tuttavia possibili configurazioni miste, per esempio è possibile separare il webserver (pagine PHP) e il database, e utilizzare il raspberry solo per i demoni di controllo sensori. Il requisito è che sia il rasbperry che il server web riescano a raggiungere il Database.
 
 ### Struttura della directory del progetto
 
-Il programma è progettato per essere installato il `/opt/smac`. È possibile variare questo percorso modificando alcune definizioni usate nel codice PHP e nei vari demoni. Alcuni script e file di configurazioni non potendo usare definizioni comuni potrebbero avere questo percorso codificato, pertanto è necessario assicurarsi di modificare tutti i puntamenti cercandoli usando `grep` nella directory del progetto.
+Il programma è progettato per essere installato il `/opt/smac`. È possibile variare questo percorso modificando alcune definizioni usate nel codice PHP e nei vari demoni. Modificare opportunamente tutti i puntamenti aiutandosi con il comando `grep` nella directory del progetto.
 
 La directory principale del progetto contiene:
 
 - smac: directory principale
-  - apache2: contiene i file di configurazione del webserver apache2
+  - ngnix: contiene i file di configurazione per il webserver Ngnix.
+  - apache2: come sopra ma per Apache
     - smac.conf: contiene la definizione del virtual host per il funzionamento dell'interfaccia
                    web di Smac. Va copiata o meglio ancora "linkata" in /etc/apache2/conf.d/
   - bin:         contiene gli script e librerie (per lo più in python) che consentono di gestire
